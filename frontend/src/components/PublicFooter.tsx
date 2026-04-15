@@ -1,7 +1,9 @@
-import React from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function PublicFooter() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-[#0a0f0d] border-t border-[rgba(45,106,79,0.3)] pt-16  pb-8">
       <div style={{ maxWidth: 1200, margin: '5rem auto', padding: '0 24px' }}>
@@ -12,38 +14,38 @@ export default function PublicFooter() {
               SGP<span style={{ color: '#f59e0b' }}>IMS</span>
             </h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8, fontSize: 16 }}>
-              Smart Gram Panchayat Information Management System is a revolutionary platform designed to bridge the gap between citizens and local governance through transparency and digital innovation.
+              {t('footerDesc')}
             </p>
           </div>
 
           {/* Navigation Column */}
           <div style={{ flex: '1 1 140px' }}>
-            <h3 style={{ color: 'white', fontWeight: 700, marginBottom: 24, fontSize: 18 }}>Quick Links</h3>
+            <h3 style={{ color: 'white', fontWeight: 700, marginBottom: 24, fontSize: 18 }}>{t('quickLinks')}</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <li><Link href="#home" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>Home</Link></li>
-              <li><Link href="#about" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>About Us</Link></li>
-              <li><Link href="#services" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>Services</Link></li>
-              <li><Link href="#gallery" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>Gallery</Link></li>
+              <li><Link href="#home" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>{t('home')}</Link></li>
+              <li><Link href="#about" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>{t('aboutUsFooter')}</Link></li>
+              <li><Link href="#services" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>{t('services')}</Link></li>
+              <li><Link href="#gallery" style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s', fontSize: 15 }}>{t('gallery')}</Link></li>
             </ul>
           </div>
 
           {/* Resources Column */}
           <div style={{ flex: '1 1 140px' }}>
-            <h3 style={{ color: 'white', fontWeight: 700, marginBottom: 24, fontSize: 18 }}>Platform</h3>
+            <h3 style={{ color: 'white', fontWeight: 700, marginBottom: 24, fontSize: 18 }}>{t('platform')}</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <li><Link href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Login Portal</Link></li>
-              <li><Link href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Registration</Link></li>
-              <li><Link href="#" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Documentation</Link></li>
-              <li><Link href="#" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Help Center</Link></li>
+              <li><Link href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('loginPortal')}</Link></li>
+              <li><Link href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('registration')}</Link></li>
+              <li><Link href="#" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('documentation')}</Link></li>
+              <li><Link href="#" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('helpCenter')}</Link></li>
             </ul>
           </div>
 
           {/* Contact Column */}
           <div style={{ flex: '1 1 200px' }}>
-            <h3 style={{ color: 'white', fontWeight: 700, marginBottom: 24, fontSize: 18 }}>Contact Us</h3>
+            <h3 style={{ color: 'white', fontWeight: 700, marginBottom: 24, fontSize: 18 }}>{t('contactUs')}</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <li style={{ color: '#9ca3af', fontSize: 15, display: 'flex', gap: 10 }}>
-                <span>📍</span> Hyderabad, Telangana
+                <span>📍</span> {t('locationFooter')}
               </li>
               <li style={{ color: '#9ca3af', fontSize: 15, display: 'flex', gap: 10 }}>
                 <span>✉️</span> support@sgpims.gov.in
@@ -56,11 +58,11 @@ export default function PublicFooter() {
         </div>
         <div style={{ borderTop: '1px solid rgba(45,106,79,0.3)', paddingTop: 32, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>
-            &copy; {new Date().getFullYear()} EasTechy It Solutions. All rights reserved.
+            &copy; {new Date().getFullYear()} {t('allRightsReserved')}
           </p>
           <div style={{ display: 'flex', gap: 24 }}>
-            <Link href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Privacy Policy</Link>
-            <Link href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Terms of Service</Link>
+            <Link href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('privacyPolicy')}</Link>
+            <Link href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('termsOfService')}</Link>
           </div>
         </div>
       </div>

@@ -99,6 +99,16 @@ class APIClient {
   // Posts / Gallery
   async getPosts() { return this.request('/posts'); }
   async createPost(body: any) { return this.request('/posts', { method: 'POST', body: JSON.stringify(body) }); }
+  async deletePost(id: string) { return this.request(`/posts/${id}`, { method: 'DELETE' }); }
+
+  // Village & District management
+  async getDistricts() { return this.request('/districts'); }
+  async getVillages(params?: Record<string, any>) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request(`/villages${qs}`);
+  }
+  async createVillage(body: any) { return this.request('/villages', { method: 'POST', body: JSON.stringify(body) }); }
+  async assignVillage(userId: string, villageId: string) { return this.request(`/users/${userId}/assign-village`, { method: 'PATCH', body: JSON.stringify({ villageId }) }); }
 }
 
 export const api = new APIClient();

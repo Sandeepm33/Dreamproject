@@ -169,6 +169,19 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(45, 106, 79, 0.5);
 }
 
+select.input-field {
+  color-scheme: dark;
+}
+
+select {
+  color-scheme: dark;
+}
+
+.input-field option, select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
 .label {
   display: block;
   font-size: 13px;

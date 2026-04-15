@@ -218,7 +218,7 @@ export default function ComplaintDetailPage() {
                   )}
                   <div>
                     <div style={{ fontSize:11, color:'var(--text-muted)' }}>{t('village')} / {t('district')}</div>
-                    <div style={{ fontSize:14, color:'var(--text-primary)' }}>📍 {complaint.citizen?.village}{complaint.citizen?.district && `, ${complaint.citizen.district}`}</div>
+                    <div style={{ fontSize:14, color:'var(--text-primary)' }}>📍 {complaint.citizen?.village?.name || (typeof complaint.citizen?.village === 'string' ? complaint.citizen.village : '—')}{complaint.citizen?.district && `, ${typeof complaint.citizen.district === 'object' ? (complaint.citizen.district as any).name : complaint.citizen.district}`}</div>
                   </div>
                 </div>
              </div>

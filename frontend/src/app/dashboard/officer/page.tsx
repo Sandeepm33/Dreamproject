@@ -105,6 +105,7 @@ export default function OfficerDashboard() {
           ))}
         </div>
 
+
         {/* Filter */}
         <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap' }}>
           {['all','pending','assigned','in_progress','resolved'].map(s => (
@@ -152,7 +153,7 @@ export default function OfficerDashboard() {
                 <p style={{ fontSize:12, color:'var(--text-muted)', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' as any, marginBottom:10 }}>{c.description}</p>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <div>
-                    <div style={{ fontSize:11, color:'var(--text-muted)' }}>👤 {c.citizen?.name} · {c.citizen?.village}</div>
+                    <div style={{ fontSize:11, color:'var(--text-muted)' }}>👤 {c.citizen?.name} · {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</div>
                     {c.location?.address && <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>📍 {c.location.address}</div>}
                   </div>
                   <div style={{ textAlign:'right' }}>
@@ -198,7 +199,7 @@ export default function OfficerDashboard() {
                 )}
                 <div style={{ gridColumn:'span 2', marginTop:4 }}>
                   <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('village')}</div>
-                  <div style={{ fontSize:12, color:'var(--text-primary)' }}>📍 {selectedComplaint.citizen?.village}{selectedComplaint.location?.address && ` · ${selectedComplaint.location.address}`}</div>
+                  <div style={{ fontSize:12, color:'var(--text-primary)' }}>📍 {selectedComplaint.citizen?.village?.name || (typeof selectedComplaint.citizen?.village === 'string' ? selectedComplaint.citizen.village : '—')}{selectedComplaint.location?.address && ` · ${selectedComplaint.location.address}`}</div>
                 </div>
               </div>
             </div>

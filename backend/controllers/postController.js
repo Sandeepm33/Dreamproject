@@ -3,7 +3,18 @@ const Post = require('../models/Post');
 // Get all active posts
 exports.getPosts = async (req, res) => {
   try {
-    const posts = await Post.find({ isActive: true })
+    const query = { isActive: true };
+    
+    // Scoping
+    if (req.user && req.user.role === 'citizen') {
+      query.village = req.user.village;
+    } else if (req.user && req.user.role === 'panchayat_secretary') {
+      query.village = req.user.village;
+    } else if (req.user && req.user.role === 'collector') {
+      query.district = req.user.district;
+    }
+
+    const posts = await Post.find(query)
       .populate('createdBy', 'name role')
       .sort({ createdAt: -1 });
     
@@ -25,7 +36,7 @@ exports.createPost = async (req, res) => {
     const { title, description, imageUrl } = req.body;
     
     // Check if user is allowed to create post
-    const allowedRoles = ['panchayat_secretary', 'admin'];
+    const allowedRoles = ['panchayat_secretary', 'admin', 'collector'];
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -33,12 +44,19 @@ exports.createPost = async (req, res) => {
       });
     }
 
-    const post = await Post.create({
+    const postData = {
       title,
       description,
       imageUrl,
-      createdBy: req.user.id
-    });
+      createdBy: req.user.id,
+      district: req.user.district
+    };
+
+    if (req.user.role === 'panchayat_secretary') {
+      postData.village = req.user.village;
+    }
+
+    const post = await Post.create(postData);
 
     res.status(201).json({
       success: true,

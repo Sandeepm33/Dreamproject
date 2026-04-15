@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Sidebar from '@/components/Sidebar';
@@ -35,6 +35,17 @@ export default function NewComplaintPage() {
   const [citizenMobile, setCitizenMobile] = useState('');
   const [targetCitizen, setTargetCitizen] = useState<any>(null);
   const [searchingCitizen, setSearchingCitizen] = useState(false);
+
+  useEffect(() => {
+    if (user && !form.location.village) {
+      const vName = (user.village as any)?.name || (typeof user.village === 'string' ? user.village : '');
+      const dName = (user.district as any)?.name || (typeof user.district === 'string' ? user.district : '');
+      setForm(f => ({
+        ...f,
+        location: { ...f.location, village: vName, district: dName }
+      }));
+    }
+  }, [user]);
 
   const searchCitizen = async () => {
     if (!citizenMobile) return;
@@ -222,7 +233,7 @@ export default function NewComplaintPage() {
                         {targetCitizen ? (
                           <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', padding: '10px 14px', borderRadius: 10, fontSize: 13, color: '#22c55e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span>✅ {t('foundCitizen').replace('{name}', targetCitizen.name)}</span>
-                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>📍 {targetCitizen.village}</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>📍 {targetCitizen.village?.name || (typeof targetCitizen.village === 'string' ? targetCitizen.village : '')}</span>
                           </div>
                         ) : error && onBehalf && (
                           <div style={{ fontSize: 12, color: '#ef4444' }}>⚠️ {t('noCitizenFound')}</div>
@@ -277,7 +288,7 @@ export default function NewComplaintPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <div>
                     <label className="label">{t('village')}</label>
-                    <input name="village" value={form.location.village || user?.village || ''} onChange={handleLocationChange} className="input-field" placeholder={t('villageName')} />
+                    <input name="village" value={form.location.village} onChange={handleLocationChange} className="input-field" placeholder={t('villageName')} />
                   </div>
                   <div>
                     <label className="label">{t('district')}</label>

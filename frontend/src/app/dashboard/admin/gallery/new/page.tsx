@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, Image as ImageIcon, CheckCircle, XCircle, ArrowLeft, Upload } from 'lucide-react';
+import { Camera, Image as ImageIcon, CheckCircle, XCircle, ArrowLeft, Upload, Loader2, Film } from 'lucide-react';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 
@@ -34,7 +34,7 @@ export default function NewGalleryPostPage() {
     setError('');
     
     if (!selectedFile) {
-      setError('Please select an image for the post.');
+      setError('Please select a media file for the post.');
       return;
     }
     
@@ -46,11 +46,11 @@ export default function NewGalleryPostPage() {
     setLoading(true);
     
     try {
-      // 1. Upload the image first
+      // 1. Upload the image/video first
       const uploadRes = await api.uploadFiles([selectedFile]);
       
       if (!uploadRes.success || !uploadRes.files || uploadRes.files.length === 0) {
-        throw new Error('Image upload failed');
+        throw new Error('Upload failed');
       }
       
       const imageUrl = uploadRes.files[0].url;
@@ -65,7 +65,7 @@ export default function NewGalleryPostPage() {
       if (postRes.success) {
         setSuccess(true);
         setTimeout(() => {
-          router.push('/dashboard/admin');
+          router.push('/dashboard/admin/gallery');
         }, 2000);
       }
     } catch (err: any) {
@@ -78,24 +78,28 @@ export default function NewGalleryPostPage() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
       <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', transition: 'margin 0.3s', minHeight: '100vh', display: 'flex', justifyContent: 'center' }}>
+      <main style={{ flex: 1, marginLeft: 280, padding: '40px', transition: 'margin 0.3s', minHeight: '100vh', display: 'flex', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column' }}>
-          <div className="flex items-center gap-4 mb-8">
-            <button onClick={() => router.back()} className="p-2 rounded-xl glass-card hover:bg-white/5 transition-colors">
-              <ArrowLeft size={20} className="text-gray-400" />
+          {/* Header */}
+          <div className="flex items-center gap-5 mb-10">
+            <button 
+              onClick={() => router.back()} 
+              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group"
+            >
+              <ArrowLeft size={20} className="text-gray-400 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white">Add Gallery Post</h1>
-              <p className="text-gray-400 text-sm">Publish an update to the public gallery.</p>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Add Gallery Post</h1>
+              <p className="text-gray-400 text-sm mt-1">Share new updates with your community.</p>
             </div>
           </div>
 
-          <div className="max-w-3xl glass-card rounded-2xl relative overflow-hidden" style={{ padding: '48px', width: '100%' }}>
-            {/* Background glow */}
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="glass-card relative overflow-hidden" style={{ padding: '40px', width: '100%' }}>
+            {/* Background decorative glow */}
+            <div className="absolute -top-32 -right-32 w-80 h-80 bg-green-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
             {error && (
-              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 animate-fade-in">
+              <div className="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 animate-fade-in">
                 <XCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
                 <p className="text-red-400 text-sm font-medium">{error}</p>
               </div>
@@ -108,26 +112,33 @@ export default function NewGalleryPostPage() {
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Post Published!</h2>
                 <p className="text-gray-400">The post is now live on the public gallery.</p>
-                <p className="text-gray-500 mt-2 text-sm">Redirecting to dashboard...</p>
+                <div className="mt-6 flex items-center gap-2 text-gray-500 text-sm">
+                  <div className="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div>
+                  <span>Redirecting to gallery...</span>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-                {/* Image Upload Area */}
+                {/* Media Upload Area */}
                 <div>
-                  <label className="label mb-3">Upload Image*</label>
+                  <label className="label mb-3">Upload Media*</label>
                   <div 
                     className={`border-2 border-dashed rounded-2xl transition-all duration-300 relative overflow-hidden flex flex-col items-center justify-center bg-[#0a120f] ${
-                      previewUrl ? 'border-green-500/30' : 'border-green-900/40 hover:border-green-600/60 hover:bg-green-900/10 cursor-pointer h-64'
+                      previewUrl ? 'border-green-500/30' : 'border-green-900/40 hover:border-green-600/60 hover:bg-green-900/10 cursor-pointer min-h-[280px]'
                     }`}
                     onClick={() => !previewUrl && fileInputRef.current?.click()}
                   >
                     {previewUrl ? (
                       <div className="relative w-full">
-                        <img src={previewUrl} alt="Preview" className="w-full max-h-96 object-contain bg-black/50" />
-                        <div className="absolute top-4 right-4 flex gap-2">
+                        {selectedFile?.type.startsWith('video') ? (
+                          <video src={previewUrl} className="w-full max-h-96 object-contain bg-black/50" controls />
+                        ) : (
+                          <img src={previewUrl} alt="Preview" className="w-full max-h-96 object-contain bg-black/50" />
+                        )}
+                        <div className="absolute top-4 right-4 flex gap-2 font-sans">
                            <button 
                              type="button" 
-                             onClick={() => { setPreviewUrl(''); setSelectedFile(null); }}
+                             onClick={(e) => { e.stopPropagation(); setPreviewUrl(''); setSelectedFile(null); }}
                              className="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-full shadow-lg backdrop-blur-md transition-all"
                            >
                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -139,15 +150,15 @@ export default function NewGalleryPostPage() {
                         <div className="w-16 h-16 rounded-full bg-green-900/30 flex items-center justify-center mb-4 text-green-400">
                           <Camera size={32} />
                         </div>
-                        <p className="text-white font-medium mb-1">Click to browse or drag image here</p>
-                        <p className="text-gray-500 text-xs">Supports JPG, PNG, WEBP (Max 50MB)</p>
+                        <p className="text-white font-medium mb-1">Click to browse or drag file here</p>
+                        <p className="text-gray-500 text-xs">Supports JPG, PNG, WEBP, MP4 (Max 50MB)</p>
                       </>
                     )}
                     <input 
                       type="file" 
                       ref={fileInputRef} 
                       onChange={handleFileChange} 
-                      accept="image/*" 
+                      accept="image/*,video/*" 
                       className="hidden" 
                     />
                   </div>
@@ -178,7 +189,7 @@ export default function NewGalleryPostPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-green-900/30 flex justify-end gap-4">
+                <div className="pt-6 border-t border-white/5 flex flex-col-reverse md:flex-row justify-end gap-4">
                   <button 
                     type="button" 
                     onClick={() => router.back()} 
@@ -189,14 +200,14 @@ export default function NewGalleryPostPage() {
                   <button 
                     type="submit" 
                     disabled={loading || !selectedFile} 
-                    className="btn-primary flex items-center gap-2 min-w-[140px] justify-center"
+                    className="btn-primary flex items-center gap-3 justify-center min-w-[160px]"
                   >
                     {loading ? (
-                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                       <Loader2 size={20} className="animate-spin" />
                     ) : (
                        <>
-                         <Upload size={18} />
-                         Publish Post
+                         <Upload size={20} />
+                         <span>Publish Update</span>
                        </>
                     )}
                   </button>

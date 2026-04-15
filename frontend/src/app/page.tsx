@@ -5,9 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import PublicNavbar from '@/components/PublicNavbar';
 import PublicFooter from '@/components/PublicFooter';
 import WeatherWidget from '@/components/WeatherWidget';
-import { Activity, Users, Shield, ArrowRight, Image as ImageIcon } from 'lucide-react';
+import MapComponent from '@/components/MapComponent';
+import { Activity, Users, Shield, ArrowRight, Image as ImageIcon, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import { api } from '@/lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Type for Post
 interface Post {
@@ -24,9 +26,11 @@ interface Post {
 
 export default function HomePage() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     // If logged in, we let them view the home page now, but they can click "Go to Dashboard"
@@ -64,18 +68,18 @@ export default function HomePage() {
           <div className="animate-fade-in-up" style={{ textAlign: 'center', maxWidth: 900, margin: '0 auto' }}>
             <div className="glass-card" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 999, marginBottom: 32, border: '1px solid rgba(34, 197, 94, 0.4)', background: 'rgba(20, 83, 45, 0.2)' }}>
               <span className="animate-pulse-glow" style={{ display: 'block', height: 8, width: 8, borderRadius: '50%', background: '#22c55e' }}></span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: 1.5 }}>Digital Revolution in Rural India</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: 1.5 }}>{t('digitalRevolution')}</span>
             </div>
             
             <h1 style={{ fontSize: 'clamp(44px, 7vw, 84px)', fontWeight: 800, marginBottom: 28, letterSpacing: '-0.03em', lineHeight: 1.05, fontFamily: 'Poppins' }}>
-              Transforming <span style={{ color: '#4ade80' }}>Rural</span> <br />
+              {t('transforming')} <span style={{ color: '#4ade80' }}>{t('rural')}</span> <br />
               <span style={{ background: 'linear-gradient(to right, #4ade80, #f59e0b, #4ade80)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'gradient-shift 5s linear infinite' }}>
-                Governance
+                {t('governanceHero')}
               </span>
             </h1>
             
             <p style={{ fontSize: 'clamp(17px, 2.2vw, 22px)', color: '#d1d5db', marginBottom: 48, maxWidth: 720, margin: '0 auto 48px auto', lineHeight: 1.6, fontWeight: 400 }}>
-              Connecting citizens with administration through a unified digital platform. Experience transparency, efficiency, and empowerment at your fingertips.
+              {t('heroSub')}
             </p>
             
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 20 }}>
@@ -88,11 +92,11 @@ export default function HomePage() {
                   className="btn-primary" 
                   style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, boxShadow: '0 10px 30px rgba(34, 197, 94, 0.25)' }}
                 >
-                  Enter Dashboard <ArrowRight size={22} />
+                  {t('enterDashboard')} <ArrowRight size={22} />
                 </button>
               ) : (
                 <button onClick={() => router.push('/login')} className="btn-primary" style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, boxShadow: '0 10px 30px rgba(34, 197, 94, 0.25)' }}>
-                  Get Started Now <ArrowRight size={22} />
+                  {t('getStarted')} <ArrowRight size={22} />
                 </button>
               )}
               <button 
@@ -100,7 +104,7 @@ export default function HomePage() {
                 className="glass-card glass-card-hover" 
                 style={{ padding: '18px 40px', fontSize: 17, background: 'rgba(255,255,255,0.03)', color: 'white', fontWeight: 600, cursor: 'pointer', borderRadius: 16 }}
               >
-                Learn More
+                {t('learnMore')}
               </button>
             </div>
           </div>
@@ -108,7 +112,7 @@ export default function HomePage() {
         
         {/* Scroll Indicator */}
         <div style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#4ade80', opacity: 0.6 }}>
-          <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600 }}>Explore</span>
+          <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 2, fontWeight: 600 }}>{t('explore')}</span>
           <div className="animate-float" style={{ width: 2, height: 40, background: 'linear-gradient(to bottom, #4ade80, transparent)', borderRadius: 1 }}></div>
         </div>
       </section>
@@ -118,9 +122,9 @@ export default function HomePage() {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ textAlign: 'center', marginBottom: 40 }}>
-              <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: 8, color: '#38bdf8', fontSize: 13, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase' }}>Live Updates</div>
-              <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, marginBottom: 16, fontFamily: 'Poppins', color: 'white' }}>Meteorological <span style={{ color: '#38bdf8' }}>Forecast</span></h2>
-              <p style={{ color: '#9ca3af', maxWidth: 650, margin: '0 auto', fontSize: 16, lineHeight: 1.6 }}>Get the latest weather directly from the meteorological department for your region.</p>
+              <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: 8, color: '#38bdf8', fontSize: 13, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase' }}>{t('liveUpdates')}</div>
+              <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, marginBottom: 16, fontFamily: 'Poppins', color: 'white' }}>{t('meteorological')} <span style={{ color: '#38bdf8' }}>{t('forecast')}</span></h2>
+              <p style={{ color: '#9ca3af', maxWidth: 650, margin: '0 auto', fontSize: 16, lineHeight: 1.6 }}>{t('weatherSub')}</p>
             </div>
             <div style={{ width: '100%' }}>
               <WeatherWidget />
@@ -129,13 +133,14 @@ export default function HomePage() {
         </div>
       </section>
 
+
       {/* Services/Features Section */}
       <section id="services" style={{ padding: '120px 0', backgroundColor: '#0c120f', position: 'relative' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
-             <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 8, color: '#f59e0b', fontSize: 13, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase' }}>Resources</div>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, marginBottom: 20, fontFamily: 'Poppins', color: 'white' }}>Smart <span style={{ color: '#f59e0b' }}>E-Governance</span></h2>
-            <p style={{ color: '#9ca3af', maxWidth: 650, margin: '0 auto', fontSize: 18, lineHeight: 1.7 }}>Innovative solutions designed to bridge the gap between people and the administration.</p>
+             <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 8, color: '#f59e0b', fontSize: 13, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase' }}>{t('resources')}</div>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, marginBottom: 20, fontFamily: 'Poppins', color: 'white' }}>{t('smart')} <span style={{ color: '#f59e0b' }}>{t('egovTitle')}</span></h2>
+            <p style={{ color: '#9ca3af', maxWidth: 650, margin: '0 auto', fontSize: 18, lineHeight: 1.7 }}>{t('egovSub')}</p>
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 32 }}>
@@ -145,9 +150,9 @@ export default function HomePage() {
               <div style={{ width: 70, height: 70, borderRadius: 20, background: 'rgba(30, 58, 138, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 36, transition: 'all 0.5s ease' }} className="group-hover:scale-110">
                 <Shield size={36} color="#60a5fa" />
               </div>
-              <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'white' }}>Issue Tracking</h3>
+              <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'white' }}>{t('issueTracking')}</h3>
               <p style={{ color: '#9ca3af', lineHeight: 1.8, fontSize: 16 }}>
-                Submit grievances directly to the administration. Track progress in real-time with automated status updates.
+                {t('issueTrackingSub')}
               </p>
             </div>
             {/* Feature 2 */}
@@ -156,9 +161,9 @@ export default function HomePage() {
               <div style={{ width: 70, height: 70, borderRadius: 20, background: 'rgba(120, 53, 15, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 36, transition: 'all 0.5s ease' }} className="group-hover:scale-110">
                 <Activity size={36} color="#fbbf24" />
               </div>
-              <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'white' }}>Smart Polling</h3>
+              <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'white' }}>{t('smartPolling')}</h3>
               <p style={{ color: '#9ca3af', lineHeight: 1.8, fontSize: 16 }}>
-                Have your say in village development. Participate in secure, transparent polls for upcoming local initiatives.
+                {t('smartPollingSub')}
               </p>
             </div>
             {/* Feature 3 */}
@@ -167,9 +172,9 @@ export default function HomePage() {
               <div style={{ width: 70, height: 70, borderRadius: 20, background: 'rgba(20, 83, 45, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 36, transition: 'all 0.5s ease' }} className="group-hover:scale-110">
                 <Users size={36} color="#4ade80" />
               </div>
-              <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'white' }}>Admin Portal</h3>
+              <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20, color: 'white' }}>{t('adminPortalLanding')}</h3>
               <p style={{ color: '#9ca3af', lineHeight: 1.8, fontSize: 16 }}>
-                A direct link between citizens and officials for announcements, certificates, and important documents.
+                {t('adminPortalSub')}
               </p>
             </div>
           </div>
@@ -188,7 +193,7 @@ export default function HomePage() {
               <div style={{ position: 'relative', zIndex: 1, borderRadius: 32, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <img 
                   src="/about-us.png" 
-                  alt="Modern Panchayat Administration" 
+                  alt={t('adminAlt')} 
                   style={{ width: '100%', height: 'auto', display: 'block' }}
                 />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,15,13,0.4), transparent)' }}></div>
@@ -196,36 +201,36 @@ export default function HomePage() {
               
               <div className="glass-card shadow-xl" style={{ position: 'absolute', bottom: -30, right: 20, padding: '24px 32px', zIndex: 2, borderRadius: 20, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
                 <div style={{ fontSize: 36, fontWeight: 800, color: '#f59e0b', marginBottom: 4 }}>100%</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1 }}>Digital Transparency</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1 }}>{t('digitalTransparency')}</div>
               </div>
             </div>
             
-            {/* Text Side */}
+             {/* Text Side */}
             <div style={{ flex: '1 1 500px' }}>
-              <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: 8, color: '#4ade80', fontSize: 13, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase' }}>Our Mission</div>
-              <h2 style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', fontWeight: 800, marginBottom: 24, lineHeight: 1.2 }}>Pioneering Digital <br /><span style={{ color: '#4ade80' }}>Village Governance</span></h2>
+              <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: 8, color: '#4ade80', fontSize: 13, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase' }}>{t('ourMission')}</div>
+              <h2 style={{ fontSize: 'clamp(32px, 4.5vw, 44px)', fontWeight: 800, marginBottom: 24, lineHeight: 1.2 }}>{t('pioneeringDigital')} <br /><span style={{ color: '#4ade80' }}>{t('villageGov')}</span></h2>
               
               <p style={{ color: '#9ca3af', fontSize: 17, lineHeight: 1.8, marginBottom: 24 }}>
-                The SGPIMS (Smart Gram Panchayat Information Management System) was established with a singular vision: to bring the power of world-class digital governance to the very roots of our nation.
+                {t('missionPart1')}
               </p>
               
               <p style={{ color: '#9ca3af', fontSize: 17, lineHeight: 1.8, marginBottom: 32 }}>
-                We believe that geography should not be a barrier to service. By digitizing complaints, polls, and community updates, we ensure that every citizen's voice is heard and every concern is tracked from submission to resolution.
+                {t('missionPart2')}
               </p>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ color: '#4ade80', paddingTop: 4 }}><Shield size={20} /></div>
                   <div>
-                    <h4 style={{ color: 'white', fontWeight: 700, marginBottom: 4 }}>Secured</h4>
-                    <p style={{ color: '#6b7280', fontSize: 13 }}>Enterprise-grade data protection.</p>
+                    <h4 style={{ color: 'white', fontWeight: 700, marginBottom: 4 }}>{t('secured')}</h4>
+                    <p style={{ color: '#6b7280', fontSize: 13 }}>{t('securedSub')}</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
                    <div style={{ color: '#f59e0b', paddingTop: 4 }}><Users size={20} /></div>
                   <div>
-                    <h4 style={{ color: 'white', fontWeight: 700, marginBottom: 4 }}>Inclusive</h4>
-                    <p style={{ color: '#6b7280', fontSize: 13 }}>Built for every member of the village.</p>
+                    <h4 style={{ color: 'white', fontWeight: 700, marginBottom: 4 }}>{t('inclusive')}</h4>
+                    <p style={{ color: '#6b7280', fontSize: 13 }}>{t('inclusiveSub')}</p>
                   </div>
                 </div>
               </div>
@@ -240,8 +245,8 @@ export default function HomePage() {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48 }}>
             <div>
-              <h2 style={{ fontSize: 'clamp(30px, 4vw, 40px)', fontWeight: 800, marginBottom: 16, fontFamily: 'Poppins', color: 'white' }}>Village <span style={{ color: '#22c55e' }}>Gallery</span></h2>
-              <p style={{ color: '#9ca3af', maxWidth: 600, fontSize: 16, lineHeight: 1.6 }}>Visual updates and milestones shared directly by the Panchayat Administration.</p>
+              <h2 style={{ fontSize: 'clamp(30px, 4vw, 40px)', fontWeight: 800, marginBottom: 16, fontFamily: 'Poppins', color: 'white' }}>{t('villageLabelGallery')} <span style={{ color: '#22c55e' }}>{t('galleryLabel')}</span></h2>
+              <p style={{ color: '#9ca3af', maxWidth: 600, fontSize: 16, lineHeight: 1.6 }}>{t('gallerySub')}</p>
             </div>
             <div style={{ marginTop: 24 }}>
                {/* Gallery management moved to dashboard */}
@@ -256,14 +261,30 @@ export default function HomePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 32 }}>
               {posts.map((post) => (
                 <div key={post._id} className="glass-card overflow-hidden group cursor-pointer glass-card-hover" style={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 16 }}>
-                  <div style={{ position: 'relative', height: 256, width: '100%', overflow: 'hidden' }}>
-                    <img 
-                      src={post.imageUrl.startsWith('http') ? post.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${post.imageUrl}`} 
-                      alt={post.title || "Gallery Post"} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }}
-                      className="group-hover:scale-110"
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
-                    />
+                  <div style={{ position: 'relative', height: 256, width: '100%', overflow: 'hidden', background: '#000' }}>
+                    {post.imageUrl.match(/\.(mp4|webm|ogg|mov)$|^data:video/i) ? (
+                      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                        <video 
+                          src={post.imageUrl.startsWith('http') ? post.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${post.imageUrl}`} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          muted
+                          playsInline
+                          onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
+                          onMouseOut={(e) => { (e.target as HTMLVideoElement).pause(); (e.target as HTMLVideoElement).currentTime = 0; }}
+                        />
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)' }}>
+                           <PlayCircle size={48} color="white" style={{ opacity: 0.8 }} />
+                        </div>
+                      </div>
+                    ) : (
+                      <img 
+                        src={post.imageUrl.startsWith('http') ? post.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${post.imageUrl}`} 
+                        alt={post.title || "Gallery Post"} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }}
+                        className="group-hover:scale-110"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
+                      />
+                    )}
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,15,13,0.9), transparent)', opacity: 0, transition: 'opacity 0.3s ease' }} className="group-hover:opacity-100"></div>
                   </div>
                   <div style={{ padding: 24, display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -294,14 +315,80 @@ export default function HomePage() {
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(20, 83, 45, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
                  <ImageIcon size={32} color="rgba(34, 197, 94, 0.5)" />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>No Gallery Posts Yet</h3>
-              <p style={{ color: '#9ca3af' }}>Posts added by the Panchayat Administration will appear here.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>{t('noPostsYet')}</h3>
+              <p style={{ color: '#9ca3af' }}>{t('postsAppearing')}</p>
             </div>
           )}
         </div>
       </section>
 
+
+
       <PublicFooter />
+
+      {/* Floating Map Toggle Button */}
+      <button 
+        onClick={() => setShowMap(!showMap)}
+        style={{
+          position: 'fixed',
+          bottom: 40,
+          right: 40,
+          height: 60,
+          padding: '0 28px',
+          borderRadius: 30,
+          background: showMap ? '#ef4444' : 'linear-gradient(135deg, #22c55e, #14532d)',
+          border: 'none',
+          color: 'white',
+          fontSize: 15,
+          fontWeight: 700,
+          cursor: 'pointer',
+          zIndex: 9999,
+          boxShadow: '0 10px 40px rgba(34, 197, 94, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          fontFamily: 'Poppins'
+        }}
+        className="hover-scale"
+      >
+        {showMap ? (
+          <><span>✕</span> {t('close') || 'Close'}</>
+        ) : (
+          <><span>🗺️</span> {t('clickForMap') || 'Click here for Village Twin'}</>
+        )}
+      </button>
+
+      {/* Floating Map Section / Modal */}
+      {showMap && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9998,
+          backgroundColor: 'rgba(5, 10, 8, 0.95)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '40px',
+          animation: 'fade-in 0.4s ease-out'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+             <div>
+               <h2 style={{ fontSize: 32, fontWeight: 800, color: 'white' }}>{t('villageLabelGallery')} <span style={{ color: '#22c55e' }}>{t('digitalTwinLabel')}</span></h2>
+               <p style={{ color: '#9ca3af' }}>{t('geoViz')}</p>
+             </div>
+             <button 
+               onClick={() => setShowMap(false)}
+               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontWeight: 600 }}
+             >
+               {t('closeView')}
+             </button>
+          </div>
+          <div style={{ flex: 1, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
+            <MapComponent />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

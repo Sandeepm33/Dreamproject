@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Lock, Smartphone, User, Home, ArrowRight, ShieldCheck, Mail, Globe } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { api } from '@/lib/api';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({ name: '', mobile: '', password: '', confirmPassword: '', role: 'citizen', village: '', department: '' });
+  const [form, setForm] = useState({ name: '', mobile: '', password: '', confirmPassword: '', role: 'citizen', village: '', department: '', district: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -16,13 +17,29 @@ export default function LoginPage() {
   const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
 
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [villages, setVillages] = useState<any[]>([]);
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (isRegister) {
+      api.getDistricts().then(res => setDistricts(res.districts || []));
+    }
+  }, [isRegister]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
     setError('');
+  };
+
+  const handleDistrictChange = async (districtId: string) => {
+    setForm(f => ({ ...f, district: districtId, village: '' }));
+    try {
+      const res = await api.getVillages({ district: districtId });
+      setVillages(res.villages || []);
+    } catch (err) {
+      console.error('Failed to fetch villages');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +53,11 @@ export default function LoginPage() {
           setError('Passwords do not match'); 
           setLoading(false); 
           return; 
+        }
+        if (!form.district || !form.village) {
+          setError('Please select Distict and Village');
+          setLoading(false);
+          return;
         }
         loggedInUser = await register(form);
       } else {
@@ -66,19 +88,16 @@ export default function LoginPage() {
 
   return (
     <div className="village-container">
-      {/* Dynamic Background */}
       <div className="village-bg" style={{ backgroundImage: 'url("/bg-telangana-village.png")' }}>
         <div className="village-overlay" />
       </div>
 
-      {/* Decorative Elements */}
       <div className="leaf leaf-1">🍃</div>
       <div className="leaf leaf-2">🌿</div>
       <div className="leaf leaf-3">🍃</div>
 
       <div className="login-content-wrapper">
         <div className={`auth-card-container ${isRegister ? 'is-register' : ''}`}>
-          {/* Left Side: Brand & Visuals */}
           <div className="auth-visual-side">
             <div className="brand-badge">
               <span className="badge-icon">🏛️</span>
@@ -87,27 +106,15 @@ export default function LoginPage() {
                 <span className="brand-tag">{t('governanceRedefined')}</span>
               </div>
             </div>
-            
             <div className="visual-message">
-              <h2 className="welcome-text">
-                {isRegister ? t('join') : t('welcome')}
-              </h2>
-              <p className="sub-text">
-                {isRegister 
-                  ? t('joinVibe')
-                  : t('welcomeVibe')}
-              </p>
+              <h2 className="welcome-text">{isRegister ? t('join') : t('welcome')}</h2>
+              <p className="sub-text">{isRegister ? t('joinVibe') : t('welcomeVibe')}</p>
             </div>
-
             <div className="visual-footer">
-              <div className="trust-item">
-                <ShieldCheck size={18} />
-                <span>{t('secureEgov')}</span>
-              </div>
+              <div className="trust-item"><ShieldCheck size={18} /><span>{t('secureEgov')}</span></div>
             </div>
           </div>
 
-          {/* Right Side: Form */}
           <div className="auth-form-side shadow-2xl">
             <div className="form-inner">
               <div className="form-header">
@@ -123,16 +130,41 @@ export default function LoginPage() {
 
               <form onSubmit={handleSubmit} className="village-form">
                 {isRegister && (
-                  <div className="input-row animate-in">
-                    <div className="input-group">
+                  <>
+                    <div className="input-group animate-in">
                       <label className="v-label"><User size={14} /> {t('fullName')}</label>
                       <input name="name" value={form.name} onChange={handleChange} className="v-input" placeholder="Rajesh Kumar" required />
                     </div>
-                    <div className="input-group">
-                      <label className="v-label"><Home size={14} /> {t('village')}</label>
-                      <input name="village" value={form.village} onChange={handleChange} className="v-input" placeholder="Arampura" required />
+                    <div className="input-row animate-in">
+                      <div className="input-group">
+                        <label className="v-label"><Globe size={14} /> {t('district')}</label>
+                        <select 
+                          className="v-input" 
+                          name="district" 
+                          value={(form as any).district} 
+                          onChange={(e) => handleDistrictChange(e.target.value)} 
+                          required
+                        >
+                          <option value="">{t('selectDistrict')}</option>
+                          {districts.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="input-group">
+                        <label className="v-label"><Home size={14} /> {t('village')}</label>
+                        <select 
+                          className="v-input" 
+                          name="village" 
+                          value={form.village} 
+                          onChange={handleChange} 
+                          required
+                          disabled={!(form as any).district}
+                        >
+                          <option value="">{t('village')}</option>
+                          {villages.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}
+                        </select>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
                 <div className="input-group">
@@ -402,6 +434,15 @@ export default function LoginPage() {
           border-color: #f59e0b;
           background: rgba(26, 71, 42, 0.2);
           box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+
+        select.v-input {
+          color-scheme: dark;
+        }
+
+        .v-input option {
+          background: #111a14;
+          color: white;
         }
 
         .error-box {

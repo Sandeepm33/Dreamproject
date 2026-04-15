@@ -29,6 +29,13 @@ export default function NotificationsPage() {
   }, []);
 
   useEffect(() => { if (user) fetch(); }, [user, fetch]);
+  
+  // Auto-refresh every 10 seconds for real-time feel
+  useEffect(() => {
+    if (!user) return;
+    const timer = setInterval(() => fetch(), 10000);
+    return () => clearInterval(timer);
+  }, [user, fetch]);
 
   const markRead = async (id: string) => {
     try {
@@ -99,7 +106,7 @@ export default function NotificationsPage() {
           </div>
 
           {/* Admin Broadcast Section */}
-          {isAdmin && <AdminBroadcast t={t} />}
+          {isAdmin && <AdminBroadcast t={t} onSuccess={fetch} />}
 
           {loading ? (
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -152,7 +159,7 @@ export default function NotificationsPage() {
   );
 }
 
-function AdminBroadcast({ t }: { t: any }) {
+function AdminBroadcast({ t, onSuccess }: { t: any, onSuccess: () => void }) {
   const [form, setForm] = useState({ title:'', message:'', targetRole:'all' });
   const [imageFile, setImageFile] = useState<File|null>(null);
   const [audioFile, setAudioFile] = useState<File|null>(null);
@@ -216,6 +223,7 @@ function AdminBroadcast({ t }: { t: any }) {
       }
       await api.broadcastNotification({ title:form.title, message:form.message, targetRole: form.targetRole === 'all' ? undefined : form.targetRole, imageUrl, audioUrl });
       setSent(true);
+      onSuccess(); // Immediately refresh local list
       setForm({ title:'', message:'', targetRole:'all' });
       setImageFile(null);
       setAudioFile(null);

@@ -54,7 +54,7 @@ export default function CitizenDashboard() {
               <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>
                 {t('namaste').replace('{name}', user.name.split(' ')[0])}
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>📍 {user.village || t('yourVillage')} · {t('citizenPortal')}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>📍 {((user as any).village?.name || (typeof user.village === 'string' ? user.village : '')) || t('yourVillage')} · {t('citizenPortal')}</p>
             </div>
           </div>
         </div>
@@ -67,9 +67,11 @@ export default function CitizenDashboard() {
             <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{t('reportIssueSub')}</p>
           </div>
           <button onClick={() => router.push('/dashboard/citizen/new-complaint')} className="btn-accent" style={{ fontSize: 14, padding: '14px 28px', whiteSpace: 'nowrap' }}>
+
             ➕ {t('raiseNewIssue')}
           </button>
         </div>
+
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>

@@ -84,6 +84,42 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Village Assignment Banner — shown only to Panchayat Secretary */}
+        {user.role === 'panchayat_secretary' && (
+          <div className="glass-card" style={{ 
+            padding: '16px 24px', 
+            marginBottom: 24, 
+            background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(14,165,233,0.1))', 
+            border: '1px solid rgba(168,85,247,0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 20,
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ fontSize: 36 }}>🏛️</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: '#a855f7', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Your Assigned Jurisdiction</div>
+              {(user as any).village ? (
+                <>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>
+                    {(user as any).village?.name || 'Village'}
+                    {(user as any).village?.villageCode && <code style={{ fontSize: 12, marginLeft: 10, color: 'var(--accent)', background: 'rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: 6 }}>{(user as any).village.villageCode}</code>}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                    {(user as any).district?.name && `📍 ${(user as any).district.name}`}
+                    {(user as any).village?.mandal && ` • ${(user as any).village.mandal} Mandal`}
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 14, color: '#ef4444' }}>⚠️ No village assigned yet. Contact your Collector to get assigned.</div>
+              )}
+            </div>
+          </div>
+        )}
+
+
+
+
         {dataLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
             {[...Array(8)].map((_,i) => <div key={i} className="skeleton" style={{ height: 100, borderRadius: 16 }} />)}
@@ -171,7 +207,7 @@ export default function AdminDashboard() {
                         <td><code style={{ fontSize: 11, color: 'var(--accent)', background: 'rgba(245,158,11,0.1)', padding: '2px 6px', borderRadius: 4 }}>{c.complaintId}</code></td>
                         <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</td>
                         <td><span style={{ fontSize: 12 }}>{catIcons[c.category] || '📋'} {t(c.category as any)}</span></td>
-                        <td style={{ fontSize: 13 }}>{c.citizen?.name} <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>· {c.citizen?.village}</span></td>
+                        <td style={{ fontSize: 13 }}>{c.citizen?.name} <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>· {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</span></td>
                         <td><span className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`}>{t(c.status === 'in_progress' ? 'inProgress' : c.status as any)}</span></td>
                         <td style={{ color: 'var(--accent)', fontSize: 13 }}>👍 {c.voteCount}</td>
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>

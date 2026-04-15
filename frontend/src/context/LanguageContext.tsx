@@ -1,6 +1,6 @@
 
 'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { translations, Language } from '@/lib/translations';
 
 interface LanguageContextType {
@@ -26,9 +26,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('language', lang);
   };
 
-  const t = (key: keyof typeof translations['en']): string => {
-    return translations[language][key] || translations['en'][key] || key;
-  };
+  const t = useCallback((key: keyof typeof translations['en']): string => {
+    const lib = translations as Record<Language, any>;
+    return lib[language][key] || lib['en'][key] || key;
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

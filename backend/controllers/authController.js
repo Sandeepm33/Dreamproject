@@ -34,7 +34,8 @@ exports.login = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
     const token = generateToken(user._id);
-    res.json({ success: true, token, user });
+    const populatedUser = await User.findById(user._id).populate('village district');
+    res.json({ success: true, token, user: populatedUser });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -49,7 +50,14 @@ exports.getMe = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const { name, email, village, language, notificationsEnabled } = req.body;
-    const user = await User.findByIdAndUpdate(req.user._id, { name, email, village, language, notificationsEnabled }, { new: true });
+    
+    const updateData = { name, email, language, notificationsEnabled };
+    // Only update village if it's a valid ObjectId to prevent CastError
+    if (village && require('mongoose').Types.ObjectId.isValid(village)) {
+      updateData.village = village;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true }).populate('village district');
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

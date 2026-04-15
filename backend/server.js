@@ -51,6 +51,8 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/posts', require('./routes/posts'));
+app.use('/api/villages', require('./routes/villages'));
+app.use('/api/districts', require('./routes/districts'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));

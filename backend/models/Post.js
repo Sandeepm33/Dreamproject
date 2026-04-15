@@ -21,7 +21,9 @@ const postSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  village: { type: mongoose.Schema.Types.ObjectId, ref: 'Village' },
+  district: { type: mongoose.Schema.Types.ObjectId, ref: 'District' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Post', postSchema);

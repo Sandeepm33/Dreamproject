@@ -10,7 +10,11 @@ export default function ProfilePage() {
   const { user, updateUser, logout } = useAuth();
   const { t, setLanguage } = useLanguage();
   const router = useRouter();
-  const [form, setForm] = useState({ name: user?.name||'', email: user?.email||'', village: user?.village||'', language: user?.language||'en' });
+  const [form, setForm] = useState({ 
+    name: user?.name||'', 
+    email: user?.email||'', 
+    language: user?.language||'en' 
+  });
   const [pwForm, setPwForm] = useState({ currentPassword:'', newPassword:'', confirmPassword:'' });
   const [saving, setSaving] = useState(false);
   const [changingPw, setChangingPw] = useState(false);
@@ -63,7 +67,7 @@ export default function ProfilePage() {
               {user?.department && <span style={{ fontSize:12, color:'var(--text-muted)' }}>· {user.department}</span>}
             </div>
             <div style={{ fontSize:13, color:'var(--text-muted)' }}>
-              📱 {user?.mobile} {user?.village && `· 📍 ${user.village}`}
+              📱 {user?.mobile} {user?.village && `· 📍 ${(user.village as any)?.name || (typeof user.village === 'string' ? user.village : '—')}`}
             </div>
           </div>
 
@@ -95,7 +99,13 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label className="label">{t('village')}</label>
-                  <input value={form.village} onChange={e => setForm(f => ({...f,village:e.target.value}))} className="input-field" placeholder={t('villagePlaceholder')} />
+                  <input 
+                    value={(user?.village as any)?.name || (typeof user?.village === 'string' ? user.village : '')} 
+                    readOnly 
+                    className="input-field" 
+                    style={{ opacity:0.6, cursor:'not-allowed' }} 
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Jurisdiction changes are managed by the District Collector.</div>
                 </div>
                 <div>
                   <label className="label">{t('langPref')}</label>

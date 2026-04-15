@@ -37,7 +37,7 @@ export default function AdminComplaintsPage() {
     }
   }, [user, loading, router]);
 
-  const fetchComplaints = useCallback(async () => {
+  const fetchComplaints = useCallback(async (active = { current: true }) => {
     setDataLoading(true);
     try {
       const params: any = { page, limit: 15, sortBy: 'createdAt', order: 'desc' };
@@ -46,13 +46,22 @@ export default function AdminComplaintsPage() {
       if (search) params.search = search;
       if (isMine) params.isMine = 'true';
       const res = await api.getComplaints(params);
-      setComplaints(res.complaints || []);
-      setTotal(res.total || 0);
-    } catch {}
-    finally { setDataLoading(false); }
+      if (active.current) {
+        setComplaints(res.complaints || []);
+        setTotal(res.total || 0);
+      }
+    } catch (err) {
+      console.error('Fetch complaints error:', err);
+    } finally {
+      if (active.current) setDataLoading(false);
+    }
   }, [page, status, category, search, isMine]);
 
-  useEffect(() => { if (user) fetchComplaints(); }, [user, fetchComplaints]);
+  useEffect(() => {
+    const active = { current: true };
+    if (user) fetchComplaints(active);
+    return () => { active.current = false; };
+  }, [user, fetchComplaints]);
 
   useEffect(() => {
     api.getOfficers().then(r => setOfficers(r.officers || [])).catch(() => {});
@@ -91,7 +100,7 @@ export default function AdminComplaintsPage() {
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <button onClick={() => router.push('/dashboard/citizen/new-complaint')} className="btn-accent" style={{ fontSize: 13 }}>➕ {t('newComplaint')}</button>
-            <button onClick={fetchComplaints} className="btn-ghost" style={{ fontSize:13 }}>🔄 {t('refresh')}</button>
+            <button onClick={() => fetchComplaints()} className="btn-ghost" style={{ fontSize:13 }}>🔄 {t('refresh')}</button>
           </div>
         </div>
 
@@ -146,7 +155,7 @@ export default function AdminComplaintsPage() {
                     <td><span style={{ fontSize:13 }}>{catIcons[c.category]} {t(c.category as any)}</span></td>
                     <td style={{ fontSize:13 }}>
                       <div>{c.citizen?.name}</div>
-                      <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.citizen?.mobile} · {c.citizen?.village}</div>
+                      <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.citizen?.mobile} · {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</div>
                     </td>
                     <td style={{ fontSize:12, color:'var(--text-muted)' }}>{t(c.department as any) || c.department || '—'}</td>
                     <td>

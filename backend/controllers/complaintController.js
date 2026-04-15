@@ -11,11 +11,13 @@ const sendNotification = async (userId, title, message, type, complaintId) => {
 exports.createComplaint = async (req, res) => {
   try {
     const { title, description, category, location, villageCode, media, citizenId } = req.body;
+    const User = require('../models/User');
 
     // Use citizenId if provided and user is admin/panchayat_secretary/officer
-    let actualCitizenId = req.user._id;
+    let reportee = req.user;
     if (citizenId && ['admin', 'panchayat_secretary', 'officer'].includes(req.user.role)) {
-      actualCitizenId = citizenId;
+      reportee = await User.findById(citizenId).populate('village district');
+      if (!reportee) return res.status(404).json({ success: false, message: 'Citizen not found' });
     }
 
     // Duplicate detection
@@ -27,9 +29,15 @@ exports.createComplaint = async (req, res) => {
 
     const complaint = await Complaint.create({
       title, description, category,
-      citizen: actualCitizenId,
-      location: location || {},
-      villageCode: villageCode || req.user.villageCode || 'VLG',
+      citizen: reportee._id,
+      village: reportee.village?._id || reportee.village,
+      district: reportee.district?._id || reportee.district,
+      location: {
+        ...location,
+        villageLabel: location?.village,
+        districtLabel: location?.district
+      },
+      villageCode: villageCode || reportee.village?.villageCode || reportee.villageCode || 'VLG',
       media: media || [],
       beforeImage: media && media.length > 0 ? media[0].url : '',
       isDuplicate: !!recent,
@@ -37,7 +45,7 @@ exports.createComplaint = async (req, res) => {
       statusHistory: [{ status: 'pending', changedBy: req.user._id, note: 'Complaint submitted' }]
     });
 
-    await sendNotification(actualCitizenId, 'Complaint Submitted', `Your complaint ${complaint.complaintId} has been submitted successfully.`, 'complaint_created', complaint._id);
+    await sendNotification(reportee._id, 'Complaint Submitted', `Your complaint ${complaint.complaintId} has been submitted successfully.`, 'complaint_created', complaint._id);
     const populated = await complaint.populate('citizen', 'name mobile village');
     res.status(201).json({ success: true, complaint: populated });
   } catch (err) {
@@ -51,11 +59,23 @@ exports.getComplaints = async (req, res) => {
     const { status, category, page = 1, limit = 20, search, sortBy = 'createdAt', order = 'desc', isMine, lat, lng, radius } = req.query;
     const query = {};
 
-    if (req.user.role === 'citizen' || isMine === 'true') query.citizen = req.user._id;
-    else if (req.user.role === 'officer') query.assignedTo = req.user._id;
+    if (req.user) {
+      if (req.user.role === 'citizen' || isMine === 'true') {
+        query.citizen = req.user._id;
+      } else if (req.user.role === 'panchayat_secretary') {
+        query.village = req.user.village;
+      } else if (req.user.role === 'collector') {
+        query.district = req.user.district;
+      } else if (req.user.role === 'officer') {
+        query.assignedTo = req.user._id;
+      }
+    }
 
     if (status) query.status = status;
     if (category) query.category = category;
+    
+    // Auto-visibility: If status is 'escalated', it should be flagged for Collector attention
+    // (Already handled by district filter for Collector)
     
     // Geographic Filtering
     if (lat && lng) {

@@ -19,12 +19,14 @@ const complaintSchema = new mongoose.Schema({
   citizen: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   department: { type: String },
+  village: { type: mongoose.Schema.Types.ObjectId, ref: 'Village', required: true },
+  district: { type: mongoose.Schema.Types.ObjectId, ref: 'District', required: true },
   location: {
     address: { type: String },
     lat: { type: Number },
     lng: { type: Number },
-    village: { type: String },
-    district: { type: String }
+    villageLabel: { type: String }, // Human readable label
+    districtLabel: { type: String }
   },
   media: [{
     url: { type: String },

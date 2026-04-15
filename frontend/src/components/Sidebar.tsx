@@ -65,48 +65,48 @@ export default function Sidebar() {
       const interval = setInterval(() => {
         fetchUnread();
         fetchComplaintCount();
-      }, 30000); 
+      }, 10000); 
       return () => clearInterval(interval);
     }
   }, [user, fetchUnread, fetchComplaintCount]);
 
   const nav = user?.role === 'citizen' ? [
     { href: '/dashboard/citizen', icon: '🏠', label: t('dashboard') },
-    { href: '/dashboard/digital-twin', icon: '🌐', label: 'Village Twin' },
     { href: '/dashboard/citizen/complaints', icon: '📋', label: t('myComplaints'), countKey: 'complaints' },
     { href: '/dashboard/citizen/new-complaint', icon: '➕', label: t('newComplaint') },
     { href: '/dashboard/citizen/notifications', icon: '🔔', label: t('notifications'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'officer' ? [
     { href: '/dashboard/officer', icon: '📊', label: t('dashboard') },
-    { href: '/dashboard/digital-twin', icon: '🌐', label: 'Village Twin' },
     { href: '/dashboard/citizen/complaints', icon: '📋', label: t('myComplaints'), countKey: 'complaints' },
     { href: '/dashboard/citizen/new-complaint', icon: '➕', label: t('newComplaint') },
     { href: '/dashboard/officer/assigned', icon: '📋', label: t('assignedIssues') },
     { href: '/dashboard/officer/notifications', icon: '🔔', label: t('notifications'), countKey: 'notifications' },
+    { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'collector' ? [
-    { href: '/dashboard/admin/users', icon: '👥', label: 'Manage Panchayat Secretaries' },
-    { href: '/dashboard/admin/analytics', icon: '📈', label: 'Analysis' },
-    { href: '/dashboard/digital-twin', icon: '🌐', label: 'Village Twin' },
+    { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
+    { href: '/dashboard/admin/villages', icon: '🏛️', label: t('manageVillages') },
+    { href: '/dashboard/admin/analytics', icon: '📈', label: t('analyticsTitle') },
+    { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'panchayat_secretary' ? [
     { href: '/dashboard/admin', icon: '📊', label: t('overview') },
-    { href: '/dashboard/digital-twin', icon: '🌐', label: 'Village Twin' },
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
-    { href: '/dashboard/admin/gallery/new', icon: '🖼️', label: 'Village Gallery' },
+    { href: '/dashboard/admin/gallery', icon: '🖼️', label: t('villageGallery') },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
+    { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : [
     { href: '/dashboard/admin', icon: '📊', label: t('overview') },
-    { href: '/dashboard/digital-twin', icon: '🌐', label: 'Village Twin' },
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/citizen/complaints', icon: '👤', label: t('myComplaints') },
     { href: '/dashboard/citizen/new-complaint', icon: '➕', label: t('newComplaint') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
-    { href: '/dashboard/admin/gallery/new', icon: '🖼️', label: 'Village Gallery' },
+    { href: '/dashboard/admin/gallery', icon: '🖼️', label: 'Village Gallery' },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
+    { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ];
 
-  const handleLogout = async () => { await logout(); router.push('/login'); };
+  const handleLogout = async () => { await logout(); router.push('/'); };
 
   const roleColors: Record<string, string> = {
     citizen: '#22c55e', admin: '#f59e0b', officer: '#0ea5e9', panchayat_secretary: '#a855f7', collector: '#e11d48'
@@ -150,7 +150,7 @@ export default function Sidebar() {
                   </div>
                 </div>
               </div>
-              {user?.village && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>📍 {user.village}</div>}
+              {user?.village && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>📍 {(user.village as any)?.name || (typeof user.village === 'string' ? user.village : '')}</div>}
             </div>
           )}
 

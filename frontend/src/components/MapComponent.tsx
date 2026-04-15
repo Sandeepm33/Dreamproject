@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Navigation, MapPin, Zap, Layers, Filter, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Navigation, Filter } from 'lucide-react';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useVillageIssues } from '@/hooks/useVillageIssues';
 
@@ -23,9 +23,7 @@ if (typeof window !== 'undefined') {
 const MapComponent = () => {
   const [isClient, setIsClient] = useState(false);
   const [radius, setRadius] = useState(5);
-  const [selectedVillage, setSelectedVillage] = useState('');
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showStats, setShowStats] = useState(true);
+  const [villageSelection, setVillageSelection] = useState('');
   
   const { location, loading: locLoading, changeVillage } = useUserLocation();
   const { issues, loading: issuesLoading } = useVillageIssues(location?.lat, location?.lng, radius);
@@ -45,7 +43,7 @@ const MapComponent = () => {
   const { MapContainer, TileLayer, Marker, Popup, Circle: LeafletCircle, LayersControl, useMap } = (isClient ? require('react-leaflet') : {});
 
   // Component to handle map re-centering and size invalidation
-  function ChangeView({ center, zoom, sidebarOpen }: { center: [number, number]; zoom: number; sidebarOpen: boolean }) {
+  function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }) {
     const map = useMap();
     
     useEffect(() => {
@@ -58,19 +56,16 @@ const MapComponent = () => {
         return () => clearTimeout(timeout);
       }
     }, [map, center, zoom]);
-
     useEffect(() => {
       if (map) {
         const timeout = setTimeout(() => {
           try {
             map.invalidateSize();
-          } catch (e) {
-            console.warn('Map invalidateSize failed:', e);
-          }
-        }, 400);
+          } catch (e) {}
+        }, 500);
         return () => clearTimeout(timeout);
       }
-    }, [map, sidebarOpen]);
+    }, [map]);
 
     return null;
   }
@@ -91,7 +86,7 @@ const MapComponent = () => {
 
   const handleVillageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const v = e.target.value;
-    setSelectedVillage(v);
+    setVillageSelection(v);
     if (v) await changeVillage(v);
   };
 
@@ -109,65 +104,9 @@ const MapComponent = () => {
   return (
     <div className="flex gap-6 h-[750px] w-full animate-fade-in relative">
       {/* Map Content - Left */}
-      <div className={`relative transition-all duration-500 ease-in-out overflow-hidden rounded-3xl border border-[#2d6a4f55] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] ${
-        showSidebar ? 'flex-[3]' : 'flex-1'
-      }`}>
+      <div className="relative flex-1 transition-all duration-500 ease-in-out overflow-hidden rounded-3xl border border-[#2d6a4f55] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
         
-        {/* SYMMETRICAL RIGHT CONTROL RAIL */}
-        <div className="absolute top-4 right-4 z-[2000] flex flex-col gap-3 items-end">
-          {/* Spacer to clear the Leaflet control (height approx 52px) */}
-          <div className="h-[52px]" />
 
-          {/* Stats Toggle Icon (HIGH CONTRAST) */}
-          <button 
-            onClick={() => setShowStats(!showStats)}
-            className={`w-11 h-11 flex items-center justify-center rounded-lg shadow-lg border transition-all hover:bg-gray-50 ${
-              showStats ? 'bg-white text-success border-success/30' : 'bg-white text-gray-700 border-white/20'
-            }`}
-          >
-            <Zap className={`h-5 w-5 ${showStats ? 'fill-current' : ''}`} />
-          </button>
-
-          {/* Sidebar Toggle Icon (MATCHING STYLE) */}
-          {!showSidebar && (
-            <button 
-              onClick={() => setShowSidebar(true)}
-              className="w-11 h-11 flex items-center justify-center bg-white text-gray-700 rounded-lg shadow-lg border border-white/20 hover:bg-gray-50 transition-all group"
-            >
-              <Layers className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            </button>
-          )}
-
-          {/* Stats Section - PERFECT SPACING & ACCESSIBILITY */}
-          {showStats && (
-            <div className="mt-2 glass-card p-5 border-[#ffffff22] bg-black/95  animate-fade-in-right min-w-[210px] rounded-2xl relative">
-              <div className="flex justify-between items-center mb-5 border-b border-white/10 pb-3">
-                <span className="text-[11px] text-accent font-black uppercase tracking-[0.2em]">Village Pulse</span>
-                <button 
-                  onClick={() => setShowStats(false)}
-                  className="text-text-muted hover:text-white transition-colors p-1"
-                >
-                  <AlertCircle className="h-4 w-4 rotate-45" />
-                </button>
-              </div>
-              
-              <div className="flex justify-between gap-8 ">
-                <div className="flex-1 space-y-2">
-                  <p className="text-[9px] text-text-muted uppercase font-black opacity-40 spacing-wider">Active</p>
-                  <p className="text-3xl font-black text-white leading-none tracking-tight">
-                    {issues.filter((i: any) => i.status !== 'resolved').length}
-                  </p>
-                </div>
-                <div className="flex-1 space-y-2 text-right">
-                  <p className="text-[9px] text-text-muted uppercase font-black opacity-40 spacing-wider">Resolved</p>
-                  <p className="text-3xl font-black text-success leading-none tracking-tight">
-                    {issues.filter((i: any) => i.status === 'resolved').length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* BOTTOM LEFT CONTROLS */}
         <div className="absolute bottom-10 left-10 z-[1000] w-64 space-y-4">
@@ -177,7 +116,7 @@ const MapComponent = () => {
               <span>Focus</span>
             </div>
             <select 
-              value={selectedVillage} 
+              value={villageSelection} 
               onChange={handleVillageChange}
               className="w-full bg-white/5 text-[11px] py-1.5 px-3 rounded-lg border border-white/10 text-white outline-none focus:border-accent transition-colors"
             >
@@ -220,7 +159,7 @@ const MapComponent = () => {
               </LayersControl.BaseLayer>
             </LayersControl>
 
-            <ChangeView center={mapCenter} zoom={15} sidebarOpen={showSidebar} />
+            <ChangeView center={mapCenter} zoom={15} />
 
             <LeafletCircle 
               center={mapCenter} radius={radius * 1000} 
@@ -258,41 +197,7 @@ const MapComponent = () => {
         </div>
       </div>
 
-      {/* Side Console - Right */}
-      {showSidebar && (
-        <div className="w-96 glass-card flex flex-col overflow-hidden border-[#ffffff11] bg-black/20 animate-fade-in-right">
-          <div className="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                <h3 className="text-xs font-black text-text-primary uppercase tracking-[0.2em]">Village Live Feed</h3>
-              </div>
-              <p className="text-[9px] text-text-muted uppercase opacity-40">Scan: {radius}KM</p>
-            </div>
-            <button 
-              onClick={() => setShowSidebar(false)}
-              className="text-text-muted hover:text-white transition-colors"
-            >
-              <AlertCircle className="h-4 w-4 rotate-45" />
-            </button>
-          </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {issues.map((issue: any) => (
-              <div key={issue._id} className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:border-primary-light transition-all cursor-pointer group">
-                <div className="flex justify-between items-start mb-2">
-                  <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                    issue.status === 'resolved' ? 'bg-success/20 text-success' : 'bg-accent/20 text-accent'
-                  }`}>{issue.status}</span>
-                  <span className="text-[8px] text-white/20">{new Date(issue.createdAt).toLocaleTimeString()}</span>
-                </div>
-                <h4 className="text-xs font-bold text-text-secondary group-hover:text-text-primary transition-colors leading-tight">{issue.title}</h4>
-                <p className="text-[9px] text-text-muted mt-2 uppercase tracking-tighter opacity-50">{issue.category}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <style jsx global>{`
         /* Force Leaflet Layers Control to match our custom icons exactly */

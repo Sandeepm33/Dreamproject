@@ -128,7 +128,7 @@ export default function AdminAssignPage() {
                       <code style={{ fontSize:11, color:'var(--accent)', background:'rgba(245,158,11,0.1)', padding:'2px 8px', borderRadius:4 }}>{c.complaintId}</code>
                     </div>
                     <div style={{ display:'flex', gap:12, alignItems:'center', flexWrap:'wrap' }}>
-                      <span style={{ fontSize:12, color:'var(--text-muted)' }}>👤 {c.citizen?.name} · {c.citizen?.village}</span>
+                      <span style={{ fontSize:12, color:'var(--text-muted)' }}>👤 {c.citizen?.name} · {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</span>
                       {c.location?.address && <span style={{ fontSize:12, color:'var(--text-muted)' }}>📍 {c.location.address}</span>}
                       <span style={{ fontSize:12, color:'var(--accent)' }}>👍 {c.voteCount} votes</span>
                       <span style={{ fontSize:12, color:'var(--text-muted)' }}>📅 {new Date(c.createdAt).toLocaleDateString('en-IN')}</span>

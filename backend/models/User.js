@@ -7,9 +7,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, trim: true, lowercase: true },
   password: { type: String },
   role: { type: String, enum: ['citizen', 'admin', 'officer', 'panchayat_secretary', 'collector'], default: 'citizen' },
-  village: { type: String, default: 'Default Village' },
-  villageCode: { type: String, default: 'VLG' },
-  district: { type: String },
+  village: { type: mongoose.Schema.Types.ObjectId, ref: 'Village' },
+  villageCode: { type: String }, // For historical/convenience use
+  district: { type: mongoose.Schema.Types.ObjectId, ref: 'District' },
   state: { type: String, default: 'Telangana' },
   department: { type: String },
   avatar: { type: String },
@@ -22,8 +22,21 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 userSchema.pre('save', async function() {
+  // Hash password
   if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  // Enforce ONE Secretary per Village
+  if (this.role === 'panchayat_secretary' && (this.isModified('role') || this.isModified('village'))) {
+    const existing = await mongoose.model('User').findOne({ 
+      village: this.village, 
+      role: 'panchayat_secretary',
+      _id: { $ne: this._id } 
+    });
+    if (existing) {
+      throw new Error('This village already has a Panchayat Secretary assigned.');
+    }
   }
 });
 

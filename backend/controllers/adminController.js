@@ -5,28 +5,42 @@ const Notification = require('../models/Notification');
 // GET /api/admin/dashboard
 exports.getDashboard = async (req, res) => {
   try {
+    const dashboardQuery = {};
+    const complaintQuery = {};
+
+    if (req.user.role === 'panchayat_secretary') {
+      const vId = req.user.village?._id || req.user.village;
+      if (vId) complaintQuery.village = vId;
+    } else if (req.user.role === 'collector') {
+      const dId = req.user.district?._id || req.user.district;
+      if (dId) complaintQuery.district = dId;
+    }
+
     const [total, pending, assigned, inProgress, resolved, rejected, escalated] = await Promise.all([
-      Complaint.countDocuments(),
-      Complaint.countDocuments({ status: 'pending' }),
-      Complaint.countDocuments({ status: 'assigned' }),
-      Complaint.countDocuments({ status: 'in_progress' }),
-      Complaint.countDocuments({ status: 'resolved' }),
-      Complaint.countDocuments({ status: 'rejected' }),
-      Complaint.countDocuments({ status: 'escalated' })
+      Complaint.countDocuments(complaintQuery),
+      Complaint.countDocuments({ ...complaintQuery, status: 'pending' }),
+      Complaint.countDocuments({ ...complaintQuery, status: 'assigned' }),
+      Complaint.countDocuments({ ...complaintQuery, status: 'in_progress' }),
+      Complaint.countDocuments({ ...complaintQuery, status: 'resolved' }),
+      Complaint.countDocuments({ ...complaintQuery, status: 'rejected' }),
+      Complaint.countDocuments({ ...complaintQuery, status: 'escalated' })
     ]);
 
     const categoryStats = await Complaint.aggregate([
+      { $match: complaintQuery },
       { $group: { _id: '$category', count: { $sum: 1 } } }
     ]);
 
-    const recentComplaints = await Complaint.find()
+    const recentComplaints = await Complaint.find(complaintQuery)
       .populate('citizen', 'name mobile village')
       .populate('assignedTo', 'name department')
       .sort({ createdAt: -1 })
       .limit(10);
 
-    const totalUsers = await User.countDocuments({ role: 'citizen' });
-    const totalOfficers = await User.countDocuments({ role: 'officer' });
+    // Filter user counts too
+    const userQuery = { ...complaintQuery };
+    const totalUsers = await User.countDocuments({ ...userQuery, role: 'citizen' });
+    const totalOfficers = await User.countDocuments({ ...userQuery, role: 'officer' });
 
     // Resolution rate
     const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
@@ -72,14 +86,57 @@ exports.getDashboard = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const { role, page = 1, limit = 20, search } = req.query;
-    const query = {};
-    if (role) query.role = role;
-    if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { mobile: { $regex: search, $options: 'i' } }];
+    let query = {};
+
+    // 1. Enforce Jurisdictional Scoping first
+    if (req.user.role === 'panchayat_secretary') {
+      const vId = req.user.village?._id || req.user.village;
+      if (!vId) return res.json({ success: true, users: [], total: 0 });
+      
+      query.village = vId;
+      
+      // Role restrictions for Secretary
+      const allowedRoles = ['citizen', 'officer', 'admin', 'panchayat_secretary'];
+      if (role) {
+        if (!allowedRoles.includes(role)) return res.json({ success: true, users: [], total: 0 });
+        query.role = role;
+      } else {
+        query.role = { $in: allowedRoles };
+      }
+    } else if (req.user.role === 'collector') {
+      const dId = req.user.district?._id || req.user.district;
+      if (dId) query.district = dId;
+      if (role) query.role = role;
+    } else {
+      // Standard Admin
+      if (role) query.role = role;
+    }
+
+    // 2. Add search filters if present
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { mobile: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    console.log('--- ADMIN GET USERS ---');
+    console.log('Role Request:', role);
+    console.log('User Role:', req.user.role);
+    console.log('Constructed Query:', JSON.stringify(query));
 
     const total = await User.countDocuments(query);
-    const users = await User.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(parseInt(limit));
+    const users = await User.find(query)
+      .populate('village', 'name villageCode')
+      .populate('district', 'name')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+      
+    console.log(`Returning ${users.length} users and total: ${total}`);
     res.json({ success: true, users, total });
   } catch (err) {
+    console.error('adminController.getUsers Error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -109,7 +166,17 @@ exports.toggleUserStatus = async (req, res) => {
 // GET /api/admin/officers
 exports.getOfficers = async (req, res) => {
   try {
-    const officers = await User.find({ role: { $in: ['officer', 'admin'] }, isActive: true }).select('name role department village');
+    const query = { role: { $in: ['officer', 'admin'] }, isActive: true };
+    
+    if (req.user.role === 'panchayat_secretary') {
+      const vId = req.user.village?._id || req.user.village;
+      if (vId) query.village = vId;
+    } else if (req.user.role === 'collector') {
+      const dId = req.user.district?._id || req.user.district;
+      if (dId) query.district = dId;
+    }
+
+    const officers = await User.find(query).select('name role department village');
     res.json({ success: true, officers });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -120,7 +187,19 @@ exports.getOfficers = async (req, res) => {
 exports.broadcastNotification = async (req, res) => {
   try {
     const { title, message, targetRole, imageUrl, audioUrl } = req.body;
-    const query = targetRole ? { role: targetRole } : {};
+    let query = targetRole ? { role: targetRole } : {};
+
+    // Enforce Jurisdictional Scoping
+    if (req.user.role === 'panchayat_secretary') {
+      const vId = req.user.village?._id || req.user.village;
+      if (vId) query.village = vId;
+      else return res.status(403).json({ success: false, message: 'You must be assigned to a village to broadcast' });
+    } else if (req.user.role === 'collector') {
+      const dId = req.user.district?._id || req.user.district;
+      if (dId) query.district = dId;
+      else return res.status(403).json({ success: false, message: 'You must be assigned to a district to broadcast' });
+    }
+
     const users = await User.find(query).select('_id');
     const notifications = users.map(u => ({ user: u._id, title, message, type: 'general', imageUrl, audioUrl }));
     await Notification.insertMany(notifications);
