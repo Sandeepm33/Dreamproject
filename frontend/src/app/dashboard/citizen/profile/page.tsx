@@ -152,7 +152,7 @@ export default function ProfilePage() {
 
               <div style={{ marginTop:28, paddingTop:20, borderTop:'1px solid var(--border)' }}>
                 <h3 style={{ fontSize:14, fontWeight:700, color:'#ef4444', marginBottom:12 }}>⚠️ {t('dangerZone')}</h3>
-                <button onClick={async () => { await logout(); router.push('/login'); }}
+                <button onClick={async () => { await logout(); router.replace('/login'); }}
                   style={{ padding:'10px 20px', borderRadius:10, border:'1px solid rgba(239,68,68,0.4)', background:'rgba(239,68,68,0.08)', color:'#ef4444', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.15)'}
                   onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.08)'}>

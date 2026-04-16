@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 interface Issue {
   _id: string;
   title: string;
+  description?: string;
   category: string;
   status: 'pending' | 'assigned' | 'in_progress' | 'resolved' | 'rejected' | 'escalated';
   location: {
@@ -13,6 +14,9 @@ interface Issue {
     village?: string;
   };
   createdAt: string;
+  image_url?: string;
+  media?: { url: string; type: string }[];
+  beforeImage?: string;
 }
 
 export const useVillageIssues = (lat?: number, lng?: number, radius: number = 5) => {

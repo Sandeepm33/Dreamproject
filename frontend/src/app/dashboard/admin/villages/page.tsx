@@ -19,7 +19,7 @@ export default function ManageVillagesPage() {
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'collector')) {
-      router.replace('/');
+      router.replace('/login');
     }
   }, [user, loading, router]);
 

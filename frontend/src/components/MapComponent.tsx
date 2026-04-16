@@ -25,6 +25,9 @@ const MapComponent = () => {
   const [radius, setRadius] = useState(5);
   const [villageSelection, setVillageSelection] = useState('');
   
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  
   const { location, loading: locLoading, changeVillage } = useUserLocation();
   const { issues, loading: issuesLoading } = useVillageIssues(location?.lat, location?.lng, radius);
 
@@ -141,6 +144,23 @@ const MapComponent = () => {
               className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-white/10 accent-accent"
             />
           </div>
+
+          <div className="glass-card p-4 border-[#ffffff22] bg-black/80 shadow-lg backdrop-blur-md">
+            <div className="mb-2 flex items-center gap-2 text-text-secondary font-bold text-[9px] uppercase tracking-wider">
+              <Filter className="h-3 w-3 text-accent" />
+              <span>Filter Status</span>
+            </div>
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-white/5 text-[11px] py-1.5 px-3 rounded-lg border border-white/10 text-white outline-none focus:border-accent transition-colors"
+            >
+              <option value="All" className="bg-black">All Statuses</option>
+              <option value="pending" className="bg-black">Pending</option>
+              <option value="in_progress" className="bg-black">In Progress</option>
+              <option value="resolved" className="bg-black">Resolved</option>
+            </select>
+          </div>
         </div>
 
         {/* Map View */}
@@ -175,29 +195,103 @@ const MapComponent = () => {
               </Popup>
             </Marker>
 
-            {issues
-              .filter((issue: any) => issue.location?.lat != null && issue.location?.lng != null)
-              .map((issue: any) => (
+            {Object.values(
+              issues
+                .filter((issue: any) => issue.location?.lat != null && issue.location?.lng != null)
+                .filter((issue: any) => statusFilter === 'All' || issue.status === statusFilter || (statusFilter === 'in_progress' && issue.status === 'assigned'))
+                .reduce((acc: any, issue: any) => {
+                  const key = `${issue.location.lat},${issue.location.lng}`;
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(issue);
+                  return acc;
+                }, {})
+            ).map((group: any) => {
+              const first = group[0];
+              
+              // Prioritize status color for group
+              const hasPending = group.some((i: any) => i.status === 'pending');
+              const hasInProgress = group.some((i: any) => ['in_progress', 'assigned'].includes(i.status));
+              const groupStatus = hasPending ? 'pending' : hasInProgress ? 'in_progress' : 'resolved';
+
+              return (
                 <Marker 
-                  key={issue._id} 
-                  position={[Number(issue.location.lat), Number(issue.location.lng)]}
-                  icon={getMarkerIcon(issue.status)}
+                  key={first._id} 
+                  position={[Number(first.location.lat), Number(first.location.lng)]}
+                  icon={getMarkerIcon(groupStatus)}
                 >
                   <Popup className="premium-popup">
-                    <div className="max-w-[200px] p-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className={`text-[8px] font-bold uppercase ${issue.status === 'resolved' ? 'text-success' : 'text-accent'}`}>{issue.status}</span>
-                      </div>
-                      <h4 className="text-[11px] font-bold text-white leading-tight">{issue.title}</h4>
+                    <div className="max-w-[220px] w-[220px] max-h-[350px] overflow-y-auto custom-scrollbar p-2 flex flex-col gap-4">
+                      {group.length > 1 && (
+                        <div className="text-[9px] font-black tracking-widest text-center bg-white/10 text-white/70 py-1 px-2 rounded-md uppercase">
+                          {group.length} Incidents Here
+                        </div>
+                      )}
+                      
+                      {group.map((issue: any, index: number) => {
+                        let imageUrl = issue.image_url || issue.beforeImage || (issue.media?.[0]?.url) || null;
+                        
+                        // Fix relative image URLs (which usually come from backend /uploads)
+                        if (imageUrl && imageUrl.startsWith('/')) {
+                          const apiRoot = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
+                          imageUrl = apiRoot + imageUrl;
+                        }
+
+                        const formattedTime = issue.createdAt ? new Date(issue.createdAt).toLocaleString() : 'Unknown time';
+                        
+                        return (
+                          <div key={issue._id} className={index > 0 ? "pt-3 border-t border-white/10" : ""}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${issue.status === 'resolved' ? 'bg-success/20 text-success' : issue.status === 'pending' ? 'bg-error/20 text-error' : 'bg-warning/20 text-warning'}`}>
+                                {issue.status}
+                              </span>
+                              <span className="text-[9px] text-[#888]">{formattedTime}</span>
+                            </div>
+                            <h4 className="text-[14px] font-bold text-white leading-tight mt-1">{issue.title}</h4>
+                            
+                            {issue.description && (
+                              <p className="text-[11px] text-gray-300 line-clamp-2 mt-1">{issue.description}</p>
+                            )}
+
+                            {imageUrl && (
+                              <div 
+                                className="mt-2 w-full h-24 rounded-lg overflow-hidden cursor-pointer relative group border border-white/10"
+                                onClick={() => setModalImage(imageUrl)}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={imageUrl} alt="Issue" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <span className="text-white text-[10px] font-bold bg-black/60 px-2 py-1 rounded-md">View Full</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </Popup>
                 </Marker>
-              ))}
+              );
+            })}
           </MapContainer>
         </div>
       </div>
 
 
+      {/* Image Modal */}
+      {modalImage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 border border-[#2d6a4f55]">
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center">
+            <button 
+              onClick={() => setModalImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-accent font-bold text-lg bg-black/50 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md"
+            >
+              ×
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={modalImage} alt="Full screen preview" className="max-w-full max-h-[85vh] object-contain rounded-xl border border-white/20 shadow-[-0_0_50px_rgba(0,0,0,0.8)]" />
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         /* Force Leaflet Layers Control to match our custom icons exactly */

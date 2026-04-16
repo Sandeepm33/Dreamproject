@@ -87,12 +87,14 @@ export default function Sidebar() {
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/villages', icon: '🏛️', label: t('manageVillages') },
     { href: '/dashboard/admin/analytics', icon: '📈', label: t('analyticsTitle') },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: 'Issues Map' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'panchayat_secretary' ? [
     { href: '/dashboard/admin', icon: '📊', label: t('overview') },
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/gallery', icon: '🖼️', label: t('villageGallery') },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: 'Issues Map' },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : [
@@ -102,15 +104,18 @@ export default function Sidebar() {
     { href: '/dashboard/citizen/new-complaint', icon: '➕', label: t('newComplaint') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/gallery', icon: '🖼️', label: 'Village Gallery' },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: 'Issues Map' },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ];
 
-  const handleLogout = async () => { await logout(); router.push('/'); };
+  const handleLogout = async () => { await logout(); router.replace('/login'); };
 
   const roleColors: Record<string, string> = {
     citizen: '#22c55e', admin: '#f59e0b', officer: '#0ea5e9', panchayat_secretary: '#a855f7', collector: '#e11d48'
   };
+
+  if (!user) return null;
 
   return (
     <>
