@@ -76,6 +76,8 @@ class APIClient {
   async getNotifications() { return this.request('/notifications'); }
   async markNotificationRead(id: string) { return this.request(`/notifications/${id}/read`, { method: 'PUT' }); }
   async markAllRead() { return this.request('/notifications/mark-all-read', { method: 'PUT' }); }
+  async deleteNotification(id: string) { return this.request(`/notifications/${id}/delete`, { method: 'POST' }); }
+  async clearAllNotifications() { return this.request('/notifications/clear-all', { method: 'POST' }); }
 
   // Analytics
   async getAnalytics(params?: Record<string, any>) {
@@ -109,6 +111,12 @@ class APIClient {
   }
   async createVillage(body: any) { return this.request('/villages', { method: 'POST', body: JSON.stringify(body) }); }
   async assignVillage(userId: string, villageId: string) { return this.request(`/users/${userId}/assign-village`, { method: 'PATCH', body: JSON.stringify({ villageId }) }); }
+
+  // Emergency Alerts
+  async createEmergencyAlert(body: { type: string; message: string; villageId?: string; location?: any }) { return this.request('/emergency-alerts', { method: 'POST', body: JSON.stringify(body) }); }
+  async getActiveEmergencyAlerts() { return this.request('/emergency-alerts/active'); }
+  async resolveEmergencyAlert(id: string) { return this.request(`/emergency-alerts/${id}/resolve`, { method: 'PUT' }); }
+  async deleteEmergencyAlert(id: string) { return this.request(`/emergency-alerts/${id}/delete`, { method: 'POST' }); }
 }
 
 export const api = new APIClient();
