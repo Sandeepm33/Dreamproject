@@ -26,7 +26,7 @@ interface Post {
 
 export default function HomePage() {
   const { user, loading } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -192,14 +192,14 @@ export default function HomePage() {
               
               <div style={{ position: 'relative', zIndex: 1, borderRadius: 32, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <img 
-                  src="/about-us.png" 
+                  src={language === 'te' ? "/about-us-te.png" : "/about-us.png"} 
                   alt={t('adminAlt')} 
                   style={{ width: '100%', height: 'auto', display: 'block' }}
                 />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,15,13,0.4), transparent)' }}></div>
               </div>
               
-              <div className="glass-card shadow-xl" style={{ position: 'absolute', bottom: -30, right: 20, padding: '24px 32px', zIndex: 2, borderRadius: 20, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              <div className="glass-card shadow-xl" style={{ position: 'absolute', top: 20, right: 20, padding: '24px 32px', zIndex: 2, borderRadius: 20, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
                 <div style={{ fontSize: 36, fontWeight: 800, color: '#f59e0b', marginBottom: 4 }}>100%</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1 }}>{t('digitalTransparency')}</div>
               </div>

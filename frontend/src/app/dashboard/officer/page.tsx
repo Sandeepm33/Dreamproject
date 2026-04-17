@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -78,11 +77,8 @@ export default function OfficerDashboard() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px' }}>
-        {/* Header */}
-        <div style={{ marginBottom:28 }}>
+    <div className="animate-fade-in">
+      <div className="layout-header" style={{ marginBottom:28 }}>
           <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>{t('officerDashboard')}</h1>
           <p style={{ color:'var(--text-muted)', fontSize:14, marginTop:2 }}>
             {user.department && <span>🏢 {t(user.department as any) || user.department} · </span>}{t('namaste').replace('{name}', user.name)}
@@ -90,7 +86,7 @@ export default function OfficerDashboard() {
         </div>
 
         {/* Stats */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:28 }}>
+        <div className="stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:28 }}>
           {[
             { label: t('assigned'), value:stats.total, icon:'📋', color:'#0ea5e9' },
             { label: t('pending'), value:stats.pending, icon:'⏳', color:'#f59e0b' },
@@ -170,7 +166,6 @@ export default function OfficerDashboard() {
             ))}
           </div>
         )}
-      </main>
 
       {/* Update Modal */}
       {selectedComplaint && (

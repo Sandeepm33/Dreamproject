@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -90,10 +89,8 @@ export default function AdminComplaintsPage() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+    <div className="animate-fade-in">
+      <div className="layout-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
           <div>
             <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>{t('allComplaints')}</h1>
             <p style={{ color:'var(--text-muted)', fontSize:14, marginTop:2 }}>{t('totalComplaints').replace('{count}', total.toString())}</p>
@@ -124,7 +121,7 @@ export default function AdminComplaintsPage() {
         </div>
 
         {/* Table */}
-        <div className="glass-card" style={{ padding:0, overflow:'hidden' }}>
+        <div className="table-container">
           <div style={{ overflowX:'auto' }}>
             <table className="data-table">
               <thead>
@@ -191,7 +188,6 @@ export default function AdminComplaintsPage() {
             <button onClick={() => setPage(p => p+1)} disabled={page>=Math.ceil(total/15)} className="btn-ghost" style={{ fontSize:13 }}>{t('next')} →</button>
           </div>
         )}
-      </main>
 
       {/* Assign Modal */}
       {assignModal && (

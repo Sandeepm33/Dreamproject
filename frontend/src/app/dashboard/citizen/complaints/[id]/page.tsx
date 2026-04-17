@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -62,25 +61,20 @@ export default function ComplaintDetailPage() {
   const currentStep = complaint ? statusOrder.indexOf(complaint.status) : -1;
 
   if (loading) return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:240, padding:28, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div style={{ textAlign:'center' }}>
-          <div style={{ width:50,height:50,border:'3px solid var(--border)',borderTopColor:'var(--accent)',borderRadius:'50%',animation:'spin 1s linear infinite',margin:'0 auto 12px' }} />
-          <p style={{ color:'var(--text-muted)',fontSize:13 }}>{t('loadingComplaint')}</p>
-        </div>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </main>
+    <div style={{ padding:28, display:'flex', alignItems:'center', justifyContent:'center', minHeight:'50vh' }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{ width:50,height:50,border:'3px solid var(--border)',borderTopColor:'var(--accent)',borderRadius:'50%',animation:'spin 1s linear infinite',margin:'0 auto 12px' }} />
+        <p style={{ color:'var(--text-muted)',fontSize:13 }}>{t('loadingComplaint')}</p>
+      </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   if (!complaint) return null;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px' }}>
-        <div style={{ maxWidth:800, margin:'0 auto' }}>
+    <div className="animate-fade-in">
+      <div style={{ maxWidth:800, margin:'0 auto' }}>
           {/* Back */}
           <button onClick={() => router.back()} style={{ background:'transparent',border:'none',color:'var(--text-muted)',cursor:'pointer',fontSize:14,marginBottom:20,display:'flex',alignItems:'center',gap:6 }}>← {t('backToComplaints')}</button>
 
@@ -127,7 +121,7 @@ export default function ComplaintDetailPage() {
             </div>
 
             {/* Details Grid */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
               {[
                 { label:t('category'), value:`${catIcons[complaint.category]} ${t(complaint.category as any)}` },
                 { label:t('department'), value: complaint.department || t('autoRouting') },
@@ -201,7 +195,7 @@ export default function ComplaintDetailPage() {
           {(user?.role === 'admin' || user?.role === 'panchayat_secretary' || user?.role === 'officer') && (
              <div className="glass-card" style={{ padding:24, marginBottom:16, borderLeft: '4px solid var(--accent)' }}>
                 <h3 style={{ fontSize:14, fontWeight:700, color:'var(--accent)', marginBottom:12 }}>👤 {t('reporterContactDetails')}</h3>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
                   <div>
                     <div style={{ fontSize:11, color:'var(--text-muted)' }}>{t('fullName')}</div>
                     <div style={{ fontSize:14, color:'var(--text-primary)', fontWeight:600 }}>{complaint.citizen?.name}</div>
@@ -295,8 +289,6 @@ export default function ComplaintDetailPage() {
             </div>
           </div>
         </div>
-      </main>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

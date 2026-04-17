@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -41,11 +40,9 @@ export default function CitizenDashboard() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', minHeight: '100vh' }}>
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="layout-header" style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
               {user.name?.[0]?.toUpperCase()}
@@ -74,7 +71,7 @@ export default function CitizenDashboard() {
 
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
+        <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
           {[
             { label: t('totalRaised'), value: stats.total, icon: '📋', color: '#0ea5e9' },
             { label: t('pending'), value: stats.pending, icon: '⏳', color: '#f59e0b' },
@@ -132,7 +129,7 @@ export default function CitizenDashboard() {
         </div>
 
         {/* Quick Links */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div className="responsive-grid" style={{ marginBottom: 24 }}>
           {[
             { icon: '🔍', label: t('trackComplaint'), desc: t('trackComplaintDesc'), href: '/dashboard/citizen/track', color: '#0ea5e9' },
             { icon: '🔔', label: t('notifications'), desc: t('notifDesc'), href: '/dashboard/citizen/notifications', color: '#f59e0b' },
@@ -145,8 +142,6 @@ export default function CitizenDashboard() {
             </div>
           ))}
         </div>
-      </main>
-
       {/* FAB */}
       <button className="fab" onClick={() => router.push('/dashboard/citizen/new-complaint')} title={t('raiseNewIssue')}>
         <span style={{ fontSize: 24 }}>+</span>

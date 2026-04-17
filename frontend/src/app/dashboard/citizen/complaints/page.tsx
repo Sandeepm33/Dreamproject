@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -44,10 +43,8 @@ export default function CitizenComplaintsPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', minHeight: '100vh', maxWidth: 'calc(100vw - 280px)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <div className="animate-fade-in">
+      <div className="layout-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>{t('myComplaints')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 2 }}>{t('totalComplaints').replace('{count}', total.toString())}</p>
@@ -140,7 +137,6 @@ export default function CitizenComplaintsPage() {
             <button onClick={() => setPage(p => p+1)} disabled={page >= Math.ceil(total/10)} className="btn-ghost" style={{ fontSize: 13 }}>{t('next')} →</button>
           </div>
         )}
-      </main>
     </div>
   );
 }

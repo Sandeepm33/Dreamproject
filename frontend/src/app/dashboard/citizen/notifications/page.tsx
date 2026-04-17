@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -154,10 +153,8 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', minHeight: '100vh' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+    <div className="animate-fade-in">
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
           {/* ── Page Header ── */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
@@ -260,8 +257,7 @@ export default function NotificationsPage() {
               })}
             </div>
           )}
-        </div>
-      </main>
+    </div>
 
       {/* Emergency Modal */}
       {showEmergencyModal && (

@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { Mic, MicOff } from 'lucide-react';
@@ -154,34 +153,29 @@ export default function NewComplaintPage() {
 
   if (success) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-        <Sidebar />
-        <main style={{ flex: 1, marginLeft: 240, padding: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass-card" style={{ padding: 48, textAlign: 'center', maxWidth: 480 }}>
-            <div style={{ fontSize: 72, marginBottom: 20, animation: 'float 2s ease-in-out infinite' }}>🎉</div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>{t('submitted')}</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('issueRegisteredDesc')}</p>
-            <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 12, padding: '16px 24px', marginBottom: 28 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('complaintId')}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)', fontFamily: 'Poppins' }}>{success.complaintId}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{t('routedTo')}: {success.department}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button onClick={() => router.push('/dashboard/citizen/complaints')} className="btn-primary">📋 {t('viewMyComplaints')}</button>
-              <button onClick={() => { setSuccess(null); setStep(1); setForm({ title:'',description:'',category:'',location:{address:'',lat:0,lng:0,village:'',district:''} }); setFiles([]); setPreviews([]); }} className="btn-ghost">➕ {t('raiseAnother')}</button>
-            </div>
+      <div className="animate-fade-in" style={{ padding: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100%' }}>
+        <div className="glass-card" style={{ padding: 48, textAlign: 'center', maxWidth: 480 }}>
+          <div style={{ fontSize: 72, marginBottom: 20, animation: 'float 2s ease-in-out infinite' }}>🎉</div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>{t('submitted')}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('issueRegisteredDesc')}</p>
+          <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 12, padding: '16px 24px', marginBottom: 28 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('complaintId')}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)', fontFamily: 'Poppins' }}>{success.complaintId}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{t('routedTo')}: {success.department}</div>
           </div>
-        </main>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => router.push('/dashboard/citizen/complaints')} className="btn-primary">📋 {t('viewMyComplaints')}</button>
+            <button onClick={() => { setSuccess(null); setStep(1); setForm({ title:'',description:'',category:'',location:{address:'',lat:0,lng:0,village:'',district:''} }); setFiles([]); setPreviews([]); }} className="btn-ghost">➕ {t('raiseAnother')}</button>
+          </div>
+        </div>
         <style>{`@keyframes float { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }`}</style>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', maxWidth: 'calc(100vw - 280px)' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+    <div className="animate-fade-in">
+      <div style={{ maxWidth: 700, margin: '0 auto' }}>
           {/* Header */}
           <div style={{ marginBottom: 28 }}>
             <button onClick={() => router.back()} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>← {t('back')}</button>
@@ -248,9 +242,9 @@ export default function NewComplaintPage() {
                   <input name="title" value={form.title} onChange={handleChange} className="input-field" placeholder={t('titlePlaceholder')} maxLength={200} />
                   <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/200</div>
                 </div>
-                <div>
+                 <div>
                   <label className="label">{t('category')} <span style={{ color: '#ef4444' }}>*</span></label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
                     {CATEGORIES.map(cat => (
                       <div key={cat.value} onClick={() => setForm(f => ({ ...f, category: cat.value }))}
                         style={{ padding: '14px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'center', border: `2px solid ${form.category === cat.value ? cat.color : 'var(--border)'}`,
@@ -281,11 +275,11 @@ export default function NewComplaintPage() {
 
             {step === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div>
+                 <div>
                   <label className="label">{t('address')}</label>
                   <input name="address" value={form.location.address} onChange={handleLocationChange} className="input-field" placeholder={t('addressPlaceholder')} />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                   <div>
                     <label className="label">{t('village')}</label>
                     <input name="village" value={form.location.village} onChange={handleLocationChange} className="input-field" placeholder={t('villageName')} />
@@ -295,12 +289,12 @@ export default function NewComplaintPage() {
                     <input name="district" value={form.location.district} onChange={handleLocationChange} className="input-field" placeholder={t('districtPlaceholder')} />
                   </div>
                 </div>
-                <div>
+                 <div>
                   <label className="label">GPS Coordinates</label>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <input className="input-field" readOnly placeholder="Latitude" value={form.location.lat || ''} style={{ flex: 1 }} />
-                    <input className="input-field" readOnly placeholder="Longitude" value={form.location.lng || ''} style={{ flex: 1 }} />
-                    <button onClick={getGPS} className="btn-ghost" style={{ whiteSpace: 'nowrap', minWidth: 120 }} disabled={gpsLoading}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input className="input-field" readOnly placeholder="Latitude" value={form.location.lat || ''} style={{ flex: 1, minWidth: 100 }} />
+                    <input className="input-field" readOnly placeholder="Longitude" value={form.location.lng || ''} style={{ flex: 1, minWidth: 100 }} />
+                    <button onClick={getGPS} className="btn-ghost" style={{ whiteSpace: 'nowrap', flex: 1, minWidth: 120 }} disabled={gpsLoading}>
                       {gpsLoading ? t('gettingGps') : `📍 ${t('getGPS')}`}
                     </button>
                   </div>
@@ -346,10 +340,10 @@ export default function NewComplaintPage() {
                     { label: t('description'), value: form.description },
                     { label: t('address'), value: form.location.address || t('notSpecified') },
                     { label: t('attachedMedia'), value: `${files.length} ${t('fileAttached')}` },
-                  ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 12, padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
-                      <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{value}</span>
+                   ].map(({ label, value }) => (
+                    <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>{value}</span>
                     </div>
                   ))}
                 </div>
@@ -371,7 +365,6 @@ export default function NewComplaintPage() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }

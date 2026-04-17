@@ -4,7 +4,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 
-export default function TopBar() {
+interface TopBarProps {
+  onMenuClick?: () => void;
+}
+
+export default function TopBar({ onMenuClick }: TopBarProps) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
@@ -22,8 +26,8 @@ export default function TopBar() {
       height: 64, 
       display: 'flex', 
       alignItems: 'center', 
-      justifyContent: 'flex-end', 
-      padding: '0 28px',
+      justifyContent: 'space-between', 
+      padding: '0 24px',
       background: 'rgba(10, 15, 13, 0.8)',
       backdropFilter: 'blur(10px)',
       borderBottom: '1px solid var(--border)',
@@ -31,6 +35,18 @@ export default function TopBar() {
       top: 0,
       zIndex: 40
     }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button 
+          onClick={onMenuClick}
+          className="mobile-nav-toggle"
+          aria-label="Toggle Menu"
+        >
+          <span style={{ fontSize: 20 }}>☰</span>
+        </button>
+        
+        {/* Placeholder for page title or search on desktop */}
+      </div>
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {/* Search or other tools could go here */}
         

@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -69,11 +68,9 @@ export default function AdminDashboard() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', transition: 'margin 0.3s', minHeight: '100vh' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="layout-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>{t('adminDashboard')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 2 }}>{t('namaste').replace('{name}', user.name)} • {new Date().toLocaleDateString('en-IN', { day:'numeric',month:'long',year:'numeric' })}</p>
@@ -127,7 +124,7 @@ export default function AdminDashboard() {
         ) : (
           <>
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
+            <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
               {statCards.map((card, i) => (
                 <div key={i} className="stat-card" style={{ animationDelay: `${i * 0.05}s` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
@@ -140,7 +137,7 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+            <div className="responsive-grid" style={{ marginBottom: 24 }}>
               {/* Monthly Trend Chart */}
               <div className="glass-card" style={{ padding: 24 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: 'var(--text-primary)' }}>📈 {t('monthlyTrend')}</h3>
@@ -194,7 +191,7 @@ export default function AdminDashboard() {
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>🕒 {t('recentIssues')}</h3>
                 <button onClick={() => router.push('/dashboard/admin/complaints')} className="btn-ghost" style={{ fontSize: 12 }}>{t('seeAll')}</button>
               </div>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-container">
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -222,7 +219,6 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
-      </main>
     </div>
   );
 }

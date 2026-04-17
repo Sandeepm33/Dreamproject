@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -49,11 +48,9 @@ export default function ProfilePage() {
   const roleColor = roleColors[user?.role||'citizen'];
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px', maxWidth:'calc(100vw - 280px)' }}>
-        <div style={{ maxWidth:600, margin:'0 auto' }}>
-          <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)', marginBottom:28 }}>👤 {t('profile')}</h1>
+    <div className="animate-fade-in">
+      <div style={{ maxWidth:600, margin:'0 auto' }}>
+        <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)', marginBottom:28 }}>👤 {t('profile')}</h1>
 
           {/* Profile Card */}
           <div className="glass-card" style={{ padding:28, marginBottom:20, textAlign:'center', position:'relative', overflow:'hidden' }}>
@@ -162,7 +159,6 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 }

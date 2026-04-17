@@ -2,7 +2,6 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 
 const catIcons: Record<string,string> = { water:'💧', roads:'🛣️', electricity:'⚡', sanitation:'🧹', others:'📋' };
@@ -60,36 +59,30 @@ export default function AdminComplaintDetailPage() {
   };
 
   if (loading) return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft: 280, padding:28, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div className="skeleton" style={{ width:600, height:400, borderRadius:16 }} />
-      </main>
+    <div style={{ padding:28, display:'flex', alignItems:'center', justifyContent:'center', minHeight:'50vh' }}>
+      <div className="skeleton" style={{ width:600, height:400, borderRadius:16 }} />
     </div>
   );
 
   if (showSuccess) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-        <Sidebar />
-        <main style={{ flex: 1, marginLeft: 280, padding: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass-card" style={{ padding: 48, textAlign: 'center', maxWidth: 480 }}>
-            <div style={{ fontSize: 72, marginBottom: 20, animation: 'float 2s ease-in-out infinite' }}>🎉</div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>{t('savedSuccessfully' as any) || 'Changes Saved!'}</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('complaintUpdatedText' as any) || 'The complaint details have been updated successfully.'}</p>
-            <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 12, padding: '16px 24px', marginBottom: 28 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('complaintId' as any) || 'Complaint ID'}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)', fontFamily: 'Poppins' }}>{complaint?.complaintId}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                {t('status' as any) || 'Status'}: {t(complaint?.status === 'in_progress' ? 'inProgress' : complaint?.status as any)}
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button onClick={() => router.push('/dashboard/admin/complaints')} className="btn-primary">📋 {t('backToComplaints' as any) || 'All Complaints'}</button>
-              <button onClick={() => setShowSuccess(false)} className="btn-ghost">⬅️ {t('return' as any) || 'Return'}</button>
+      <div className="animate-fade-in" style={{ padding: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100%' }}>
+        <div className="glass-card" style={{ padding: 48, textAlign: 'center', maxWidth: 480 }}>
+          <div style={{ fontSize: 72, marginBottom: 20, animation: 'float 2s ease-in-out infinite' }}>🎉</div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>{t('savedSuccessfully' as any) || 'Changes Saved!'}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('complaintUpdatedText' as any) || 'The complaint details have been updated successfully.'}</p>
+          <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 12, padding: '16px 24px', marginBottom: 28 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('complaintId' as any) || 'Complaint ID'}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)', fontFamily: 'Poppins' }}>{complaint?.complaintId}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+              {t('status' as any) || 'Status'}: {t(complaint?.status === 'in_progress' ? 'inProgress' : complaint?.status as any)}
             </div>
           </div>
-        </main>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <button onClick={() => router.push('/dashboard/admin/complaints')} className="btn-primary">📋 {t('backToComplaints' as any) || 'All Complaints'}</button>
+            <button onClick={() => setShowSuccess(false)} className="btn-ghost">⬅️ {t('return' as any) || 'Return'}</button>
+          </div>
+        </div>
         <style>{`@keyframes float { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }`}</style>
       </div>
     );
@@ -100,13 +93,11 @@ export default function AdminComplaintDetailPage() {
   const steps = [t('pending'), t('assigned'), t('inProgress'), t('resolved')];
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px' }}>
-        <div style={{ maxWidth:900, margin:'0 auto' }}>
-          <button onClick={() => router.back()} style={{ background:'transparent',border:'none',color:'var(--text-muted)',cursor:'pointer',fontSize:14,marginBottom:20,display:'flex',alignItems:'center',gap:6 }}>← {t('backToComplaints')}</button>
+    <div className="animate-fade-in">
+      <div style={{ maxWidth:900, margin:'0 auto' }}>
+        <button onClick={() => router.back()} style={{ background:'transparent',border:'none',color:'var(--text-muted)',cursor:'pointer',fontSize:14,marginBottom:20,display:'flex',alignItems:'center',gap:6 }}>← {t('backToComplaints')}</button>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:20 }}>
+        <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'start' }}>
             {/* Main */}
             <div>
               <div className="glass-card" style={{ padding:24, marginBottom:16 }}>
@@ -311,7 +302,6 @@ export default function AdminComplaintDetailPage() {
             </div>
           </div>
         </div>
-      </main>
     </div>
   );
 }

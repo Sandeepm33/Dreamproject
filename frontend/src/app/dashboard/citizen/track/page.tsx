@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -35,12 +34,10 @@ export default function TrackComplaintPage() {
   const currentStep = complaint ? statusSteps.indexOf(complaint.status) : -1;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px', maxWidth:'calc(100vw - 280px)' }}>
-        <div style={{ maxWidth:660, margin:'0 auto' }}>
-          <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)', marginBottom:8 }}>🔍 {t('trackStatus')}</h1>
-          <p style={{ color:'var(--text-muted)', fontSize:14, marginBottom:28 }}>{t('searchPrompt')}</p>
+    <div className="animate-fade-in">
+      <div style={{ maxWidth:660, margin:'0 auto' }}>
+        <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)', marginBottom:8 }}>🔍 {t('trackStatus')}</h1>
+        <p style={{ color:'var(--text-muted)', fontSize:14, marginBottom:28 }}>{t('searchPrompt')}</p>
 
           {/* Search */}
           <div className="glass-card" style={{ padding:28, marginBottom:24 }}>
@@ -142,8 +139,6 @@ export default function TrackComplaintPage() {
             </div>
           )}
         </div>
-      </main>
-      <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
     </div>
   );
 }

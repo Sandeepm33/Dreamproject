@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Image as ImageIcon, CheckCircle, XCircle, ArrowLeft, Upload } from 'lucide-react';
 import { api } from '@/lib/api';
-import Sidebar from '@/components/Sidebar';
 
 export default function NewGalleryPostPage() {
   const router = useRouter();
@@ -76,10 +75,8 @@ export default function NewGalleryPostPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px', transition: 'margin 0.3s', minHeight: '100vh', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column' }}>
           <div className="flex items-center gap-4 mb-8">
             <button onClick={() => router.back()} className="p-2 rounded-xl glass-card hover:bg-white/5 transition-colors">
               <ArrowLeft size={20} className="text-gray-400" />
@@ -205,7 +202,6 @@ export default function NewGalleryPostPage() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }

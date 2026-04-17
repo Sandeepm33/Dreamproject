@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Image as ImageIcon, CheckCircle, XCircle, ArrowLeft, Upload, Loader2, Film } from 'lucide-react';
 import { api } from '@/lib/api';
-import Sidebar from '@/components/Sidebar';
 
 export default function NewGalleryPostPage() {
   const router = useRouter();
@@ -76,10 +75,8 @@ export default function NewGalleryPostPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '40px', transition: 'margin 0.3s', minHeight: '100vh', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <div className="flex items-center gap-5 mb-10">
             <button 
@@ -216,7 +213,6 @@ export default function NewGalleryPostPage() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }

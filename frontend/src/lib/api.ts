@@ -9,7 +9,17 @@ class APIClient {
     return null;
   }
 
+  private cache: Record<string, { data: any, timestamp: number }> = {};
+
   private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
+    const isGet = !options.method || options.method === 'GET';
+    const cacheKey = `${endpoint}-${JSON.stringify(options.headers || {})}`;
+
+    // Cache duration: 30 seconds for GET requests
+    if (isGet && this.cache[cacheKey] && Date.now() - this.cache[cacheKey].timestamp < 30000) {
+      return this.cache[cacheKey].data;
+    }
+
     const token = this.getToken();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -32,6 +42,15 @@ class APIClient {
     if (!response.ok) {
       throw new Error(data.message || 'Request failed');
     }
+
+    // Save to cache if it's a GET request
+    if (isGet) {
+      this.cache[cacheKey] = { data, timestamp: Date.now() };
+    } else {
+      // Clear cache on any modification (POST, PUT, DELETE) to ensure consistency
+      this.cache = {};
+    }
+
     return data;
   }
 

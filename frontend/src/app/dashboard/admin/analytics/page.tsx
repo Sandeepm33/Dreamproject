@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -44,21 +43,19 @@ export default function AnalyticsPage() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-          <div>
-            <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>📈 {t('analyticsTitle')}</h1>
-            <p style={{ color:'var(--text-muted)', fontSize:14 }}>{t('performanceDashboard')}</p>
-          </div>
-          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-            <input type="date" value={dateRange.from} onChange={e => setDateRange(d => ({...d, from:e.target.value}))} className="input-field" style={{ width:'auto' }} />
-            <span style={{ color:'var(--text-muted)' }}>{t('to')}</span>
-            <input type="date" value={dateRange.to} onChange={e => setDateRange(d => ({...d, to:e.target.value}))} className="input-field" style={{ width:'auto' }} />
-            <button onClick={fetchAnalytics} className="btn-primary" style={{ fontSize:13, whiteSpace:'nowrap' }}>{t('apply')}</button>
-          </div>
+    <div className="animate-fade-in">
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+        <div>
+          <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>📈 {t('analyticsTitle')}</h1>
+          <p style={{ color:'var(--text-muted)', fontSize:14 }}>{t('performanceDashboard')}</p>
         </div>
+        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+          <input type="date" value={dateRange.from} onChange={e => setDateRange(d => ({...d, from:e.target.value}))} className="input-field" style={{ width:'auto' }} />
+          <span style={{ color:'var(--text-muted)' }}>{t('to')}</span>
+          <input type="date" value={dateRange.to} onChange={e => setDateRange(d => ({...d, to:e.target.value}))} className="input-field" style={{ width:'auto' }} />
+          <button onClick={fetchAnalytics} className="btn-primary" style={{ fontSize:13, whiteSpace:'nowrap' }}>{t('apply')}</button>
+        </div>
+      </div>
 
         {dataLoading ? (
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
@@ -187,7 +184,6 @@ export default function AnalyticsPage() {
             </div>
           </>
         )}
-      </main>
     </div>
   );
 }

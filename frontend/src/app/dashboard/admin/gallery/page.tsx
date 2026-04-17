@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Image as ImageIcon, Plus, Trash2, ArrowLeft, Loader2, PlayCircle, Video, Calendar, User } from 'lucide-react';
 import { api } from '@/lib/api';
-import Sidebar from '@/components/Sidebar';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -70,10 +69,8 @@ export default function GalleryManagementPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '40px', transition: 'margin 0.3s', minHeight: '100vh' }}>
-        <div className="max-w-7xl mx-auto">
+    <div className="animate-fade-in">
+      <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div 
             className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8"
@@ -213,7 +210,6 @@ export default function GalleryManagementPage() {
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 }

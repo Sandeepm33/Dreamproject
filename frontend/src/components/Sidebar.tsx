@@ -31,12 +31,18 @@ const officerNav = [
   { href: '/dashboard/officer/notifications', icon: '🔔', label: 'Notifications', countKey: 'notifications' },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean;
+  onCollapse?: () => void;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export default function Sidebar({ collapsed, onCollapse, isMobileOpen, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useLanguage();
-  const [collapsed, setCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [complaintCount, setComplaintCount] = useState(0);
 
@@ -87,14 +93,14 @@ export default function Sidebar() {
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/villages', icon: '🏛️', label: t('manageVillages') },
     { href: '/dashboard/admin/analytics', icon: '📈', label: t('analyticsTitle') },
-    { href: '/dashboard/admin/map', icon: '🗺️', label: 'Issues Map' },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'panchayat_secretary' ? [
     { href: '/dashboard/admin', icon: '📊', label: t('overview') },
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/gallery', icon: '🖼️', label: t('villageGallery') },
-    { href: '/dashboard/admin/map', icon: '🗺️', label: 'Issues Map' },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : [
@@ -103,8 +109,8 @@ export default function Sidebar() {
     { href: '/dashboard/citizen/complaints', icon: '👤', label: t('myComplaints') },
     { href: '/dashboard/citizen/new-complaint', icon: '➕', label: t('newComplaint') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
-    { href: '/dashboard/admin/gallery', icon: '🖼️', label: 'Village Gallery' },
-    { href: '/dashboard/admin/map', icon: '🗺️', label: 'Issues Map' },
+    { href: '/dashboard/admin/gallery', icon: '🖼️', label: t('villageGallery') },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ];
@@ -118,27 +124,21 @@ export default function Sidebar() {
   if (!user) return null;
 
   return (
-    <>
-      {/* Mobile overlay */}
-      <div onClick={() => setCollapsed(true)} style={{ display: collapsed ? 'none' : undefined, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 45, backdropFilter: 'blur(2px)' }} className="md:hidden" />
-
-      <aside className="sidebar" style={{ width: collapsed ? 72 : 280, transition: 'width 0.3s ease' }}>
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '16px 12px' }}>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, padding: '8px 4px', minHeight: 56 }}>
-            <div style={{ width: 40, height: 40, minWidth: 40, background: 'linear-gradient(135deg, var(--primary-light), var(--primary))', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: 'var(--glow)' }}>
-              🏛️
-            </div>
-            {!collapsed && (
-              <div style={{ overflow: 'hidden' }}>
-                <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'Poppins', background: 'linear-gradient(135deg, #86efac, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>SGPIMS</div>
-                <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{t('gramPanchayat')}</div>
-              </div>
-            )}
-            <button onClick={() => setCollapsed(!collapsed)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16, padding: 4, borderRadius: 6, flexShrink: 0 }}>
-              {collapsed ? '→' : '←'}
-            </button>
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '16px 12px' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, padding: '8px 4px', minHeight: 56 }}>
+          <div style={{ width: 40, height: 40, minWidth: 40, background: 'linear-gradient(135deg, var(--primary-light), var(--primary))', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: 'var(--glow)' }}>
+            🏛️
           </div>
+          <div style={{ overflow: 'hidden', opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'Poppins', background: 'linear-gradient(135deg, #86efac, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>{t('sgpims')}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{t('gramPanchayat')}</div>
+          </div>
+          <button onClick={onCollapse} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 12, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, flexShrink: 0 }}>
+            {collapsed ? '❯' : '❮'}
+          </button>
+        </div>
 
           {/* User info */}
           {!collapsed && (
@@ -216,6 +216,5 @@ export default function Sidebar() {
           </div>
         </div>
       </aside>
-    </>
   );
 }

@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -125,10 +124,8 @@ export default function AdminUsersPage() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+    <div className="animate-fade-in">
+      <div className="layout-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
           <div>
             <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>{t('manageUsers')}</h1>
             <p style={{ color:'var(--text-muted)', fontSize:14 }}>{t('totalUsersCount').replace('{count}', total.toString())}</p>
@@ -146,8 +143,8 @@ export default function AdminUsersPage() {
         <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
           <input value={search} onChange={e => setSearch(e.target.value)} className="input-field" placeholder={t('searchByUserNamePlaceholder')} style={{ maxWidth:280 }} />
           {(
-            user.role === 'collector' ? ['all', 'panchayat_secretary'] :
-            user.role === 'panchayat_secretary' ? ['admin', 'citizen', 'officer'] :
+            user?.role === 'collector' ? ['all', 'panchayat_secretary'] :
+            user?.role === 'panchayat_secretary' ? ['admin', 'citizen', 'officer'] :
             ['all', 'citizen', 'officer', 'admin', 'panchayat_secretary', 'collector']
           ).map(r => (
             <button key={r} onClick={() => setRole(r)} style={{ padding:'8px 14px', borderRadius:20, border:'1px solid', fontSize:12, fontWeight:600, cursor:'pointer', textTransform:'capitalize',
@@ -159,7 +156,7 @@ export default function AdminUsersPage() {
           ))}
         </div>
 
-        <div className="glass-card" style={{ overflow:'hidden' }}>
+        <div className="table-container">
           <table className="data-table">
             <thead>
               <tr><th>{t('name')}</th><th>{t('mobile')}</th><th>{t('role')}</th><th>{t('village')}</th><th>{t('department')}</th><th>{t('status')}</th><th>{t('joined')}</th><th>{t('actions')}</th></tr>
@@ -210,12 +207,11 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>
-      </main>
 
       {newOfficerModal && (
         <div className="modal-overlay" onClick={() => setNewUserModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize:18,fontWeight:700,color:'var(--text-primary)',marginBottom:20 }}>➕ {user.role === 'collector' ? '🏛️ Add New Panchayat Secretary' : user.role === 'panchayat_secretary' ? t('addNewAdminStaff') : t('addNewStaffCitizen')}</h2>
+            <h2 style={{ fontSize:18,fontWeight:700,color:'var(--text-primary)',marginBottom:20 }}>➕ {user?.role === 'collector' ? `🏛️ ${t('addNewSecretary')}` : user?.role === 'panchayat_secretary' ? t('addNewAdminStaff') : t('addNewStaffCitizen')}</h2>
             <div style={{ display:'flex',flexDirection:'column',gap:14 }}>
               <div><label className="label">{t('fullName')}</label><input value={userForm.name} onChange={e => setUserForm(f => ({...f,name:e.target.value}))} className="input-field" placeholder={t('fullNamePlaceholder')} /></div>
               <div><label className="label">{t('mobileNumber')}</label><input value={userForm.mobile} onChange={e => setUserForm(f => ({...f,mobile:e.target.value}))} className="input-field" placeholder={t('mobileNumber')} /></div>
@@ -225,11 +221,11 @@ export default function AdminUsersPage() {
                 <label className="label">{t('role')}</label>
                 <select value={userForm.role} onChange={e => setUserForm(f => ({...f,role:e.target.value}))} className="input-field">
                   <option value="">{t('selectRole')}</option>
-                   {user.role === 'collector' ? (
+                   {user?.role === 'collector' ? (
                     <option value="panchayat_secretary">👑 Panchayat Secretary</option>
                   ) : (
                     <>
-                      {user.role === 'panchayat_secretary' && <option value="admin">🛡️ {t('admin')}</option>}
+                      {user?.role === 'panchayat_secretary' && <option value="admin">🛡️ {t('admin')}</option>}
                       <option value="officer">👨‍💼 {t('officer')}</option>
                       <option value="citizen">👤 {t('citizen')}</option>
                     </>
@@ -252,18 +248,18 @@ export default function AdminUsersPage() {
               {(userForm.role === 'panchayat_secretary' || userForm.role === 'citizen' || userForm.role === 'admin') && (
                 <div>
                   <label className="label">{t('village')}</label>
-                  {user.role === 'collector' ? (
+                  {user?.role === 'collector' ? (
                     <select 
                       value={userForm.village} 
                       onChange={e => setUserForm(f => ({...f, village: e.target.value}))} 
                       className="input-field"
                     >
-                      <option value="">Select Village</option>
+                      <option value="">{t('selectVillage')}</option>
                       {villages.map(v => (
                         <option key={v._id} value={v._id}>{v.name} ({v.villageCode})</option>
                       ))}
                     </select>
-                  ) : user.role === 'panchayat_secretary' ? (
+                  ) : user?.role === 'panchayat_secretary' ? (
                     <div className="input-field" style={{ background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', cursor: 'not-allowed' }}>
                       {(user as any).village?.name || 'Assigned Village'}
                     </div>

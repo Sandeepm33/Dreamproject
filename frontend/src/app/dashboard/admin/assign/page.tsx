@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 
 const catIcons: Record<string,string> = { water:'💧', roads:'🛣️', electricity:'⚡', sanitation:'🧹', others:'📋' };
@@ -73,21 +72,19 @@ export default function AdminAssignPage() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-          <div>
-            <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>🎯 Assign Issues</h1>
-            <p style={{ color:'var(--text-muted)', fontSize:14 }}>Pending complaints awaiting officer assignment</p>
-          </div>
-          <div style={{ display:'flex', gap:10 }}>
-            <button onClick={fetchData} className="btn-ghost" style={{ fontSize:13 }}>🔄 Refresh</button>
-            <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:10, padding:'8px 16px', fontSize:13, color:'var(--accent)', fontWeight:600 }}>
-              ⏳ {unassigned.length} pending
-            </div>
+    <div className="animate-fade-in">
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+        <div>
+          <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>🎯 Assign Issues</h1>
+          <p style={{ color:'var(--text-muted)', fontSize:14 }}>Pending complaints awaiting officer assignment</p>
+        </div>
+        <div style={{ display:'flex', gap:10 }}>
+          <button onClick={fetchData} className="btn-ghost" style={{ fontSize:13 }}>🔄 Refresh</button>
+          <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:10, padding:'8px 16px', fontSize:13, color:'var(--accent)', fontWeight:600 }}>
+            ⏳ {unassigned.length} pending
           </div>
         </div>
+      </div>
 
         {/* Smart Routing Legend */}
         <div className="glass-card" style={{ padding:16, marginBottom:24, display:'flex', gap:16, flexWrap:'wrap', alignItems:'center' }}>
@@ -165,7 +162,6 @@ export default function AdminAssignPage() {
             })}
           </div>
         )}
-      </main>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -63,10 +62,8 @@ export default function ManageVillagesPage() {
   if (loading || !user) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: 280, padding: '28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <div className="animate-fade-in">
+      <div className="layout-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>🏛️ {t('manageVillages')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('total')}: {villages.length} {t('villages')}</p>
@@ -76,14 +73,14 @@ export default function ManageVillagesPage() {
           </button>
         </div>
 
-        <div className="glass-card" style={{ overflow: 'hidden' }}>
+        <div className="table-container">
           <table className="data-table">
             <thead>
               <tr>
                 <th>{t('villageName')}</th>
                 <th>{t('villageCode')}</th>
                 <th>{t('mandalName')}</th>
-                <th>Assigned Secretary</th>
+                <th>{t('assignedSecretary')}</th>
                 <th>{t('status')}</th>
                 <th>{t('joined')}</th>
               </tr>
@@ -111,7 +108,7 @@ export default function ManageVillagesPage() {
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{v.secretary.mobile}</div>
                       </div>
                     ) : (
-                      <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>⚠️ Vacant</span>
+                      <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>⚠️ {t('vacant')}</span>
                     )}
                   </td>
                   <td>
@@ -125,7 +122,6 @@ export default function ManageVillagesPage() {
             </tbody>
           </table>
         </div>
-      </main>
 
       {newVillageModal && (
         <div className="modal-overlay" onClick={() => setNewVillageModal(false)}>
