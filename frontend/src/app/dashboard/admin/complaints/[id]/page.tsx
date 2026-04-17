@@ -152,6 +152,17 @@ export default function AdminComplaintDetailPage() {
 
                 {tab === 'details' && (
                   <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                    {/* Escalation Reason */}
+                    {complaint.status === 'escalated' && complaint.escalatedReason && (
+                      <div style={{ padding:'12px 16px', background:'rgba(249,115,22,0.05)', borderRadius:10, border:'1px solid rgba(249,115,22,0.2)', marginBottom:12 }}>
+                        <div style={{ fontSize:11, color:'#f97316', fontWeight:700, textTransform:'uppercase', letterSpacing:0.5, marginBottom:4 }}>🚨 {t('escalationReason' as any) || 'Escalation Reason'}</div>
+                        <p style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{complaint.escalatedReason}</p>
+                        <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:6 }}>
+                          {t('escalatedBy' as any) || 'Escalated by'}: {complaint.escalatedBy?.name || 'Authorized Officer'} · {new Date(complaint.escalatedAt).toLocaleDateString('en-IN')}
+                        </div>
+                      </div>
+                    )}
+
                     <div style={{ padding:'12px 16px',background:'rgba(255,255,255,0.02)',borderRadius:10,border:'1px solid var(--border)' }}>
                       <div style={{ fontSize:11,color:'var(--text-muted)',marginBottom:4 }}>{t('description')}</div>
                       <p style={{ fontSize:13,color:'var(--text-primary)',lineHeight:1.7 }}>{complaint.description}</p>
@@ -165,9 +176,22 @@ export default function AdminComplaintDetailPage() {
                         { label: t('deadline'), value:complaint.slaDeadline ? new Date(complaint.slaDeadline).toLocaleDateString('en-IN') : '—' },
                         { label: t('address'), value:complaint.location?.address || '—' },
                       ].map(({ label, value }) => (
-                        <div key={label} style={{ padding:'10px 14px',background:'rgba(255,255,255,0.02)',borderRadius:10,border:'1px solid var(--border)' }}>
-                          <div style={{ fontSize:11,color:'var(--text-muted)',marginBottom:3 }}>{label}</div>
-                          <div style={{ fontSize:13,color:'var(--text-primary)',fontWeight:500 }}>{value}</div>
+                        <div key={label} style={{ padding:'10px 14px',background:'rgba(255,255,255,0.02)',borderRadius:10,border:'1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ fontSize:11,color:'var(--text-muted)',marginBottom:3 }}>{label}</div>
+                            <div style={{ fontSize:13,color:'var(--text-primary)',fontWeight:500 }}>{value}</div>
+                          </div>
+                          {label === t('address') && complaint.location?.lat && (
+                            <a 
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${complaint.location.lat},${complaint.location.lng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-accent"
+                              style={{ padding:'4px 10px', fontSize:10, marginTop:8, display:'flex', alignItems:'center', gap:5, width:'fit-content' }}
+                            >
+                              🗺️ {t('getDirections')}
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -28,8 +28,6 @@ export default function AdminDashboard() {
     if (!loading) {
       if (!user || !['admin','panchayat_secretary','collector'].includes(user.role)) {
         router.replace('/login');
-      } else if (user.role === 'collector') {
-        router.replace('/dashboard/admin/users');
       }
     }
   }, [user, loading, router]);

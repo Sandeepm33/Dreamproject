@@ -196,3 +196,34 @@ exports.approveResolution = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// PUT /api/complaints/:id/escalate
+exports.escalateToCollector = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found' });
+
+    complaint.status = 'escalated';
+    complaint.escalation = {
+      level: 'district',
+      triggeredAt: new Date(),
+      reason: reason || 'Escalated by Panchayat Secretary for District Administration attention.'
+    };
+    complaint.statusHistory.push({ 
+      status: 'escalated', 
+      changedBy: req.user._id, 
+      note: `Escalated to Collector: ${reason}` 
+    });
+    
+    await complaint.save();
+
+    // Notify citizens and potential collectors in the system (would typically notify district admins)
+    await sendNotification(complaint.citizen, 'Complaint Escalated', `Your complaint ${complaint.complaintId} has been escalated to the Collector for district-level resolution.`, 'status_update', complaint._id);
+
+    res.json({ success: true, complaint });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+

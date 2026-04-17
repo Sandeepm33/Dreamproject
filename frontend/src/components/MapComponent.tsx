@@ -264,6 +264,15 @@ const MapComponent = () => {
                                 </div>
                               </div>
                             )}
+
+                            <a 
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${issue.location.lat},${issue.location.lng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-4 block w-full text-center py-2.5 rounded-xl bg-accent/10 border border-accent/20 text-accent text-[10px] font-black uppercase tracking-widest hover:bg-accent/20 transition-all"
+                            >
+                              Get Directions
+                            </a>
                           </div>
                         );
                       })}

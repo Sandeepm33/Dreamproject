@@ -54,6 +54,7 @@ app.use('/api/posts', require('./routes/posts'));
 app.use('/api/villages', require('./routes/villages'));
 app.use('/api/districts', require('./routes/districts'));
 app.use('/api/emergency-alerts', require('./routes/emergency-alerts'));
+app.use('/api/developments', require('./routes/developments'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));

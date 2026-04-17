@@ -190,8 +190,18 @@ export default function IssueMap({ complaints, centerLat = 17.3850, centerLng = 
                           <p className="text-xs line-clamp-3 mb-1" style={{ color: 'var(--text-muted)' }}>
                             {complaint.description}
                           </p>
+                          
+                          <a 
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 block text-center py-2 px-4 rounded border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-[11px] font-bold hover:bg-[#22c55e]/20 transition-all tracking-wider"
+                          >
+                            🗺️ GET DIRECTIONS
+                          </a>
+
                           {complaint.village && (
-                            <p className="text-[10px] text-gray-400 mt-2 border-t border-gray-700/30 pt-1">
+                            <p className="text-[10px] text-gray-400 mt-2 border-t border-gray-700/30 pt-2">
                               📍 {typeof complaint.village === 'string' ? complaint.village : complaint.village.name}
                             </p>
                           )}

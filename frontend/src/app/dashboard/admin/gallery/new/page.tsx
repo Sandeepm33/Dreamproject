@@ -3,12 +3,21 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Image as ImageIcon, CheckCircle, XCircle, ArrowLeft, Upload, Loader2, Film } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { useEffect } from 'react';
 
 export default function NewGalleryPostPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (user && user.role !== 'collector' && user.role !== 'admin') {
+      router.replace('/dashboard/admin/gallery');
+    }
+  }, [user, router]);
   
   const [formData, setFormData] = useState({
     title: '',

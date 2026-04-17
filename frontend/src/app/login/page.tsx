@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Lock, Smartphone, User, Home, ArrowRight, ShieldCheck, Mail, Globe } from 'lucide-react';
+import { Lock, Smartphone, User, Home, ArrowRight, ShieldCheck, Mail, Globe, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { api } from '@/lib/api';
 
@@ -97,6 +97,14 @@ export default function LoginPage() {
       <div className="leaf leaf-3">🍃</div>
 
       <div className="login-content-wrapper">
+        <button 
+          onClick={() => isRegister ? setIsRegister(false) : router.push('/')}
+          className="back-btn"
+          title={isRegister ? t('signin') : t('home')}
+        >
+          <ArrowLeft size={18} />
+          <span>{t('back')}</span>
+        </button>
         <div className={`auth-card-container ${isRegister ? 'is-register' : ''}`}>
           <div className="auth-visual-side">
             <div className="brand-badge">
@@ -261,7 +269,38 @@ export default function LoginPage() {
           max-width: 1000px;
           padding: 20px;
           display: flex;
+          flex-direction: column;
+          align-items: center;
           justify-content: center;
+        }
+
+        .back-btn {
+          align-self: flex-start;
+          margin-bottom: 20px;
+          margin-left: 20px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(22, 32, 25, 0.8);
+          border: 1px solid rgba(45, 106, 79, 0.3);
+          color: #86efac;
+          padding: 10px 20px;
+          border-radius: 14px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(10px);
+          font-weight: 600;
+          font-size: 14px;
+          z-index: 20;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn:hover {
+          background: rgba(45, 106, 79, 0.2);
+          color: #f59e0b;
+          border-color: #f59e0b;
+          transform: translateX(-5px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .auth-card-container {

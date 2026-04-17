@@ -36,7 +36,7 @@ exports.createPost = async (req, res) => {
     const { title, description, imageUrl } = req.body;
     
     // Check if user is allowed to create post
-    const allowedRoles = ['panchayat_secretary', 'admin', 'collector'];
+    const allowedRoles = ['admin', 'collector'];
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -82,8 +82,8 @@ exports.deletePost = async (req, res) => {
       });
     }
     
-    // Allow deletion only by the creator or panchayat_secretary
-    if (post.createdBy.toString() !== req.user.id && req.user.role !== 'panchayat_secretary') {
+    // Allow deletion only by the creator or admin/collector
+    if (post.createdBy.toString() !== req.user.id && !['admin', 'collector'].includes(req.user.role)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this post'

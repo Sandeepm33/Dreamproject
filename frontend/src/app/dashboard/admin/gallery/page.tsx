@@ -12,6 +12,7 @@ interface Post {
   description: string;
   imageUrl: string;
   createdBy: {
+    _id: string;
     name: string;
     role: string;
   };
@@ -89,13 +90,15 @@ export default function GalleryManagementPage() {
               </div>
             </div>
             
-            <button 
-              onClick={() => router.push('/dashboard/admin/gallery/new')}
-              className="btn-primary flex items-center gap-3 px-8 py-4 shadow-[0_10px_30px_rgba(45,106,79,0.3)] hover:scale-105 active:scale-95 transition-all text-base"
-            >
-              <Plus size={20} strokeWidth={3} />
-              <span>Add New Update</span>
-            </button>
+            {(user?.role === 'collector' || user?.role === 'admin') && (
+              <button 
+                onClick={() => router.push('/dashboard/admin/gallery/new')}
+                className="btn-primary flex items-center gap-3 px-8 py-4 shadow-[0_10px_30px_rgba(45,106,79,0.3)] hover:scale-105 active:scale-95 transition-all text-base"
+              >
+                <Plus size={20} strokeWidth={3} />
+                <span>Add New Update</span>
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -133,15 +136,17 @@ export default function GalleryManagementPage() {
                     )}
                     
                     {/* Delete Button - Overlay */}
-                    <div className="absolute top-4 right-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <button 
-                        onClick={() => handleDelete(post._id)}
-                        disabled={deletingId === post._id}
-                        className="w-10 h-10 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-xl backdrop-blur-md transition-all border border-red-500/20 shadow-xl"
-                      >
-                        {deletingId === post._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={18} />}
-                      </button>
-                    </div>
+                    {(user?.role === 'collector' || user?.role === 'admin' || post.createdBy?._id === user?._id) && (
+                      <div className="absolute top-4 right-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                        <button 
+                          onClick={() => handleDelete(post._id)}
+                          disabled={deletingId === post._id}
+                          className="w-10 h-10 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-xl backdrop-blur-md transition-all border border-red-500/20 shadow-xl"
+                        >
+                          {deletingId === post._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={18} />}
+                        </button>
+                      </div>
+                    )}
 
                     <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
                        <Calendar size={12} className="text-accent" />
@@ -198,13 +203,15 @@ export default function GalleryManagementPage() {
                     Your gallery is currently empty. Start building your village's digital legacy by sharing photos or videos of progress and local events.
                   </p>
                   
-                  <button 
-                    onClick={() => router.push('/dashboard/admin/gallery/new')}
-                    className="btn-primary flex items-center gap-3 px-10 py-4 shadow-xl group"
-                  >
-                    <Plus size={20} className="text-white group-hover:rotate-90 transition-transform duration-300" strokeWidth={3} />
-                    <span>Post First Gallery Item</span>
-                  </button>
+                  {(user?.role === 'collector' || user?.role === 'admin') && (
+                    <button 
+                      onClick={() => router.push('/dashboard/admin/gallery/new')}
+                      className="btn-primary flex items-center gap-3 px-10 py-4 shadow-xl group"
+                    >
+                      <Plus size={20} className="text-white group-hover:rotate-90 transition-transform duration-300" strokeWidth={3} />
+                      <span>Post First Gallery Item</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

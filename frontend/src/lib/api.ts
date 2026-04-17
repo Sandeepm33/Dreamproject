@@ -136,6 +136,12 @@ class APIClient {
   async getActiveEmergencyAlerts() { return this.request('/emergency-alerts/active'); }
   async resolveEmergencyAlert(id: string) { return this.request(`/emergency-alerts/${id}/resolve`, { method: 'PUT' }); }
   async deleteEmergencyAlert(id: string) { return this.request(`/emergency-alerts/${id}/delete`, { method: 'POST' }); }
+  async escalateComplaint(id: string, reason: string) { return this.request(`/complaints/${id}/escalate`, { method: 'PUT', body: JSON.stringify({ reason }) }); }
+
+  // Development Requests
+  async createDevelopmentRequest(body: any) { return this.request('/developments', { method: 'POST', body: JSON.stringify(body) }); }
+  async getDevelopmentRequests() { return this.request('/developments'); }
+  async updateDevelopmentStatus(id: string, body: { status: string, collectorNote?: string }) { return this.request(`/developments/${id}/status`, { method: 'PUT', body: JSON.stringify(body) }); }
 }
 
 export const api = new APIClient();

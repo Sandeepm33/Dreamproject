@@ -90,24 +90,25 @@ export default function Sidebar({ collapsed, onCollapse, isMobileOpen, onCloseMo
     { href: '/dashboard/officer/notifications', icon: '🔔', label: t('notifications'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'collector' ? [
+    { href: '/dashboard/admin', icon: '📊', label: t('overview') },
+    { href: '/dashboard/admin/developments', icon: '🏗️', label: t('developmentRequests') },
+    { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/villages', icon: '🏛️', label: t('manageVillages') },
     { href: '/dashboard/admin/analytics', icon: '📈', label: t('analyticsTitle') },
-    { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'panchayat_secretary' ? [
     { href: '/dashboard/admin', icon: '📊', label: t('overview') },
+    { href: '/dashboard/admin/developments', icon: '🏗️', label: t('developmentRequests') },
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
-    { href: '/dashboard/admin/gallery', icon: '🖼️', label: t('villageGallery') },
     { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
     { href: '/dashboard/admin/notifications', icon: '📢', label: t('broadcast'), countKey: 'notifications' },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : [
     { href: '/dashboard/admin', icon: '📊', label: t('overview') },
+    { href: '/dashboard/admin/developments', icon: '🏗️', label: t('developmentRequests') },
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
-    { href: '/dashboard/citizen/complaints', icon: '👤', label: t('myComplaints') },
-    { href: '/dashboard/citizen/new-complaint', icon: '➕', label: t('newComplaint') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/gallery', icon: '🖼️', label: t('villageGallery') },
     { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
