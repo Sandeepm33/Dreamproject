@@ -3,7 +3,7 @@ const router = express.Router();
 const { getDashboard, getUsers, updateUser, toggleUserStatus, getOfficers, broadcastNotification } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 
-const adminOnly = [protect, authorize('admin', 'panchayat_secretary')];
+const adminOnly = [protect, authorize('admin', 'panchayat_secretary', 'collector')];
 router.get('/dashboard', ...adminOnly, getDashboard);
 router.get('/users', protect, authorize('admin', 'panchayat_secretary', 'collector'), getUsers);
 router.put('/users/:id', ...adminOnly, updateUser);

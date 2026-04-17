@@ -219,7 +219,7 @@ select {
   left: 0;
   z-index: 50;
   transition: width 0.3s ease;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .sidebar-item {
@@ -254,6 +254,23 @@ select {
   background: var(--accent);
   border-radius: 0 3px 3px 0;
 }
+ 
+ .sidebar .custom-scrollbar::-webkit-scrollbar {
+   width: 4px;
+ }
+ 
+ .sidebar .custom-scrollbar::-webkit-scrollbar-track {
+   background: transparent;
+ }
+ 
+ .sidebar .custom-scrollbar::-webkit-scrollbar-thumb {
+   background: rgba(45, 106, 79, 0.2);
+   border-radius: 10px;
+ }
+ 
+ .sidebar .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+   background: rgba(45, 106, 79, 0.5);
+ }
 
 /* Stats Card */
 .stat-card {

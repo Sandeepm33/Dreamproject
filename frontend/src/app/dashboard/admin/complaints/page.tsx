@@ -154,22 +154,30 @@ export default function AdminComplaintsPage() {
                     </td>
                     <td style={{ fontSize:12, color:'var(--text-muted)' }}>{t(c.department as any) || c.department || '—'}</td>
                     <td>
-                      <select value={c.status} onChange={e => handleStatusChange(c._id, e.target.value)}
-                        onClick={e => e.stopPropagation()}
-                        className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`}
-                        style={{ background:'transparent', border:'none', cursor:'pointer', fontSize:11 }}>
-                        {['pending','assigned','in_progress','resolved','rejected','escalated'].map(s =>
-                          <option key={s} value={s} style={{ background:'var(--bg-card)', color:'var(--text-primary)' }}>{t(s === 'in_progress' ? 'inProgress' : s as any)}</option>
-                        )}
-                      </select>
+                      {user?.role === 'collector' ? (
+                        <span className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`} style={{ fontSize: 11 }}>
+                           {t(c.status === 'in_progress' ? 'inProgress' : c.status as any).toUpperCase()}
+                        </span>
+                      ) : (
+                        <select value={c.status} onChange={e => handleStatusChange(c._id, e.target.value)}
+                          onClick={e => e.stopPropagation()}
+                          className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`}
+                          style={{ background:'transparent', border:'none', cursor:'pointer', fontSize:11 }}>
+                          {['pending','assigned','in_progress','resolved','rejected','escalated'].map(s =>
+                            <option key={s} value={s} style={{ background:'var(--bg-card)', color:'var(--text-primary)' }}>{t(s === 'in_progress' ? 'inProgress' : s as any)}</option>
+                          )}
+                        </select>
+                      )}
                     </td>
                     <td style={{ color:'var(--accent)', fontSize:13 }}>👍 {c.voteCount}</td>
                     <td style={{ fontSize:12, color:'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
                     <td>
-                      <button onClick={e => { e.stopPropagation(); setAssignModal(c); setAssignOfficer(c.assignedTo?._id || ''); }}
-                        className="btn-ghost" style={{ fontSize:11, padding:'6px 10px', whiteSpace:'nowrap' }}>
-                        🎯 {t('assign')}
-                      </button>
+                      {user?.role !== 'collector' && (
+                        <button onClick={e => { e.stopPropagation(); setAssignModal(c); setAssignOfficer(c.assignedTo?._id || ''); }}
+                          className="btn-ghost" style={{ fontSize:11, padding:'6px 10px', whiteSpace:'nowrap' }}>
+                          🎯 {t('assign')}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

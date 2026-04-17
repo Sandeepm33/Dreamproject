@@ -95,6 +95,7 @@ export default function Sidebar({ collapsed, onCollapse, isMobileOpen, onCloseMo
     { href: '/dashboard/admin/complaints', icon: '📋', label: t('allComplaints') },
     { href: '/dashboard/admin/users', icon: '👥', label: t('manageUsers') },
     { href: '/dashboard/admin/villages', icon: '🏛️', label: t('manageVillages') },
+    { href: '/dashboard/admin/map', icon: '🗺️', label: t('issuesMap') },
     { href: '/dashboard/admin/analytics', icon: '📈', label: t('analyticsTitle') },
     { href: '/dashboard/citizen/profile', icon: '👤', label: t('profile') }
   ] : user?.role === 'panchayat_secretary' ? [
@@ -161,7 +162,7 @@ export default function Sidebar({ collapsed, onCollapse, isMobileOpen, onCloseMo
           )}
 
           {/* Navigation */}
-          <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <nav className="custom-scrollbar" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', paddingRight: 4 }}>
             {nav.map(item => {
               const isActive = pathname === item.href || (item.href !== '/dashboard/citizen' && item.href !== '/dashboard/admin' && item.href !== '/dashboard/officer' && pathname.startsWith(item.href));
               

@@ -173,6 +173,7 @@ export default function AdminComplaintDetailPage() {
                         { label: t('village'), value:`${complaint.citizen?.village || '—'} · ${complaint.location?.district || ''}` },
                         { label: t('category'), value:`${catIcons[complaint.category]} ${t(complaint.category as any)}` },
                         { label: t('department'), value:complaint.department || '—' },
+                        { label: t('officer' as any) || 'Assigned Officer', value: complaint.assignedTo?.name ? `${complaint.assignedTo.name} (${complaint.assignedTo.department || ''})` : t('notAssignedSelect') },
                         { label: t('deadline'), value:complaint.slaDeadline ? new Date(complaint.slaDeadline).toLocaleDateString('en-IN') : '—' },
                         { label: t('address'), value:complaint.location?.address || '—' },
                       ].map(({ label, value }) => (
@@ -262,10 +263,12 @@ export default function AdminComplaintDetailPage() {
                       </div>
                     ))}
                     {!complaint.remarks?.length && <p style={{ color:'var(--text-muted)',fontSize:13,textAlign:'center',padding:'20px 0' }}>{t('noRemarks')}</p>}
-                    <div style={{ display:'flex',gap:10,marginTop:12 }}>
-                      <input value={remark} onChange={e => setRemark(e.target.value)} className="input-field" placeholder={t('addRemarkPlaceholder')} />
-                      <button onClick={async () => { if(remark.trim()){await api.addRemark(id as string,remark);setRemark('');fetch();} }} className="btn-primary" style={{ whiteSpace:'nowrap' }}>{t('send')}</button>
-                    </div>
+                    {user?.role !== 'collector' && (
+                      <div style={{ display:'flex',gap:10,marginTop:12 }}>
+                        <input value={remark} onChange={e => setRemark(e.target.value)} className="input-field" placeholder={t('addRemarkPlaceholder')} />
+                        <button onClick={async () => { if(remark.trim()){await api.addRemark(id as string,remark);setRemark('');fetch();} }} className="btn-primary" style={{ whiteSpace:'nowrap' }}>{t('send')}</button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -273,33 +276,35 @@ export default function AdminComplaintDetailPage() {
 
             {/* Sidebar Panel */}
             <div>
-              <div className="glass-card" style={{ padding:20, marginBottom:16 }}>
-                <h3 style={{ fontSize:14, fontWeight:700, color:'var(--text-primary)', marginBottom:14 }}>{t('quickActions')}</h3>
-                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                  <div>
-                    <label className="label">{t('updateStatus')}</label>
-                    <select value={newStatus} onChange={e => setNewStatus(e.target.value)} className="input-field">
-                      {['pending','assigned','in_progress','resolved','rejected','escalated'].map(s =>
-                        <option key={s} value={s} style={{ background:'var(--bg-card)',color:'var(--text-primary)' }}>{t(s === 'in_progress' ? 'inProgress' : s as any)}</option>
-                      )}
-                    </select>
+              {user?.role !== 'collector' && (
+                <div className="glass-card" style={{ padding:20, marginBottom:16 }}>
+                  <h3 style={{ fontSize:14, fontWeight:700, color:'var(--text-primary)', marginBottom:14 }}>{t('quickActions')}</h3>
+                  <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                    <div>
+                      <label className="label">{t('updateStatus')}</label>
+                      <select value={newStatus} onChange={e => setNewStatus(e.target.value)} className="input-field">
+                        {['pending','assigned','in_progress','resolved','rejected','escalated'].map(s =>
+                          <option key={s} value={s} style={{ background:'var(--bg-card)',color:'var(--text-primary)' }}>{t(s === 'in_progress' ? 'inProgress' : s as any)}</option>
+                        )}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">{t('assignComplaint').replace(' Complaint','')}</label>
+                      <select value={assignOfficer} onChange={e => setAssignOfficer(e.target.value)} className="input-field">
+                        <option value="">{t('notAssignedSelect')}</option>
+                        {officers.map(o => (
+                          <option key={o._id} value={o._id}>{o.name} · {o.department || o.role}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">{t('addNoteRemark')}</label>
+                      <textarea value={remark} onChange={e => setRemark(e.target.value)} className="input-field" rows={3} placeholder={t('adminNotePlaceholder')} style={{ resize:'none' }} />
+                    </div>
+                    <button onClick={handleSave} className="btn-primary" disabled={saving}>{saving?`⏳ ${t('saving')}`:`💾 ${t('saveChanges')}`}</button>
                   </div>
-                  <div>
-                    <label className="label">{t('assignComplaint').replace(' Complaint','')}</label>
-                    <select value={assignOfficer} onChange={e => setAssignOfficer(e.target.value)} className="input-field">
-                      <option value="">{t('notAssignedSelect')}</option>
-                      {officers.map(o => (
-                        <option key={o._id} value={o._id}>{o.name} · {o.department || o.role}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label">{t('addNoteRemark')}</label>
-                    <textarea value={remark} onChange={e => setRemark(e.target.value)} className="input-field" rows={3} placeholder={t('adminNotePlaceholder')} style={{ resize:'none' }} />
-                  </div>
-                  <button onClick={handleSave} className="btn-primary" disabled={saving}>{saving?`⏳ ${t('saving')}`:`💾 ${t('saveChanges')}`}</button>
                 </div>
-              </div>
+              )}
 
               {/* Citizen Info */}
               <div className="glass-card" style={{ padding:20 }}>
