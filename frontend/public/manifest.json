@@ -1,0 +1,23 @@
+{
+  "name": "Managramam",
+  "short_name": "Managramam",
+  "description": "Smart Digital Village Portal for Gram Panchayat",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f0d",
+  "theme_color": "#1a472a",
+  "icons": [
+    {
+      "src": "/logo-en.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-en.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

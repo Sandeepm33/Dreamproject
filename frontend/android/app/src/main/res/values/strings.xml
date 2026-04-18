@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Managramam</string>
+    <string name="title_activity_main">Managramam</string>
+    <string name="package_name">com.managramam.app</string>
+    <string name="custom_url_scheme">com.managramam.app</string>
+</resources>

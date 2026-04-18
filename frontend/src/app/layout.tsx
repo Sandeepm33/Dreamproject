@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Managramam – Smart Digital Village Portal",
   description: "Our Village, Our Progress. Report, track, and resolve community issues efficiently with full transparency and accountability.",
   keywords: "managramam, gram panchayat, village issues, complaint management, telangana, e-governance",
+  manifest: "/manifest.json",
+  themeColor: "#1a472a",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
   icons: {
     icon: "/logo-en.png",
     apple: "/logo-en.png",

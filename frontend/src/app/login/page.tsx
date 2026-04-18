@@ -227,12 +227,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {!isRegister && (
-                <div className="demo-hint">
-                  <span className="hint-label">{t('demoAccess')}:</span>
-                  <code>9000000000 / admin123</code>
-                </div>
-              )}
+
             </div>
           </div>
         </div>
@@ -549,30 +544,7 @@ export default function LoginPage() {
           text-decoration: underline;
         }
 
-        .demo-hint {
-          margin-top: 30px;
-          padding: 15px;
-          background: rgba(45, 106, 79, 0.1);
-          border-radius: 12px;
-          border: 1px dashed rgba(45, 106, 79, 0.4);
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-          align-items: center;
-        }
 
-        .hint-label {
-          font-size: 11px;
-          color: #86efac;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        .demo-hint code {
-          color: #f59e0b;
-          font-family: monospace;
-          font-size: 14px;
-        }
 
         .spinner {
           width: 20px;
