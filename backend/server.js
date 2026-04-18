@@ -36,10 +36,36 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// DB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Error:', err));
+// DB Connection handling
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (err) {
+    console.error(`❌ MongoDB Connection Error: ${err.message}`);
+    // Exit if cannot connect initially in production
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
+  }
+};
+
+connectDB();
+
+mongoose.connection.on('error', err => {
+  console.error('❌ MongoDB Connection Error Event:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️ MongoDB Disconnected. Attempting to reconnect...');
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB Reconnected');
+});
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
