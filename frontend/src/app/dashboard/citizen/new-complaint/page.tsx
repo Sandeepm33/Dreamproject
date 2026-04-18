@@ -31,9 +31,9 @@ export default function NewComplaintPage() {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [onBehalf, setOnBehalf] = useState(false);
-  const [citizenMobile, setCitizenMobile] = useState('');
   const [targetCitizen, setTargetCitizen] = useState<any>(null);
-  const [searchingCitizen, setSearchingCitizen] = useState(false);
+  const [citizens, setCitizens] = useState<any[]>([]);
+  const [loadingCitizens, setLoadingCitizens] = useState(false);
 
   useEffect(() => {
     if (user && !form.location.village) {
@@ -46,24 +46,22 @@ export default function NewComplaintPage() {
     }
   }, [user]);
 
-  const searchCitizen = async () => {
-    if (!citizenMobile) return;
-    setSearchingCitizen(true);
-    setError('');
-    try {
-      const res = await api.searchUsers({ mobile: citizenMobile, role: 'citizen' });
-      if (res.users && res.users.length > 0) {
-        setTargetCitizen(res.users[0]);
-      } else {
-        setTargetCitizen(null);
-        setError(t('noCitizenFound'));
-      }
-    } catch {
-      setError('Error searching citizen');
-    } finally {
-      setSearchingCitizen(false);
+  useEffect(() => {
+    if (onBehalf && user && (user.role === 'admin' || user.role === 'panchayat_secretary' || user.role === 'collector')) {
+      const fetchCitizens = async () => {
+        setLoadingCitizens(true);
+        try {
+          const res = await api.getUsers({ role: 'citizen', limit: 1000 });
+          setCitizens(res.users || []);
+        } catch {
+          setError('Failed to load citizens');
+        } finally {
+          setLoadingCitizens(false);
+        }
+      };
+      fetchCitizens();
     }
-  };
+  }, [onBehalf, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -218,19 +216,28 @@ export default function NewComplaintPage() {
 
                     {onBehalf && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        <div style={{ display: 'flex', gap: 10 }}>
-                          <input value={citizenMobile} onChange={e => setCitizenMobile(e.target.value)} className="input-field" placeholder={t('citizenSearch')} style={{ flex: 1 }} />
-                          <button onClick={searchCitizen} className="btn-ghost" disabled={searchingCitizen} style={{ whiteSpace: 'nowrap' }}>
-                            {searchingCitizen ? t('searching') : `🔍 ${t('searchPrompt').split(' ')[0]}`}
-                          </button>
+                        <div>
+                          <label className="label" style={{ fontSize: 11 }}>{t('selectCitizen')}</label>
+                          <select 
+                            className="input-field" 
+                            onChange={(e) => {
+                              const selected = citizens.find(c => c._id === e.target.value);
+                              setTargetCitizen(selected || null);
+                            }}
+                            value={targetCitizen?._id || ''}
+                            disabled={loadingCitizens}
+                          >
+                            <option value="">{loadingCitizens ? `${t('loading')}...` : `-- ${t('selectCitizen')} --`}</option>
+                            {citizens.map(c => (
+                              <option key={c._id} value={c._id}>{c.name} ({c.mobile})</option>
+                            ))}
+                          </select>
                         </div>
-                        {targetCitizen ? (
+                        {targetCitizen && (
                           <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', padding: '10px 14px', borderRadius: 10, fontSize: 13, color: '#22c55e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span>✅ {t('foundCitizen').replace('{name}', targetCitizen.name)}</span>
                             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>📍 {targetCitizen.village?.name || (typeof targetCitizen.village === 'string' ? targetCitizen.village : '')}</span>
                           </div>
-                        ) : error && onBehalf && (
-                          <div style={{ fontSize: 12, color: '#ef4444' }}>⚠️ {t('noCitizenFound')}</div>
                         )}
                       </div>
                     )}
