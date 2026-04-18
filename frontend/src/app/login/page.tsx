@@ -107,10 +107,18 @@ export default function LoginPage() {
         </button>
         <div className={`auth-card-container ${isRegister ? 'is-register' : ''}`}>
           <div className="auth-visual-side">
-            <div className="brand-badge">
-              <span className="badge-icon">🏛️</span>
+            <div className="brand-badge" style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 60 }}>
+              <div style={{ width: 60, height: 60, background: 'rgba(255,255,255,0.05)', borderRadius: 20, border: '1px solid rgba(245, 158, 11, 0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={language === 'te' ? '/logo-te.png' : '/logo-en.png'} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
               <div className="badge-text">
-                <span className="brand-name">SGPIMS</span>
+                <span className="brand-name">
+                  {language === 'en' ? (
+                    <>Mana<span style={{ color: '#fff' }}>gramam</span></>
+                  ) : (
+                    <><span>మన</span><span style={{ color: '#fff' }}>గ్రామం</span></>
+                  )}
+                </span>
                 <span className="brand-tag">{t('governanceRedefined')}</span>
               </div>
             </div>

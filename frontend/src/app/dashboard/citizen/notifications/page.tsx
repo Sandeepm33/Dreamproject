@@ -157,24 +157,24 @@ export default function NotificationsPage() {
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
           {/* ── Page Header ── */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>
+              <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                 🔔 {t('notifications')}
                 {unread > 0 && (
-                  <span style={{ fontSize: 14, background: 'var(--accent)', color: '#0a0f0d', borderRadius: 20, padding: '2px 10px', marginLeft: 8 }}>
+                  <span style={{ fontSize: 14, background: 'var(--accent)', color: '#0a0f0d', borderRadius: 20, padding: '2px 10px' }}>
                     {t('newNotifications').replace('{count}', unread.toString())}
                   </span>
                 )}
               </h1>
               <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('totalNotifications').replace('{count}', notifications.length.toString())}</p>
             </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {unread > 0 && (
-                <button onClick={markAllRead} className="btn-ghost" style={{ fontSize: 13 }}>{t('markAllRead')}</button>
+                <button onClick={markAllRead} className="btn-ghost" style={{ fontSize: 13, padding: '8px 12px' }}>{t('markAllRead')}</button>
               )}
               {isSecretary && notifications.length > 0 && (
-                <button onClick={clearAll} className="btn-ghost" style={{ fontSize: 13, color: '#ef4444' }}>🗑️ {t('clearAll') || 'Clear'}</button>
+                <button onClick={clearAll} className="btn-ghost" style={{ fontSize: 13, color: '#ef4444', padding: '8px 12px' }}>🗑️ {t('clearAll') || 'Clear'}</button>
               )}
             </div>
           </div>
@@ -299,12 +299,13 @@ function EmergencySection({ activeAlerts, onLaunch, onResolve, onDelete }: { act
         marginBottom: activeAlerts.length > 0 ? 16 : 0,
         display: 'flex', alignItems: 'center', gap: 20,
         boxShadow: '0 4px 24px rgba(255,69,0,0.1)',
+        flexWrap: 'wrap'
       }}>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#ff6b35', fontFamily: 'Poppins', marginBottom: 4 }}>
             🆘 Village Emergency
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: 320, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: '100%', lineHeight: 1.5 }}>
             Press to send an immediate high-priority alert to all registered citizens, officers and emergency services in your village.
           </div>
         </div>
@@ -312,7 +313,6 @@ function EmergencySection({ activeAlerts, onLaunch, onResolve, onDelete }: { act
           id="emergency-trigger-btn"
           onClick={onLaunch}
           style={{
-            marginLeft: 'auto',
             padding: '14px 28px',
             borderRadius: 14,
             background: 'linear-gradient(135deg, #ff4500, #cc2200)',
@@ -323,6 +323,8 @@ function EmergencySection({ activeAlerts, onLaunch, onResolve, onDelete }: { act
             border: 'none',
             cursor: 'pointer',
             flexShrink: 0,
+            width: '100%',
+            maxWidth: '240px',
             letterSpacing: 0.5,
             boxShadow: '0 4px 20px rgba(255,69,0,0.5)',
             transition: 'all 0.2s',

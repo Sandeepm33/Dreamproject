@@ -130,11 +130,11 @@ export default function Sidebar({ collapsed, onCollapse, isMobileOpen, onCloseMo
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '16px 12px' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, padding: '8px 4px', minHeight: 56 }}>
-          <div style={{ width: 40, height: 40, minWidth: 40, background: 'linear-gradient(135deg, var(--primary-light), var(--primary))', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: 'var(--glow)' }}>
-            🏛️
+          <div style={{ width: 40, height: 40, minWidth: 40, background: 'rgba(255,255,255,0.05)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: 'var(--glow)' }}>
+            <img src={language === 'te' ? '/logo-te.png' : '/logo-en.png'} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ overflow: 'hidden', opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'Poppins', background: 'linear-gradient(135deg, #86efac, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>{t('sgpims')}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'Poppins', background: 'linear-gradient(135deg, #86efac, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>{t('sgpims')}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{t('gramPanchayat')}</div>
           </div>
           <button onClick={onCollapse} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 12, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, flexShrink: 0 }}>

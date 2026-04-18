@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function PublicFooter() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return (
     <footer className="bg-[#0a0f0d] border-t border-[rgba(45,106,79,0.3)] pt-16  pb-8">
@@ -11,7 +11,11 @@ export default function PublicFooter() {
           {/* Brand Column */}
           <div style={{ flex: '2 1 300px', maxWidth: 450 }}>
             <h2 style={{ fontSize: 28, fontWeight: 800, color: 'white', marginBottom: 20, fontFamily: 'Poppins', letterSpacing: '-0.02em' }}>
-              SGP<span style={{ color: '#f59e0b' }}>IMS</span>
+              {language === 'en' ? (
+                <>Mana<span style={{ color: '#f59e0b' }}>gramam</span></>
+              ) : (
+                <><span>మన</span><span style={{ color: '#f59e0b' }}>గ్రామం</span></>
+              )}
             </h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8, fontSize: 16 }}>
               {t('footerDesc')}
@@ -48,7 +52,7 @@ export default function PublicFooter() {
                 <span>📍</span> {t('locationFooter')}
               </li>
               <li style={{ color: '#9ca3af', fontSize: 15, display: 'flex', gap: 10 }}>
-                <span>✉️</span> support@sgpims.gov.in
+                <span>✉️</span> support@managramam.gov.in
               </li>
               <li style={{ color: '#9ca3af', fontSize: 15, display: 'flex', gap: 10 }}>
                 <span>📞</span> +91 8000 000 000

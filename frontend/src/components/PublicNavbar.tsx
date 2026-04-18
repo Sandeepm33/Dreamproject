@@ -12,12 +12,16 @@ export default function PublicNavbar() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 80 }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="gradient-primary" style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Leaf size={24} color="white" />
+            <div className="gradient-primary" style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <img src={language === 'te' ? '/logo-te.png' : '/logo-en.png'} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
               <h1 style={{ fontSize: 24, fontWeight: 800, color: 'white', margin: 0, lineHeight: 1 }}>
-                SGP<span style={{ color: '#f59e0b' }}>IMS</span>
+                {language === 'en' ? (
+                  <>Mana<span style={{ color: '#f59e0b' }}>gramam</span></>
+                ) : (
+                  <><span>మన</span><span style={{ color: '#f59e0b' }}>గ్రామం</span></>
+                )}
               </h1>
               <p style={{ fontSize: 10, color: '#4ade80', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, margin: 0, marginTop: 4 }}>{t('smartPanchayat')}</p>
             </div>

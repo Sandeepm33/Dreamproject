@@ -71,7 +71,7 @@ export default function AdminDevelopments() {
 
   return (
     <div className="animate-fade-in">
-      <div className="layout-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+      <div className="layout-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>🏗️ {t('requestedDevelopments')}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('manageVillageInfrastructure')}</p>
@@ -84,7 +84,7 @@ export default function AdminDevelopments() {
       </div>
 
       {isLoading ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(350px,1fr))', gap:20 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
           {[...Array(4)].map((_,i) => <div key={i} className="skeleton" style={{ height:180, borderRadius:16 }} />)}
         </div>
       ) : requests.length === 0 ? (
@@ -93,7 +93,7 @@ export default function AdminDevelopments() {
           <p style={{ color: 'var(--text-muted)', fontSize: 16 }}>{t('noData')}</p>
         </div>
       ) : (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(400px,1fr))', gap:20 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
           {requests.map(r => (
             <div key={r._id} className="glass-card glass-card-hover" style={{ padding: 24, cursor:'pointer' }} onClick={() => { setSelectedReq(r); setCollectorNote(r.collectorNote || ''); }}>
                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:16 }}>
@@ -138,11 +138,11 @@ export default function AdminDevelopments() {
                    <textarea value={collectorNote} onChange={e => setCollectorNote(e.target.value)} className="input-field" rows={3} placeholder={t('addPrivateNote')}/>
                 </div>
 
-                <div style={{ display:'flex', gap:12 }}>
-                   <button onClick={() => handleUpdateStatus('approved')} className="btn-primary" style={{ flex:1 }} disabled={updating}>{t('approveProject')}</button>
-                   <button onClick={() => handleUpdateStatus('in_progress')} className="btn-accent" style={{ flex:1 }} disabled={updating}>{t('markInProgress')}</button>
-                   <button onClick={() => handleUpdateStatus('rejected')} className="btn-ghost" style={{ flex:1, color:'#ef4444' }} disabled={updating}>{t('reject')}</button>
-                </div>
+                 <div style={{ display:'flex', gap:12, flexWrap: 'wrap' }}>
+                   <button onClick={() => handleUpdateStatus('approved')} className="btn-primary" style={{ flex:'1 1 140px' }} disabled={updating}>{t('approveProject')}</button>
+                   <button onClick={() => handleUpdateStatus('in_progress')} className="btn-accent" style={{ flex:'1 1 140px' }} disabled={updating}>{t('markInProgress')}</button>
+                   <button onClick={() => handleUpdateStatus('rejected')} className="btn-ghost" style={{ flex:'1 1 140px', color:'#ef4444' }} disabled={updating}>{t('reject')}</button>
+                 </div>
               </>
             ) : selectedReq.collectorNote && (
               <div style={{ padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid var(--border)' }}>

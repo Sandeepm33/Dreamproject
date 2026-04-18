@@ -6,14 +6,20 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { FcmProvider } from "@/context/FcmContext";
 import EmergencyAlertBanner from "@/components/EmergencyAlertBanner";
 
+import FaviconUpdater from "@/components/FaviconUpdater";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SGPIMS – Smart Gram Panchayat Issue Management System",
-  description: "Digitize village governance. Report, track, and resolve community issues efficiently with full transparency and accountability.",
-  keywords: "gram panchayat, village issues, complaint management, telangana, e-governance",
+  title: "Managramam – Smart Digital Village Portal",
+  description: "Our Village, Our Progress. Report, track, and resolve community issues efficiently with full transparency and accountability.",
+  keywords: "managramam, gram panchayat, village issues, complaint management, telangana, e-governance",
+  icons: {
+    icon: "/logo-en.png",
+    apple: "/logo-en.png",
+  },
   openGraph: {
-    title: "SGPIMS – Smart Gram Panchayat",
+    title: "Managramam – Digital Village Portal",
     description: "Transparent village issue management system",
     type: "website",
   },
@@ -29,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <LanguageProvider>
+          <FaviconUpdater />
           <AuthProvider>
             <FcmProvider>
               <EmergencyAlertBanner />

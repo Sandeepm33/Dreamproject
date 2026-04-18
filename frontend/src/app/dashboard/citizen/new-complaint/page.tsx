@@ -100,7 +100,7 @@ export default function NewComplaintPage() {
     setPreviews(p => p.filter((_,idx) => idx !== i));
   };
 
-  const startListening = () => {
+  const startListening = (field: 'title' | 'description') => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setError(t('speechNotSupported'));
@@ -121,7 +121,7 @@ export default function NewComplaintPage() {
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setForm(f => ({ ...f, description: f.description + (f.description ? ' ' : '') + transcript }));
+      setForm(f => ({ ...f, [field]: f[field] + (f[field] ? ' ' : '') + transcript }));
     };
 
     recognition.start();
@@ -238,7 +238,14 @@ export default function NewComplaintPage() {
                 )}
 
                 <div>
-                  <label className="label">{t('issueTitle')} <span style={{ color: '#ef4444' }}>*</span></label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label className="label" style={{ marginBottom: 0 }}>{t('issueTitle')} <span style={{ color: '#ef4444' }}>*</span></label>
+                    <button onClick={() => startListening('title')} disabled={isListening} 
+                      style={{ background: isListening ? '#ef4444' : 'rgba(45,106,79,0.1)', border: `1px solid ${isListening ? '#ef4444' : 'rgba(45,106,79,0.3)'}`, color: isListening ? 'white' : 'var(--text-primary)', borderRadius: 20, padding: '4px 12px', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s' }}>
+                      {isListening ? <MicOff size={12} /> : <Mic size={12} />}
+                      {isListening ? t('listening') : t('voiceToText')}
+                    </button>
+                  </div>
                   <input name="title" value={form.title} onChange={handleChange} className="input-field" placeholder={t('titlePlaceholder')} maxLength={200} />
                   <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/200</div>
                 </div>
@@ -258,7 +265,7 @@ export default function NewComplaintPage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <label className="label" style={{ marginBottom: 0 }}>{t('description')} <span style={{ color: '#ef4444' }}>*</span></label>
-                    <button onClick={startListening} disabled={isListening} 
+                    <button onClick={() => startListening('description')} disabled={isListening} 
                       style={{ background: isListening ? '#ef4444' : 'rgba(45,106,79,0.1)', border: `1px solid ${isListening ? '#ef4444' : 'rgba(45,106,79,0.3)'}`, color: isListening ? 'white' : 'var(--text-primary)', borderRadius: 20, padding: '4px 12px', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s' }}>
                       {isListening ? <MicOff size={12} /> : <Mic size={12} />}
                       {isListening ? t('listening') : t('voiceToText')}
@@ -290,7 +297,7 @@ export default function NewComplaintPage() {
                   </div>
                 </div>
                  <div>
-                  <label className="label">GPS Coordinates</label>
+                  <label className="label">GPS Coordinates <span style={{ color: '#ef4444' }}>*</span></label>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                     <input className="input-field" readOnly placeholder="Latitude" value={form.location.lat || ''} style={{ flex: 1, minWidth: 100 }} />
                     <input className="input-field" readOnly placeholder="Longitude" value={form.location.lng || ''} style={{ flex: 1, minWidth: 100 }} />
@@ -325,7 +332,7 @@ export default function NewComplaintPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
                   <button onClick={() => setStep(1)} className="btn-ghost">← {t('back')}</button>
-                  <button onClick={() => setStep(3)} className="btn-primary" style={{ padding: '12px 32px' }}>{t('step3Next')}</button>
+                  <button onClick={() => { if (!form.location.lat || !form.location.lng) { setError(t('gpsError')); return; } setError(''); setStep(3); }} className="btn-primary" style={{ padding: '12px 32px' }}>{t('step3Next')}</button>
                 </div>
               </div>
             )}

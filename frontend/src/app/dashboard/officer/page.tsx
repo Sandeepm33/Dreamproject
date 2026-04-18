@@ -144,7 +144,7 @@ export default function OfficerDashboard() {
       {view === 'complaints' ? (
         <>
           {/* Stats */}
-          <div className="stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:28 }}>
+          <div className="stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(130px, 1fr))', gap:10, marginBottom:28 }}>
             {[
               { label: t('assigned'), value:stats.total, icon:'📋', color:'#0ea5e9' },
               { label: t('pending'), value:stats.pending, icon:'⏳', color:'#f59e0b' },
