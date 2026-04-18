@@ -45,6 +45,23 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (user) fetchDashboard(); }, [user, fetchDashboard]);
 
+  // AUTO-REFRESH on new notification
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('🔄 Dashboard Refresh Triggered by FCM');
+      fetchDashboard();
+    };
+    window.addEventListener('fcm-message-received', handleRefresh);
+
+    // FALLBACK: Auto-check every 30 seconds just in case
+    const interval = setInterval(fetchDashboard, 30000);
+
+    return () => {
+      window.removeEventListener('fcm-message-received', handleRefresh);
+      clearInterval(interval);
+    };
+  }, [fetchDashboard]);
+
   const catIcons: Record<string,string> = { water:'💧', roads:'🛣️', electricity:'⚡', sanitation:'🧹', others:'📋' };
   const catColors: Record<string,string> = { water:'#38bdf8', roads:'#a78bfa', electricity:'#fbbf24', sanitation:'#34d399', others:'#94a3b8' };
 

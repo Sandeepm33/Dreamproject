@@ -59,6 +59,17 @@ export default function OfficerDashboard() {
     }
   }, [user, fetchComplaints, fetchDevelopments, view]);
 
+  // AUTO-REFRESH on new notification
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('🔄 Dashboard Refresh Triggered by FCM');
+      if (view === 'complaints') fetchComplaints();
+      else fetchDevelopments();
+    };
+    window.addEventListener('fcm-message-received', handleRefresh);
+    return () => window.removeEventListener('fcm-message-received', handleRefresh);
+  }, [fetchComplaints, fetchDevelopments, view]);
+
   const stats = {
     total: complaints.length,
     pending: complaints.filter(c => c.status === 'pending').length,

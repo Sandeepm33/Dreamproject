@@ -23,6 +23,7 @@ exports.getPosts = async (req, res) => {
       data: posts
     });
   } catch (error) {
+    console.error('❌ Error in getPosts:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error'

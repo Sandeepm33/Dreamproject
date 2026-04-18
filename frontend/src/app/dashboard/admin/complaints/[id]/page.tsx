@@ -37,6 +37,16 @@ export default function AdminComplaintDetailPage() {
 
   useEffect(() => { if (user) fetch(); }, [user, fetch]);
 
+  // AUTO-REFRESH on new notification
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('🔄 Detail Page Refresh Triggered by FCM');
+      fetch();
+    };
+    window.addEventListener('fcm-message-received', handleRefresh);
+    return () => window.removeEventListener('fcm-message-received', handleRefresh);
+  }, [fetch]);
+
   const handleSave = async () => {
     setSaving(true);
     setShowSuccess(false);

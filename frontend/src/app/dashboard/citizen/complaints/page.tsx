@@ -34,6 +34,16 @@ export default function CitizenComplaintsPage() {
 
   useEffect(() => { if (user) fetchComplaints(); }, [user, fetchComplaints]);
 
+  // AUTO-REFRESH on new notification
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('🔄 Citizen List Refresh Triggered by FCM');
+      fetchComplaints();
+    };
+    window.addEventListener('fcm-message-received', handleRefresh);
+    return () => window.removeEventListener('fcm-message-received', handleRefresh);
+  }, [fetchComplaints]);
+
   const handleVote = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {

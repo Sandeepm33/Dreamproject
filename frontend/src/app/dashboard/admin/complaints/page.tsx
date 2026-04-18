@@ -60,6 +60,23 @@ export default function AdminComplaintsPage() {
     return () => { active.current = false; };
   }, [user, fetchComplaints]);
 
+  // AUTO-REFRESH on new notification
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('🔄 Complaints List Refresh Triggered by FCM');
+      fetchComplaints();
+    };
+    window.addEventListener('fcm-message-received', handleRefresh);
+
+    // FALLBACK: Auto-check every 30 seconds
+    const interval = setInterval(() => fetchComplaints(), 30000);
+
+    return () => {
+      window.removeEventListener('fcm-message-received', handleRefresh);
+      clearInterval(interval);
+    };
+  }, [fetchComplaints]);
+
   useEffect(() => {
     api.getOfficers().then(r => setOfficers(r.officers || [])).catch(() => {});
   }, []);

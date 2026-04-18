@@ -34,6 +34,16 @@ export default function CitizenDashboard() {
 
   useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
 
+  // AUTO-REFRESH on new notification
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('🔄 Dashboard Refresh Triggered by FCM');
+      fetchData();
+    };
+    window.addEventListener('fcm-message-received', handleRefresh);
+    return () => window.removeEventListener('fcm-message-received', handleRefresh);
+  }, [fetchData]);
+
   const catIcons: Record<string,string> = { water:'💧', roads:'🛣️', electricity:'⚡', sanitation:'🧹', others:'📋' };
   const statusSteps = ['pending','assigned','in_progress','resolved'];
 

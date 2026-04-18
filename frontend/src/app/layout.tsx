@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { FcmProvider } from "@/context/FcmContext";
 import EmergencyAlertBanner from "@/components/EmergencyAlertBanner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,11 +30,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className} suppressHydrationWarning>
         <LanguageProvider>
           <AuthProvider>
-            <EmergencyAlertBanner />
-            {children}
+            <FcmProvider>
+              <EmergencyAlertBanner />
+              {children}
+            </FcmProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
   );
 }
+
