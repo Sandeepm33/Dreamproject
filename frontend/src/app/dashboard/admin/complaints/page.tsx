@@ -25,6 +25,15 @@ export default function AdminComplaintsPage() {
   const [assignOfficer, setAssignOfficer] = useState('');
   const [assigning, setAssigning] = useState(false);
   const [isMine, setIsMine] = useState(false);
+  const [villageMap, setVillageMap] = useState<Record<string, string>>({});
+  const [districtMap, setDistrictMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    Promise.all([api.getVillages(), api.getDistricts()]).then(([vRes, dRes]) => {
+      const vMap: any = {}; vRes.villages?.forEach((v: any) => vMap[v._id] = v.name); setVillageMap(vMap);
+      const dMap: any = {}; dRes.districts?.forEach((d: any) => dMap[d._id] = d.name); setDistrictMap(dMap);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -167,7 +176,7 @@ export default function AdminComplaintsPage() {
                     <td><span style={{ fontSize:13 }}>{catIcons[c.category]} {t(c.category as any)}</span></td>
                     <td style={{ fontSize:13 }}>
                       <div>{c.citizen?.name}</div>
-                      <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.citizen?.mobile} · {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</div>
+                      <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.citizen?.mobile} · {c.village?.name || villageMap[c.village] || c.citizen?.village?.name || villageMap[c.citizen?.village] || c.location?.village || (user?.role === 'panchayat_secretary' ? (user as any).village?.name : null) || (typeof c.citizen?.village === 'string' && !c.citizen.village.match(/^[0-9a-fA-F]{24}$/) ? c.citizen.village : '—')}</div>
                     </td>
                     <td style={{ fontSize:12, color:'var(--text-muted)' }}>{t(c.department as any) || c.department || '—'}</td>
                     <td>

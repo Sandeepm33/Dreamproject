@@ -23,6 +23,15 @@ export default function AdminComplaintDetailPage() {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<'details'|'history'|'remarks'>('details');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [villageMap, setVillageMap] = useState<Record<string, string>>({});
+  const [districtMap, setDistrictMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    Promise.all([api.getVillages(), api.getDistricts()]).then(([vRes, dRes]) => {
+      const vMap: any = {}; vRes.villages?.forEach((v: any) => vMap[v._id] = v.name); setVillageMap(vMap);
+      const dMap: any = {}; dRes.districts?.forEach((d: any) => dMap[d._id] = d.name); setDistrictMap(dMap);
+    }).catch(() => {});
+  }, []);
 
   const fetch = useCallback(async () => {
     try {
@@ -180,7 +189,7 @@ export default function AdminComplaintDetailPage() {
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                       {[
                         { label: t('citizen'), value:`${complaint.citizen?.name} · ${complaint.citizen?.mobile}` },
-                        { label: t('village'), value:`${complaint.citizen?.village || '—'} · ${complaint.location?.district || ''}` },
+                        { label: t('village'), value:`${complaint.village?.name || villageMap[complaint.village] || villageMap[complaint.citizen?.village] || complaint.location?.village || (typeof complaint.citizen?.village === 'string' ? `${t('village')}: ${complaint.citizen.village.substring(0,8)}...` : '—')} · ${complaint.location?.district?.name || complaint.citizen?.district?.name || districtMap[complaint.location?.district] || districtMap[complaint.citizen?.district] || (typeof (complaint.location?.district || complaint.citizen?.district) === 'string' ? (complaint.location?.district || complaint.citizen?.district) : '')}` },
                         { label: t('category'), value:`${catIcons[complaint.category]} ${t(complaint.category as any)}` },
                         { label: t('department'), value:complaint.department || '—' },
                         { label: t('officer' as any) || 'Assigned Officer', value: complaint.assignedTo?.name ? `${complaint.assignedTo.name} (${complaint.assignedTo.department || ''})` : t('notAssignedSelect') },
@@ -330,7 +339,18 @@ export default function AdminComplaintDetailPage() {
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   {complaint.citizen?.email &&  <div style={{ fontSize:12,color:'var(--text-muted)' }}>📧 {complaint.citizen.email}</div>}
-                  {complaint.citizen?.village && <div style={{ fontSize:12,color:'var(--text-muted)' }}>📍 {complaint.citizen.village}{complaint.citizen.district && `, ${complaint.citizen.district}`}</div>}
+                  {(complaint.village || complaint.citizen?.village || complaint.location?.village) && (
+                    <div style={{ fontSize:12,color:'var(--text-muted)' }}>
+                      📍 {complaint.village?.name || villageMap[complaint.village] || 
+                          (typeof complaint.citizen?.village === 'object' ? complaint.citizen.village.name : 
+                          (villageMap[complaint.citizen?.village] || complaint.location?.village || complaint.citizen?.village))}
+                      {(complaint.location?.district || complaint.citizen?.district) && (
+                        ` · ${complaint.location?.district?.name || complaint.citizen?.district?.name || 
+                          districtMap[complaint.location?.district] || districtMap[complaint.citizen?.district] || 
+                          (typeof (complaint.location?.district || complaint.citizen?.district) === 'string' ? (complaint.location?.district || complaint.citizen?.district) : '')}`
+                      )}
+                    </div>
+                  )}
                 </div>
                 {complaint.escalation?.level !== 'none' && (
                   <div style={{ marginTop:12,padding:'8px 12px',background:'rgba(249,115,22,0.08)',border:'1px solid rgba(249,115,22,0.3)',borderRadius:8 }}>

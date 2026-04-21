@@ -108,19 +108,19 @@ export default function HomePage() {
                     router.push(`/dashboard/${dashboardRole}`);
                   }}
                   className="btn-primary"
-                  style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, boxShadow: '0 10px 30px rgba(34, 197, 94, 0.25)' }}
+                  style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)', boxShadow: '0 10px 30px rgba(34, 197, 94, 0.4)', transition: 'all 0.3s ease' }}
                 >
                   {t('enterDashboard')} <ArrowRight size={22} />
                 </button>
               ) : (
-                <button onClick={() => router.push('/login')} className="btn-primary" style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, boxShadow: '0 10px 30px rgba(34, 197, 94, 0.25)' }}>
+                <button onClick={() => router.push('/login')} className="btn-primary" style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)', boxShadow: '0 10px 30px rgba(34, 197, 94, 0.4)', transition: 'all 0.3s ease' }}>
                   {t('getStarted')} <ArrowRight size={22} />
                 </button>
               )}
               <button
                 onClick={() => { document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }) }}
-                className="glass-card glass-card-hover"
-                style={{ padding: '18px 40px', fontSize: 17, background: 'rgba(255,255,255,0.03)', color: 'white', fontWeight: 600, cursor: 'pointer', borderRadius: 16 }}
+                className="btn-primary"
+                style={{ padding: '18px 40px', fontSize: 17, display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)', boxShadow: '0 10px 30px rgba(34, 197, 94, 0.4)', transition: 'all 0.3s ease' }}
               >
                 {t('learnMore')}
               </button>

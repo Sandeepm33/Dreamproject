@@ -26,6 +26,15 @@ export default function OfficerDashboard() {
   const [updating, setUpdating] = useState(false);
   const [remark, setRemark] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [villageMap, setVillageMap] = useState<Record<string, string>>({});
+  const [districtMap, setDistrictMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    Promise.all([api.getVillages(), api.getDistricts()]).then(([vRes, dRes]) => {
+      const vMap: any = {}; vRes.villages?.forEach((v: any) => vMap[v._id] = v.name); setVillageMap(vMap);
+      const dMap: any = {}; dRes.districts?.forEach((d: any) => dMap[d._id] = d.name); setDistrictMap(dMap);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!loading && (!user || (user.role !== 'officer' && user.role !== 'panchayat_secretary'))) router.replace('/login');
@@ -195,7 +204,7 @@ export default function OfficerDashboard() {
                   <h3 style={{ fontSize:14, fontWeight:600, color:'var(--text-primary)', marginBottom:6, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.title}</h3>
                   <p style={{ fontSize:12, color:'var(--text-muted)', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' as any, marginBottom:10 }}>{c.description}</p>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <div style={{ fontSize:11, color:'var(--text-muted)' }}>👤 {c.citizen?.name} · {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</div>
+                    <div style={{ fontSize:11, color:'var(--text-muted)' }}>👤 {c.citizen?.name} · {c.village?.name || villageMap[c.village] || c.citizen?.village?.name || villageMap[c.citizen?.village] || c.location?.village || (user?.role === 'panchayat_secretary' ? (user as any).village?.name : null) || (typeof c.citizen?.village === 'string' ? `${t('village')}: ${c.citizen.village.substring(0,8)}...` : '—')}</div>
                     <div style={{ fontSize:11, color:'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</div>
                   </div>
                 </div>
@@ -276,7 +285,9 @@ export default function OfficerDashboard() {
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('village')}</div>
-                  <div style={{ fontSize:12, color:'var(--text-primary)' }}>📍 {selectedComplaint.citizen?.village?.name || (typeof selectedComplaint.citizen?.village === 'string' ? selectedComplaint.citizen.village : '—')} · {selectedComplaint.location?.address}</div>
+                  <div style={{ fontSize:12, color:'var(--text-primary)' }}>📍 {selectedComplaint.village?.name || villageMap[selectedComplaint.village] || selectedComplaint.citizen?.village?.name || villageMap[selectedComplaint.citizen?.village] || (user?.role === 'panchayat_secretary' ? (user as any).village?.name : null) || (typeof selectedComplaint.citizen?.village === 'string' ? selectedComplaint.citizen.village : '—')}
+                    {` · ${selectedComplaint.location?.district?.name || selectedComplaint.citizen?.district?.name || districtMap[selectedComplaint.location?.district] || districtMap[selectedComplaint.citizen?.district] || (typeof (selectedComplaint.location?.district || selectedComplaint.citizen?.district) === 'string' && !(selectedComplaint.location?.district || selectedComplaint.citizen?.district).match(/^[0-9a-fA-F]{24}$/) ? (selectedComplaint.location?.district || selectedComplaint.citizen?.district) : '')}`}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                   {selectedComplaint.location?.lat && (

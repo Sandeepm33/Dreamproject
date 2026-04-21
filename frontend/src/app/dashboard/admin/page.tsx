@@ -23,6 +23,13 @@ export default function AdminDashboard() {
   const [recentComplaints, setRecentComplaints] = useState<any[]>([]);
   const [monthlyTrend, setMonthlyTrend] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [villageMap, setVillageMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    api.getVillages().then(res => {
+      const vMap: any = {}; res.villages?.forEach((v: any) => vMap[v._id] = v.name); setVillageMap(vMap);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -219,7 +226,7 @@ export default function AdminDashboard() {
                         <td><code style={{ fontSize: 11, color: 'var(--accent)', background: 'rgba(245,158,11,0.1)', padding: '2px 6px', borderRadius: 4 }}>{c.complaintId}</code></td>
                         <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</td>
                         <td><span style={{ fontSize: 12 }}>{catIcons[c.category] || '📋'} {t(c.category as any)}</span></td>
-                        <td style={{ fontSize: 13 }}>{c.citizen?.name} <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>· {c.citizen?.village?.name || (typeof c.citizen?.village === 'string' ? c.citizen.village : '—')}</span></td>
+                        <td style={{ fontSize: 13 }}>{c.citizen?.name} <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>· {c.village?.name || villageMap[c.village] || c.citizen?.village?.name || villageMap[c.citizen?.village] || c.location?.village || (typeof c.citizen?.village === 'string' ? `${t('village')}: ${c.citizen.village.substring(0,8)}...` : '—')}</span></td>
                         <td><span className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`}>{t(c.status === 'in_progress' ? 'inProgress' : c.status as any)}</span></td>
                         <td style={{ color: 'var(--accent)', fontSize: 13 }}>👍 {c.voteCount}</td>
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
