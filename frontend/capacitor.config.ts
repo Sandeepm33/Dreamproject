@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     // url: 'https://managramam.onrender.com',
-    url: 'hhttps://master.dntbx1bea0aru.amplifyapp.com',
+    url: 'https://master.dntbx1bea0aru.amplifyapp.com',
     cleartext: true
   }
 };
