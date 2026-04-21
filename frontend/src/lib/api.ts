@@ -72,6 +72,14 @@ class APIClient {
   async assignComplaint(id: string, body: any) { return this.request(`/complaints/${id}/assign`, { method: 'PUT', body: JSON.stringify(body) }); }
   async addRemark(id: string, text: string) { return this.request(`/complaints/${id}/remark`, { method: 'POST', body: JSON.stringify({ text }) }); }
   async approveResolution(id: string, body: any) { return this.request(`/complaints/${id}/approve-resolution`, { method: 'POST', body: JSON.stringify(body) }); }
+  async exportComplaints() {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/admin/export-complaints`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    if (!response.ok) throw new Error('Export failed');
+    return response.blob();
+  }
 
   // Votes
   async vote(complaintId: string) { return this.request(`/votes/${complaintId}`, { method: 'POST' }); }

@@ -24,6 +24,7 @@ export default function AdminComplaintsPage() {
   const [assignModal, setAssignModal] = useState<any>(null);
   const [assignOfficer, setAssignOfficer] = useState('');
   const [assigning, setAssigning] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [isMine, setIsMine] = useState(false);
   const [villageMap, setVillageMap] = useState<Record<string, string>>({});
   const [districtMap, setDistrictMap] = useState<Record<string, string>>({});
@@ -110,6 +111,25 @@ export default function AdminComplaintsPage() {
     } catch {}
   };
 
+  const handleDownload = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.exportComplaints();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Complaints_Report_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      alert('Failed to download report');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading || !user) return null;
 
   return (
@@ -120,6 +140,9 @@ export default function AdminComplaintsPage() {
             <p style={{ color:'var(--text-muted)', fontSize:14, marginTop:2 }}>{t('totalComplaints').replace('{count}', total.toString())}</p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
+            <button onClick={handleDownload} disabled={exporting} className="btn-primary" style={{ fontSize: 13, background: 'var(--success)', borderColor: 'var(--success)' }}>
+              {exporting ? '⏳ ...' : `📥 ${t('downloadReports') || 'Download CSV'}`}
+            </button>
             <button onClick={() => router.push('/dashboard/citizen/new-complaint')} className="btn-accent" style={{ fontSize: 13 }}>➕ {t('newComplaint')}</button>
             <button onClick={() => fetchComplaints()} className="btn-ghost" style={{ fontSize:13 }}>🔄 {t('refresh')}</button>
           </div>

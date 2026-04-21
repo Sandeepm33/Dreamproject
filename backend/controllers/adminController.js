@@ -12,8 +12,9 @@ exports.getDashboard = async (req, res) => {
       const vId = req.user.village?._id || req.user.village;
       if (vId) complaintQuery.village = vId;
     } else if (req.user.role === 'collector') {
-      const dId = req.user.district?._id || req.user.district;
-      if (dId) complaintQuery.district = dId;
+      // Collector can see all villages as per user request
+      // const dId = req.user.district?._id || req.user.district;
+      // if (dId) complaintQuery.district = dId;
     }
 
     const [total, pending, assigned, inProgress, resolved, rejected, escalated] = await Promise.all([

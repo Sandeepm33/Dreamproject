@@ -97,7 +97,8 @@ exports.getComplaints = async (req, res) => {
       } else if (req.user.role === 'panchayat_secretary') {
         query.village = req.user.village;
       } else if (req.user.role === 'collector') {
-        query.district = req.user.district;
+        // Collector sees all villages as per user request
+        // query.district = req.user.district; // Removed district filter to allow "see all reports of all villages"
       } else if (req.user.role === 'officer') {
         query.assignedTo = req.user._id;
       }
@@ -302,3 +303,93 @@ exports.escalateToCollector = async (req, res) => {
   }
 };
 
+
+// GET /api/complaints/export
+exports.exportComplaints = async (req, res) => {
+  try {
+    const query = {};
+    if (req.user.role === 'panchayat_secretary') {
+      query.village = req.user.village;
+    } else if (req.user.role === 'collector') {
+      // Collector can see all villages
+    } else if (req.user.role === 'officer') {
+      query.assignedTo = req.user._id;
+    } else if (req.user.role === 'citizen') {
+      query.citizen = req.user._id;
+    }
+
+    const complaints = await Complaint.find(query)
+      .populate('citizen', 'name mobile village')
+      .populate('village', 'name villageCode')
+      .populate('district', 'name')
+      .populate('assignedTo', 'name role department')
+      .sort({ createdAt: -1 });
+
+    // Build CSV with expanded columns and better formatting
+    const header = [
+      'Complaint ID', 
+      'Title', 
+      'Description',
+      'Category', 
+      'Priority',
+      'Status', 
+      'Citizen', 
+      'Mobile Number', 
+      'Village', 
+      'Village Code',
+      'District', 
+      'Department',
+      'Assigned To',
+      'Created At', 
+      'Resolved At'
+    ].join(',');
+
+    const rows = complaints.map(c => {
+      // Excel hack: prefixing with \t (tab) forces Excel to treat long numbers as text, 
+      // preventing scientific notation (e.g. 9.7E+09)
+      const mobile = c.citizen?.mobile || '';
+      const formattedMobile = mobile ? `"\t${mobile}"` : '""';
+      
+      // Format dates to be human readable with time (DD/MM/YYYY HH:mm)
+      // Excel hack: prefixing with \t (tab) forces Excel to treat this as text,
+      // which prevents the '#########' display in narrow columns.
+      const formatDate = (date) => {
+        if (!date) return '"N/A"';
+        const d = new Date(date);
+        const pad = (n) => String(n).padStart(2, '0');
+        const formatted = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `"\t${formatted}"`;
+      };
+
+      const data = [
+        `"${c.complaintId || ''}"`,
+        `"${(c.title || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+        `"${(c.description || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+        `"${c.category || ''}"`,
+        `"${c.priority || 'medium'}"`,
+        `"${c.status || ''}"`,
+        `"${(c.citizen?.name || '').replace(/"/g, '""')}"`,
+        formattedMobile,
+        `"${(c.village?.name || '').replace(/"/g, '""')}"`,
+        `"${c.villageCode || c.village?.villageCode || ''}"`,
+        `"${(c.district?.name || '').replace(/"/g, '""')}"`,
+        `"${c.department || 'N/A'}"`,
+        `"${(c.assignedTo?.name || 'Unassigned').replace(/"/g, '""')}"`,
+        formatDate(c.createdAt),
+        formatDate(c.resolvedAt)
+      ];
+      return data.join(',');
+    });
+
+    const csv = [header, ...rows].join('\n');
+    
+    // Set UTF-8 BOM to ensure Excel opens Indian languages/special chars correctly if any
+    const BOM = '\uFEFF';
+    
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=Complaints_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    res.status(200).send(BOM + csv);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

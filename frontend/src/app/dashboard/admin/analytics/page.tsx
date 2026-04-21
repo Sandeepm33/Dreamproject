@@ -15,6 +15,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [dataLoading, setDataLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   useEffect(() => {
@@ -35,6 +36,24 @@ export default function AnalyticsPage() {
     finally { setDataLoading(false); }
   }, [dateRange]);
 
+  const handleDownload = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.exportComplaints();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Full_Analysis_Report_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   useEffect(() => { if (user) fetchAnalytics(); }, [user, fetchAnalytics]);
 
   const maxMonthly = data?.byMonth ? Math.max(...data.byMonth.map((m: any) => m.count), 1) : 1;
@@ -54,6 +73,9 @@ export default function AnalyticsPage() {
           <span style={{ color:'var(--text-muted)' }}>{t('to')}</span>
           <input type="date" value={dateRange.to} onChange={e => setDateRange(d => ({...d, to:e.target.value}))} className="input-field" style={{ width:'auto' }} />
           <button onClick={fetchAnalytics} className="btn-primary" style={{ fontSize:13, whiteSpace:'nowrap' }}>{t('apply')}</button>
+          <button onClick={handleDownload} disabled={exporting} className="btn-accent" style={{ fontSize:13, whiteSpace:'nowrap' }}>
+            {exporting ? '⏳ ...' : `📥 ${t('downloadReport') || 'Download Reports'}`}
+          </button>
         </div>
       </div>
 
