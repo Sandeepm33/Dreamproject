@@ -6,7 +6,7 @@ import PublicNavbar from '@/components/PublicNavbar';
 import PublicFooter from '@/components/PublicFooter';
 import WeatherWidget from '@/components/WeatherWidget';
 import MapComponent from '@/components/MapComponent';
-import { Activity, Users, Shield, ArrowRight, Image as ImageIcon, PlayCircle } from 'lucide-react';
+import { Activity, Users, Shield, ArrowRight, Image as ImageIcon, PlayCircle, Map, X, Globe } from 'lucide-react';
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
@@ -56,10 +56,27 @@ export default function HomePage() {
       <section id="home" style={{ position: 'relative', minHeight: '100vh', padding: '180px 0 100px 0', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
         {/* Background Elements */}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
-          {/* Main Background Image */}
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundImage: 'url("https://scontent.fhyd2-3.fna.fbcdn.net/v/t39.30808-6/475859664_930808729197206_1196264856624934726_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=2a1932&_nc_ohc=DaQxBL1xzuQQ7kNvwG1EhBo&_nc_oc=AdrZPsHpuC1sG0opMX-eyYsfwNZs5R2BisImeUThPFGy7qQbEkcoWLojxu-DlzXj7ts&_nc_zt=23&_nc_ht=scontent.fhyd2-3.fna&_nc_gid=2PYdx7WRbVxSUigWoDvGTw&_nc_ss=7a389&oh=00_Af1CaaOSZvXYBkHwaV0kVLEk0sQb3GQf5uVI2D9SirXhvQ&oe=69E53361")', backgroundSize: '100% 100%', backgroundPosition: 'center', }}></div>
-          {/* Gradients to blend into the rest of the dark site */}
-          {/* <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 50%, transparent 0%, rgba(10, 15, 13, 0.8) 70%, rgba(10, 15, 13, 1) 100%)' }}></div> */}
+          {/* Main Background Video */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 50
+            }}
+          >
+            <source src="/homebanner.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          {/* Overlay to ensure text readability */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10, 15, 13, 0.7) 0%, rgba(10, 15, 13, 0.4) 50%, rgba(10, 15, 13, 0.9) 100%)', zIndex: 1 }}></div>
           {/* Accent glow blobs */}
           <div className="animate-float" style={{ position: 'absolute', top: '15%', left: '5%', width: '40%', height: '40%', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', filter: 'blur(120px)' }}></div>
           <div className="animate-float" style={{ position: 'absolute', bottom: '10%', right: '5%', width: '35%', height: '35%', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.08)', filter: 'blur(120px)', animationDelay: '1s' }}></div>
@@ -334,30 +351,24 @@ export default function HomePage() {
           position: 'fixed',
           bottom: 40,
           right: 40,
-          height: 60,
-          padding: '0 28px',
-          borderRadius: 30,
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
           background: showMap ? '#ef4444' : 'linear-gradient(135deg, #22c55e, #14532d)',
           border: 'none',
           color: 'white',
-          fontSize: 15,
-          fontWeight: 700,
-          cursor: 'pointer',
-          zIndex: 9999,
-          boxShadow: '0 10px 40px rgba(34, 197, 94, 0.4)',
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 9999,
+          boxShadow: showMap ? '0 10px 40px rgba(239, 68, 68, 0.4)' : '0 10px 40px rgba(34, 197, 94, 0.4)',
           transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-          fontFamily: 'Poppins'
         }}
         className="hover-scale"
+        title={showMap ? t('close') : t('clickForMap')}
       >
-        {showMap ? (
-          <><span>✕</span> {t('close') || 'Close'}</>
-        ) : (
-          <><span>🗺️</span> {t('clickForMap') || 'Click here for Village Twin'}</>
-        )}
+        {showMap ? <X size={28} /> : <Globe size={28} />}
       </button>
 
       {/* Floating Map Section / Modal */}
