@@ -63,8 +63,8 @@ export default function OfficerDashboard() {
 
   useEffect(() => { 
     if (user) {
-      if (view === 'complaints') fetchComplaints();
-      else fetchDevelopments();
+      if (view === 'complaints' || user.role === 'officer') fetchComplaints();
+      else if (user.role === 'panchayat_secretary') fetchDevelopments();
     }
   }, [user, fetchComplaints, fetchDevelopments, view]);
 
@@ -142,15 +142,17 @@ export default function OfficerDashboard() {
             color: view === 'complaints' ? 'white' : 'var(--text-muted)' }}>
             📋 {t('allComplaints')}
           </button>
-          <button onClick={() => setView('developments')} style={{ padding:'8px 16px', borderRadius:10, fontSize:12, fontWeight:600, cursor:'pointer', border:'none',
-            background: view === 'developments' ? 'var(--primary-light)' : 'transparent',
-            color: view === 'developments' ? 'white' : 'var(--text-muted)' }}>
-            🏗️ {t('developmentRequests')}
-          </button>
+          {user.role === 'panchayat_secretary' && (
+            <button onClick={() => setView('developments')} style={{ padding:'8px 16px', borderRadius:10, fontSize:12, fontWeight:600, cursor:'pointer', border:'none',
+              background: view === 'developments' ? 'var(--primary-light)' : 'transparent',
+              color: view === 'developments' ? 'white' : 'var(--text-muted)' }}>
+              🏗️ {t('developmentRequests')}
+            </button>
+          )}
         </div>
       </div>
 
-      {view === 'complaints' ? (
+      {view === 'complaints' || user.role === 'officer' ? (
         <>
           {/* Stats */}
           <div className="stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(130px, 1fr))', gap:10, marginBottom:28 }}>
