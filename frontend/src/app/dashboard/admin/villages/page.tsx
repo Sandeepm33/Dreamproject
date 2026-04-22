@@ -15,6 +15,8 @@ export default function ManageVillagesPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [newVillageModal, setNewVillageModal] = useState(false);
   const [villageForm, setVillageForm] = useState({ name: '', villageCode: '', mandal: '' });
+  const [isAddingMandal, setIsAddingMandal] = useState(false);
+  const [newMandalName, setNewMandalName] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,6 +57,19 @@ export default function ManageVillagesPage() {
     fetchVillages(selectedMandal);
     fetchMandals();
   }, [fetchVillages, fetchMandals, selectedMandal]);
+
+  const handleCreateMandal = async () => {
+    if (!newMandalName) return;
+    try {
+      const res = await api.createMandal({ name: newMandalName });
+      await fetchMandals();
+      setVillageForm(f => ({ ...f, mandal: res.mandal._id }));
+      setIsAddingMandal(false);
+      setNewMandalName('');
+    } catch (err: any) {
+      alert(err.message || 'Failed to create Mandal');
+    }
+  };
 
   const handleCreateVillage = async () => {
     if (!villageForm.name || !villageForm.villageCode) {
@@ -112,16 +127,17 @@ export default function ManageVillagesPage() {
                 <th>{t('assignedSecretary')}</th>
                 <th>{t('status')}</th>
                 <th>{t('joined')}</th>
+                <th>{t('actions') || 'Actions'}</th>
               </tr>
             </thead>
             <tbody>
               {dataLoading ? [...Array(5)].map((_, i) => (
                 <tr key={i}>
-                  {[...Array(6)].map((_, j) => <td key={j}><div className="skeleton" style={{ height: 20, borderRadius: 4 }} /></td>)}
+                  {[...Array(7)].map((_, j) => <td key={j}><div className="skeleton" style={{ height: 20, borderRadius: 4 }} /></td>)}
                 </tr>
               )) : villages.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
                     {t('noVillages')}
                   </td>
                 </tr>
@@ -146,6 +162,24 @@ export default function ManageVillagesPage() {
                     </span>
                   </td>
                   <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(v.createdAt).toLocaleDateString('en-IN')}</td>
+                  <td>
+                    <button 
+                      onClick={async () => {
+                        if (confirm(`Are you sure you want to delete ${v.name}?`)) {
+                          try {
+                            await api.deleteVillage(v._id);
+                            fetchVillages();
+                          } catch (err: any) {
+                            alert(err.message || 'Failed to delete village');
+                          }
+                        }
+                      }} 
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 16 }}
+                      title="Delete Village"
+                    >
+                      🗑️
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -180,17 +214,38 @@ export default function ManageVillagesPage() {
                 />
               </div>
               <div>
-                <label className="label">{t('mandalName')}</label>
-                <select 
-                  value={villageForm.mandal} 
-                  onChange={e => setVillageForm(f => ({ ...f, mandal: e.target.value }))} 
-                  className="input-field" 
-                >
-                  <option value="" disabled>Select a Mandal</option>
-                  {mandals.map((m: any) => (
-                    <option key={m._id} value={m._id}>{m.name}</option>
-                  ))}
-                </select>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <label className="label" style={{ marginBottom: 0 }}>{t('mandalName')}</label>
+                  <button 
+                    onClick={() => setIsAddingMandal(!isAddingMandal)} 
+                    style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    {isAddingMandal ? 'Cancel' : '+ New Mandal'}
+                  </button>
+                </div>
+                
+                {isAddingMandal ? (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input 
+                      value={newMandalName} 
+                      onChange={e => setNewMandalName(e.target.value)} 
+                      className="input-field" 
+                      placeholder="e.g. New Mandal Name" 
+                    />
+                    <button onClick={handleCreateMandal} className="btn-primary" style={{ padding: '0 16px' }}>Add</button>
+                  </div>
+                ) : (
+                  <select 
+                    value={villageForm.mandal} 
+                    onChange={e => setVillageForm(f => ({ ...f, mandal: e.target.value }))} 
+                    className="input-field" 
+                  >
+                    <option value="" disabled>Select a Mandal</option>
+                    {mandals.map((m: any) => (
+                      <option key={m._id} value={m._id}>{m.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {error && <div style={{ color: '#ef4444', fontSize: 13, background: 'rgba(239,68,68,0.1)', padding: '8px 12px', borderRadius: 8 }}>⚠️ {error}</div>}

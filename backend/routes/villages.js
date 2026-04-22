@@ -65,6 +65,17 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
       }
     }
 
+    // Check if village already exists
+    const existingVillage = await Village.findOne({
+      $or: [
+        { villageCode },
+        { name: { $regex: new RegExp(`^${name}$`, 'i') }, mandal: req.body.mandal }
+      ]
+    });
+    if (existingVillage) {
+      return res.status(400).json({ success: false, message: 'Village with this name or code already exists in this mandal' });
+    }
+
     const village = await Village.create({
       name,
       villageCode,
@@ -73,6 +84,26 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
     });
 
     res.status(201).json({ success: true, village });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Delete a village
+router.delete('/:id', protect, authorize('admin', 'collector'), async (req, res) => {
+  try {
+    const village = await Village.findById(req.params.id);
+    if (!village) {
+      return res.status(404).json({ success: false, message: 'Village not found' });
+    }
+
+    // Optional: check if collector owns this district
+    if (req.user.role === 'collector' && village.district.toString() !== req.user.district.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete village in this district' });
+    }
+
+    await village.deleteOne();
+    res.json({ success: true, message: 'Village deleted successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
