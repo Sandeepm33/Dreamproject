@@ -190,11 +190,11 @@ export default function AdminUsersPage() {
                   </td>
                   <td style={{ fontSize:13,fontFamily:'monospace' }}>{u.mobile}</td>
                   <td style={{ fontSize:13 }}>{u.email || '—'}</td>
-                  <td><span style={{ fontSize:11,padding:'3px 10px',borderRadius:20,background:`${roleColors[u.role]||'#94a3b8'}18`,color:roleColors[u.role]||'#94a3b8',fontWeight:600,textTransform:'capitalize' }}>{t(u.role as any)}</span></td>
+                  <td><span style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', fontSize:11,padding:'3px 10px',borderRadius:20,background:`${roleColors[u.role]||'#94a3b8'}18`,color:roleColors[u.role]||'#94a3b8',fontWeight:600,textTransform:'capitalize' }}>{t(u.role as any)}</span></td>
                   <td style={{ fontSize:13,color:'var(--text-muted)' }}>{u.village?.name || (typeof u.village === 'string' ? u.village : '—')}</td>
                   <td style={{ fontSize:13,color:'var(--text-muted)' }}>{t(u.department as any) || u.department || '—'}</td>
                   <td>
-                    <span style={{ fontSize:11,padding:'3px 10px',borderRadius:20,background:u.isActive?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)',color:u.isActive?'#22c55e':'#ef4444',border:`1px solid ${u.isActive?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'}` }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', fontSize:11,padding:'3px 10px',borderRadius:20,background:u.isActive?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)',color:u.isActive?'#22c55e':'#ef4444',border:`1px solid ${u.isActive?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'}` }}>
                       {u.isActive ? `● ${t('active')}` : `○ ${t('inactive')}`}
                     </span>
                   </td>
@@ -223,15 +223,15 @@ export default function AdminUsersPage() {
 
       {newOfficerModal && (
         <div className="modal-overlay" onClick={() => setNewUserModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 650, width: '90%', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ fontSize:18,fontWeight:700,color:'var(--text-primary)',marginBottom:20 }}>➕ {user?.role === 'collector' ? `🏛️ ${t('addNewSecretary')}` : user?.role === 'panchayat_secretary' ? t('addNewAdminStaff') : t('addNewStaffCitizen')}</h2>
-            <div style={{ display:'flex',flexDirection:'column',gap:14 }}>
+            <div style={{ display:'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div><label className="label">{t('fullName')}</label><input value={userForm.name} onChange={e => setUserForm(f => ({...f,name:e.target.value}))} className="input-field" placeholder={t('fullNamePlaceholder')} minLength={3} required /></div>
               <div><label className="label">{t('mobileNumber')}</label><input value={userForm.mobile} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 10); setUserForm(f => ({...f,mobile:val})); }} className="input-field" placeholder={t('mobileNumber')} required minLength={10} maxLength={10} pattern="[0-9]{10}" title="10 digit mobile number" /></div>
               <div><label className="label">{t('emailAddr')}</label><input value={userForm.email} onChange={e => setUserForm(f => ({...f,email:e.target.value}))} className="input-field" placeholder={t('emailPlaceholder')} required type="email" /></div>
               <div><label className="label">{t('password')}</label><input type="password" value={userForm.password} onChange={e => setUserForm(f => ({...f,password:e.target.value}))} className="input-field" placeholder={t('password')} required minLength={6} /></div>
               
-              <div>
+              <div style={{ gridColumn: '1 / -1' }}>
                 <label className="label">{t('role')}</label>
                 <select value={userForm.role} onChange={e => setUserForm(f => ({...f,role:e.target.value}))} className="input-field">
                   <option value="">{t('selectRole')}</option>
@@ -248,7 +248,7 @@ export default function AdminUsersPage() {
               </div>
 
               {userForm.role === 'officer' && (
-                <div><label className="label">{t('department')}</label>
+                <div style={{ gridColumn: '1 / -1' }}><label className="label">{t('department')}</label>
                   <select value={userForm.department} onChange={e => setUserForm(f => ({...f,department:e.target.value}))} className="input-field">
                     <option value="">{t('chooseOfficer')}</option>
                     <option value="Water Department">💧 {t('water')}</option>
@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
                 </div>
               )}
               {(userForm.role === 'panchayat_secretary' || userForm.role === 'citizen' || userForm.role === 'admin') && (
-                <div>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label className="label">{t('village')}</label>
                   {user?.role === 'collector' ? (
                     <select 
@@ -288,8 +288,8 @@ export default function AdminUsersPage() {
                 </div>
               )}
               
-              {error && <div style={{ color:'#ef4444',fontSize:13,background:'rgba(239,68,68,0.1)',padding:'8px 12px',borderRadius:8 }}>⚠️ {t(error as any) || error}</div>}
-              <div style={{ display:'flex',gap:12 }}>
+              {error && <div style={{ gridColumn: '1 / -1', color:'#ef4444',fontSize:13,background:'rgba(239,68,68,0.1)',padding:'8px 12px',borderRadius:8 }}>⚠️ {t(error as any) || error}</div>}
+              <div style={{ gridColumn: '1 / -1', display:'flex',gap:12, marginTop: 10 }}>
                 <button onClick={handleCreateUser} className="btn-primary" disabled={creating}>{creating ? `${t('creating')}...` : `✅ ${t('createUser')}`}</button>
                 <button onClick={() => setNewUserModal(false)} className="btn-ghost">{t('cancel')}</button>
               </div>

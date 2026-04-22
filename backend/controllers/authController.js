@@ -28,6 +28,20 @@ exports.register = async (req, res) => {
     const userData = { name, mobile, email, password, role: 'citizen', village, villageCode, department, district };
 
     const user = await User.create(userData);
+
+    // Send welcome email to citizen
+    try {
+      const sendEmail = require('../utils/sendEmail');
+      const message = `Hello ${user.name},\n\nWelcome to the Smart Gram Panchayat Portal!\n\nYour account has been successfully created. You can now log in using your registered email: ${user.email} or mobile number.\n\nThank you for joining us!`;
+      await sendEmail({
+        email: user.email,
+        subject: 'Welcome to Smart Gram Panchayat Portal',
+        message: message
+      });
+    } catch (error) {
+      console.error('Welcome email sending failed', error);
+    }
+
     const token = generateToken(user._id);
     const populatedUser = await User.findById(user._id).populate('village district');
     res.status(201).json({ success: true, token, user: populatedUser });
@@ -108,6 +122,20 @@ exports.changePassword = async (req, res) => {
     if (!isMatch) return res.status(400).json({ success: false, message: 'Current password incorrect' });
     user.password = newPassword;
     await user.save();
+
+    // Send email notification for password change
+    try {
+      const sendEmail = require('../utils/sendEmail');
+      const message = `Hello ${user.name},\n\nYour password for the Smart Gram Panchayat Portal has been changed successfully.\n\nIf you did not make this change, please contact your system administrator immediately.`;
+      await sendEmail({
+        email: user.email,
+        subject: 'SGPIMS Password Changed Successfully',
+        message: message
+      });
+    } catch (err) {
+      console.error('Failed to send password change email:', err);
+    }
+
     res.json({ success: true, message: 'Password updated' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

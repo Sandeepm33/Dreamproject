@@ -86,6 +86,21 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
     }
 
     const user = await User.create(userData);
+
+    // Send email with credentials
+    try {
+      const sendEmail = require('../utils/sendEmail');
+      const message = `Hello ${user.name},\n\nAn account has been created for you on the Smart Gram Panchayat Portal by your administrator.\n\nYour Login Email: ${user.email}\nYour Temporary Password: ${password}\n\nPlease log in and change your password immediately for security purposes.`;
+      
+      await sendEmail({
+        email: user.email,
+        subject: 'Your SGPIMS Account Credentials',
+        message: message
+      });
+    } catch (err) {
+      console.error('Failed to send credentials email:', err);
+    }
+
     res.status(201).json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -118,6 +133,19 @@ router.patch('/:id/assign-village', protect, authorize('collector', 'admin'), as
     ).populate('village', 'name villageCode').populate('district', 'name');
 
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Send email about assignment update
+    try {
+      const sendEmail = require('../utils/sendEmail');
+      const message = `Hello ${user.name},\n\nYour account has been updated in the Smart Gram Panchayat Portal.\n\nYou have been newly assigned to the village: ${user.village?.name || 'N/A'}.\n\nPlease log in to view your updated dashboard.`;
+      await sendEmail({
+        email: user.email,
+        subject: 'SGPIMS Account Assignment Update',
+        message: message
+      });
+    } catch (err) {
+      console.error('Failed to send assignment update email:', err);
+    }
 
     res.json({ success: true, user });
   } catch (err) {
