@@ -41,10 +41,28 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
     const { name, villageCode, district } = req.body;
     
     // Auto-assign district if user is a Collector
-    const villageDistrict = req.user.role === 'collector' ? req.user.district : district;
+    let villageDistrict = req.user.role === 'collector' ? req.user.district : district;
+
+    // If still no district, but we have a mandal, infer district from the mandal
+    if (!villageDistrict && req.body.mandal) {
+      const Mandal = require('../models/Mandal');
+      const mandalObj = await Mandal.findById(req.body.mandal);
+      if (mandalObj) {
+        villageDistrict = mandalObj.district;
+      }
+    }
 
     if (!villageDistrict) {
       return res.status(400).json({ success: false, message: 'District is required' });
+    }
+
+    // Security check: if collector, ensure the mandal belongs to their district
+    if (req.user.role === 'collector' && req.body.mandal) {
+      const Mandal = require('../models/Mandal');
+      const mandalObj = await Mandal.findById(req.body.mandal);
+      if (mandalObj && mandalObj.district.toString() !== villageDistrict.toString()) {
+        return res.status(403).json({ success: false, message: 'You can only add villages to your own district' });
+      }
     }
 
     const village = await Village.create({
