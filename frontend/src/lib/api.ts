@@ -59,6 +59,7 @@ class APIClient {
   async login(body: any) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(body) }); }
   async getMe() { return this.request('/auth/me'); }
   async updateProfile(body: any) { return this.request('/auth/profile', { method: 'PUT', body: JSON.stringify(body) }); }
+  async changePassword(body: any) { return this.request('/auth/change-password', { method: 'POST', body: JSON.stringify(body) }); }
   async logout() { return this.request('/auth/logout', { method: 'POST' }); }
 
   // Complaints

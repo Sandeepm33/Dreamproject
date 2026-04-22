@@ -145,7 +145,14 @@ exports.getUsers = async (req, res) => {
 // PUT /api/admin/users/:id
 exports.updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { password, ...updateData } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    Object.assign(user, updateData);
+    if (password) user.password = password;
+
+    await user.save();
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

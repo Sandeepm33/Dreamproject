@@ -43,7 +43,7 @@ router.get('/', protect, authorize('admin', 'panchayat_secretary', 'officer', 'c
 
 router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'collector'), async (req, res) => {
   try {
-    const { name, mobile, password, role, department, village, district } = req.body;
+    const { name, mobile, email, password, role, department, village, district } = req.body;
 
     // Role Authorization Logic
     if (req.user.role === 'collector') {
@@ -62,8 +62,19 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
       return res.status(400).json({ success: false, message: 'Invalid role' });
     }
 
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+    const emailLower = email.trim().toLowerCase();
+    
+    // Check for existing mobile or email
+    const existingUser = await User.findOne({ $or: [{ mobile }, { email: emailLower }] });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Mobile or Email already registered' });
+    }
+
     // Auto-scope based on creator
-    const userData = { name, mobile, password, role, department, village };
+    const userData = { name, mobile, email: emailLower, password, role, department, village };
     
     if (req.user.role === 'collector') {
       userData.district = req.user.district;

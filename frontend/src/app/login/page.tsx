@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({ name: '', mobile: '', password: '', confirmPassword: '', role: 'citizen', village: '', department: '', district: '' });
+  const [form, setForm] = useState({ name: '', mobile: '', email: '', password: '', confirmPassword: '', role: 'citizen', village: '', department: '', district: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -28,7 +28,12 @@ export default function LoginPage() {
   }, [isRegister]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    let value = e.target.value;
+    // Strictly allow only numbers for mobile during registration
+    if (e.target.name === 'mobile' && isRegister) {
+      value = value.replace(/\D/g, '').slice(0, 10);
+    }
+    setForm(f => ({ ...f, [e.target.name]: value }));
     setError('');
   };
 
@@ -49,6 +54,21 @@ export default function LoginPage() {
     try {
       let loggedInUser;
       if (isRegister) {
+        if (!form.name || form.name.length < 3) {
+          setError('Name must be at least 3 characters');
+          setLoading(false);
+          return;
+        }
+        if (!/^\d{10}$/.test(form.mobile)) {
+          setError('Mobile number must be exactly 10 digits');
+          setLoading(false);
+          return;
+        }
+        if (form.password.length < 6) {
+          setError('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
         if (form.password !== form.confirmPassword) { 
           setError('Passwords do not match'); 
           setLoading(false); 
@@ -149,7 +169,7 @@ export default function LoginPage() {
                   <>
                     <div className="input-group animate-in">
                       <label className="v-label"><User size={14} /> {t('fullName')}</label>
-                      <input name="name" value={form.name} onChange={handleChange} className="v-input" placeholder="Rajesh Kumar" required />
+                      <input name="name" value={form.name} onChange={handleChange} className="v-input" placeholder="Rajesh Kumar" required minLength={3} />
                     </div>
                     <div className="input-row animate-in">
                       <div className="input-group">
@@ -184,19 +204,26 @@ export default function LoginPage() {
                 )}
 
                 <div className="input-group">
-                  <label className="v-label"><Smartphone size={14} /> {t('mobileNumber')}</label>
-                  <input name="mobile" value={form.mobile} onChange={handleChange} className="v-input" placeholder="+91 00000 00000" required type="tel" />
+                  <label className="v-label"><Smartphone size={14} /> {isRegister ? t('mobileNumber') : t('mobileOrEmail')}</label>
+                  <input name="mobile" value={form.mobile} onChange={handleChange} className="v-input" placeholder={isRegister ? "10 digit mobile number" : "Mobile or Email"} required type="text" minLength={isRegister ? 10 : undefined} maxLength={isRegister ? 10 : undefined} pattern={isRegister ? "[0-9]{10}" : undefined} title={isRegister ? "10 digit mobile number" : undefined} />
                 </div>
+
+                {isRegister && (
+                  <div className="input-group animate-in">
+                    <label className="v-label"><Mail size={14} /> {t('emailAddr')}</label>
+                    <input name="email" value={form.email} onChange={handleChange} className="v-input" placeholder="example@gmail.com" required type="email" />
+                  </div>
+                )}
 
                 <div className="input-group">
                   <label className="v-label"><Lock size={14} /> {t('password')}</label>
-                  <input name="password" value={form.password} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" />
+                  <input name="password" value={form.password} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" minLength={6} />
                 </div>
 
                 {isRegister && (
                   <div className="input-group animate-in">
                     <label className="v-label"><Lock size={14} /> {t('confirmPassword')}</label>
-                    <input name="confirmPassword" value={form.confirmPassword} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" />
+                    <input name="confirmPassword" value={form.confirmPassword} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" minLength={6} />
                   </div>
                 )}
 

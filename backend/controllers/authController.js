@@ -6,33 +6,60 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 // POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { name, mobile, password, role, village, villageCode, department, district } = req.body;
-    const existing = await User.findOne({ mobile });
-    if (existing) return res.status(400).json({ success: false, message: 'Mobile already registered' });
+    let { name, mobile, email, password, role, village, villageCode, department, district } = req.body;
 
-    const user = await User.create({ name, mobile, password, role: 'citizen', village, villageCode, department, district });
+    if (name) name = name.trim();
+    if (mobile) mobile = mobile.trim();
+    if (email) email = email.trim().toLowerCase();
+    if (password) password = password.trim();
+
+    // Check for existing mobile
+    const existingMobile = await User.findOne({ mobile });
+    if (existingMobile) return res.status(400).json({ success: false, message: 'Mobile number already registered' });
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    // Check for existing email
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) return res.status(400).json({ success: false, message: 'Email already registered' });
+
+    const userData = { name, mobile, email, password, role: 'citizen', village, villageCode, department, district };
+
+    const user = await User.create(userData);
     const token = generateToken(user._id);
-    res.status(201).json({ success: true, token, user });
+    const populatedUser = await User.findById(user._id).populate('village district');
+    res.status(201).json({ success: true, token, user: populatedUser });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// POST /api/auth/login
+// POST /api/auth/login  (supports mobile OR email as identifier)
 exports.login = async (req, res) => {
   try {
-    const { mobile, password } = req.body;
-    if (!mobile || !password) return res.status(400).json({ success: false, message: 'Provide mobile and password' });
+    let { mobile, password } = req.body;
+    if (!mobile || !password) return res.status(400).json({ success: false, message: 'Provide mobile/email and password' });
 
-    const user = await User.findOne({ mobile }).select('+password');
+    mobile = mobile.trim();
+    password = password.trim();
+
+    // Search for user by mobile OR email
+    const user = await User.findOne({
+      $or: [
+        { mobile: mobile },
+        { email: mobile.toLowerCase() }
+      ]
+    }).select('+password');
+
     if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
     if (!user.isActive) return res.status(403).json({ success: false, message: 'Account deactivated' });
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
-    user.lastLogin = new Date();
-    await user.save();
+    await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
     const token = generateToken(user._id);
     const populatedUser = await User.findById(user._id).populate('village district');
     res.json({ success: true, token, user: populatedUser });
@@ -49,7 +76,15 @@ exports.getMe = async (req, res) => {
 // PUT /api/auth/profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, email, village, language, notificationsEnabled } = req.body;
+    let { name, email, village, language, notificationsEnabled } = req.body;
+    
+    if (name) name = name.trim();
+    if (!email || email.trim() === '') return res.status(400).json({ success: false, message: 'Email is required' });
+    email = email.trim().toLowerCase();
+    
+    // Check if email belongs to someone else
+    const existingEmail = await User.findOne({ email, _id: { $ne: req.user._id } });
+    if (existingEmail) return res.status(400).json({ success: false, message: 'Email already in use' });
     
     const updateData = { name, email, language, notificationsEnabled };
     // Only update village if it's a valid ObjectId to prevent CastError

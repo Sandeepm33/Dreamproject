@@ -10,6 +10,7 @@ export const translations = {
     register: "Register Now",
     fullName: "Full Name",
     mobileNumber: "Mobile Number",
+    mobileOrEmail: "Mobile or Email",
     password: "Password",
     confirmPassword: "Confirm Password",
     village: "Village",
@@ -122,7 +123,7 @@ export const translations = {
     // Profile
     profileInfo: "📋 Profile Info",
     security: "🔐 Security",
-    emailAddr: "Email Address (Optional)",
+    emailAddr: "Email Address",
     mobileReadOnly: "Mobile (Read-only)",
     langPref: "Language Preference",
     saveChanges: "Save Changes",
@@ -443,6 +444,7 @@ export const translations = {
     register: "నమోదు చేసుకోండి",
     fullName: "పూర్తి పేరు",
     mobileNumber: "మొబైల్ సంఖ్య",
+    mobileOrEmail: "మొబైల్ లేదా ఈమెయిల్",
     password: "పాస్వర్డ్",
     confirmPassword: "పాస్వర్డ్ నిర్ధారించండి",
     village: "గ్రామం",
@@ -551,7 +553,7 @@ export const translations = {
     // Profile
     profileInfo: "📋 ప్రొఫైల్ వివరాలు",
     security: "🔐 భద్రత",
-    emailAddr: "ఈమెయిల్ చిరునామా (ఐచ్ఛికం)",
+    emailAddr: "ఈమెయిల్ చిరునామా",
     mobileReadOnly: "మొబైల్ (మార్చలేరు)",
     langPref: "భాష ఎంపిక",
     saveChanges: "మార్పులను సేవ్ చేయండి",

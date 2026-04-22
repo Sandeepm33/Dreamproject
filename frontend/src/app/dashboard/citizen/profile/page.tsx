@@ -22,6 +22,14 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'profile'|'security'>('profile');
 
   const handleSave = async () => {
+    if (!form.name || form.name.trim().length < 3) {
+      setMsg(`❌ Name must be at least 3 characters`);
+      return;
+    }
+    if (!form.email || !/^\S+@\S+\.\S+$/.test(form.email)) {
+      setMsg(`❌ Valid Email is mandatory`);
+      return;
+    }
     setSaving(true); setMsg('');
     try {
       const res = await api.updateProfile(form);
@@ -33,11 +41,12 @@ export default function ProfilePage() {
   };
 
   const handlePwChange = async () => {
-    if (pwForm.newPassword !== pwForm.confirmPassword) { setPwMsg(`❌ ${t('passwordsDoNotMatch')}`); return; }
+    if (!pwForm.currentPassword) { setPwMsg(`❌ Current Password is required`); return; }
     if (pwForm.newPassword.length < 6) { setPwMsg(`❌ ${t('passwordMinLength')}`); return; }
+    if (pwForm.newPassword !== pwForm.confirmPassword) { setPwMsg(`❌ ${t('passwordsDoNotMatch')}`); return; }
     setChangingPw(true); setPwMsg('');
     try {
-      await api.updateProfile(pwForm); // would call change-password endpoint
+      await api.changePassword(pwForm);
       setPwMsg(t('passwordChanged'));
       setPwForm({ currentPassword:'', newPassword:'', confirmPassword:'' });
     } catch (err: any) { setPwMsg(`❌ ${err.message}`); }
@@ -84,11 +93,11 @@ export default function ProfilePage() {
               <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <label className="label">{t('fullName')}</label>
-                  <input value={form.name} onChange={e => setForm(f => ({...f,name:e.target.value}))} className="input-field" placeholder={t('fullNamePlaceholder')} />
+                  <input value={form.name} onChange={e => setForm(f => ({...f,name:e.target.value}))} className="input-field" placeholder={t('fullNamePlaceholder')} minLength={3} required />
                 </div>
                 <div>
                   <label className="label">{t('emailAddr')}</label>
-                  <input value={form.email} onChange={e => setForm(f => ({...f,email:e.target.value}))} className="input-field" placeholder={t('emailPlaceholder')} type="email" />
+                  <input value={form.email} onChange={e => setForm(f => ({...f,email:e.target.value}))} className="input-field" placeholder={t('emailPlaceholder')} required type="email" />
                 </div>
                 <div>
                   <label className="label">{t('mobileReadOnly')}</label>
@@ -131,15 +140,15 @@ export default function ProfilePage() {
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                 <div>
                   <label className="label">{t('currentPassword')}</label>
-                  <input type="password" value={pwForm.currentPassword} onChange={e => setPwForm(f => ({...f,currentPassword:e.target.value}))} className="input-field" placeholder={t('currentPasswordPlaceholder')} />
+                  <input type="password" value={pwForm.currentPassword} onChange={e => setPwForm(f => ({...f,currentPassword:e.target.value}))} className="input-field" placeholder={t('currentPasswordPlaceholder')} required />
                 </div>
                 <div>
                   <label className="label">{t('newPassword')}</label>
-                  <input type="password" value={pwForm.newPassword} onChange={e => setPwForm(f => ({...f,newPassword:e.target.value}))} className="input-field" placeholder={t('newPasswordPlaceholder')} />
+                  <input type="password" value={pwForm.newPassword} onChange={e => setPwForm(f => ({...f,newPassword:e.target.value}))} className="input-field" placeholder={t('newPasswordPlaceholder')} minLength={6} required />
                 </div>
                 <div>
                   <label className="label">{t('confirmNewPassword')}</label>
-                  <input type="password" value={pwForm.confirmPassword} onChange={e => setPwForm(f => ({...f,confirmPassword:e.target.value}))} className="input-field" placeholder={t('confirmPasswordPlaceholder')} />
+                  <input type="password" value={pwForm.confirmPassword} onChange={e => setPwForm(f => ({...f,confirmPassword:e.target.value}))} className="input-field" placeholder={t('confirmPasswordPlaceholder')} minLength={6} required />
                 </div>
                 {pwMsg && <div style={{ padding:'10px 14px', borderRadius:10, background: pwMsg.includes('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: pwMsg.includes('✅') ? '#22c55e' : '#ef4444', fontSize:13 }}>{pwMsg}</div>}
                 <button onClick={handlePwChange} className="btn-primary" disabled={changingPw} style={{ alignSelf:'flex-start', padding:'12px 28px' }}>

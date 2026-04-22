@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
 
   const [dataLoading, setDataLoading] = useState(true);
   const [newOfficerModal, setNewUserModal] = useState(false);
-  const [userForm, setUserForm] = useState({ name:'', mobile:'', password:'', role: '', department:'', village: '' });
+  const [userForm, setUserForm] = useState({ name:'', mobile:'', email: '', password:'', role: '', department:'', village: '' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [villages, setVillages] = useState<any[]>([]);
@@ -85,9 +85,21 @@ export default function AdminUsersPage() {
   };
 
   const handleCreateUser = async () => {
-    if (!userForm.name || !userForm.mobile || !userForm.password || !userForm.role) { 
-      setError('Fill all essential fields'); 
+    if (!userForm.name || !userForm.mobile || !userForm.email || !userForm.password || !userForm.role) { 
+      setError('Fill all essential fields (including email)'); 
       return; 
+    }
+    if (userForm.name.length < 3) {
+      setError('Name must be at least 3 characters');
+      return;
+    }
+    if (!/^\d{10}$/.test(userForm.mobile)) {
+      setError('Mobile number must be exactly 10 digits');
+      return;
+    }
+    if (userForm.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
     }
     
     if (user?.role === 'collector' && userForm.role === 'panchayat_secretary' && !userForm.village) {
@@ -99,7 +111,7 @@ export default function AdminUsersPage() {
     try {
       await api.createUser(userForm);
       setNewUserModal(false);
-      setUserForm({ name:'', mobile:'', password:'', role:'', department:'', village:'' });
+      setUserForm({ name:'', mobile:'', email: '', password:'', role:'', department:'', village:'' });
       fetchUsers();
     } catch (err: any) {
       setError(err.message);
@@ -159,13 +171,13 @@ export default function AdminUsersPage() {
         <div className="table-container">
           <table className="data-table">
             <thead>
-              <tr><th>{t('name')}</th><th>{t('mobile')}</th><th>{t('role')}</th><th>{t('village')}</th><th>{t('department')}</th><th>{t('status')}</th><th>{t('joined')}</th><th>{t('actions')}</th></tr>
+              <tr><th>{t('name')}</th><th>{t('mobile')}</th><th>{t('emailAddr')}</th><th>{t('role')}</th><th>{t('village')}</th><th>{t('department')}</th><th>{t('status')}</th><th>{t('joined')}</th><th>{t('actions')}</th></tr>
             </thead>
             <tbody>
               {dataLoading ? [...Array(8)].map((_,i) => (
-                <tr key={i}>{[...Array(8)].map((_,j) => <td key={j}><div className="skeleton" style={{ height:20, borderRadius:4 }} /></td>)}</tr>
+                <tr key={i}>{[...Array(9)].map((_,j) => <td key={j}><div className="skeleton" style={{ height:20, borderRadius:4 }} /></td>)}</tr>
               )) : users.length === 0 ? (
-                <tr><td colSpan={8} style={{ textAlign:'center', padding:'60px 0', color:'var(--text-muted)' }}>{t('noUsersFound' as any) || 'No users found matching this criteria'}</td></tr>
+                <tr><td colSpan={9} style={{ textAlign:'center', padding:'60px 0', color:'var(--text-muted)' }}>{t('noUsersFound' as any) || 'No users found matching this criteria'}</td></tr>
               ) : users.map(u => (
                 <tr key={u._id}>
                   <td>
@@ -177,6 +189,7 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td style={{ fontSize:13,fontFamily:'monospace' }}>{u.mobile}</td>
+                  <td style={{ fontSize:13 }}>{u.email || '—'}</td>
                   <td><span style={{ fontSize:11,padding:'3px 10px',borderRadius:20,background:`${roleColors[u.role]||'#94a3b8'}18`,color:roleColors[u.role]||'#94a3b8',fontWeight:600,textTransform:'capitalize' }}>{t(u.role as any)}</span></td>
                   <td style={{ fontSize:13,color:'var(--text-muted)' }}>{u.village?.name || (typeof u.village === 'string' ? u.village : '—')}</td>
                   <td style={{ fontSize:13,color:'var(--text-muted)' }}>{t(u.department as any) || u.department || '—'}</td>
@@ -213,9 +226,10 @@ export default function AdminUsersPage() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2 style={{ fontSize:18,fontWeight:700,color:'var(--text-primary)',marginBottom:20 }}>➕ {user?.role === 'collector' ? `🏛️ ${t('addNewSecretary')}` : user?.role === 'panchayat_secretary' ? t('addNewAdminStaff') : t('addNewStaffCitizen')}</h2>
             <div style={{ display:'flex',flexDirection:'column',gap:14 }}>
-              <div><label className="label">{t('fullName')}</label><input value={userForm.name} onChange={e => setUserForm(f => ({...f,name:e.target.value}))} className="input-field" placeholder={t('fullNamePlaceholder')} /></div>
-              <div><label className="label">{t('mobileNumber')}</label><input value={userForm.mobile} onChange={e => setUserForm(f => ({...f,mobile:e.target.value}))} className="input-field" placeholder={t('mobileNumber')} /></div>
-              <div><label className="label">{t('password')}</label><input type="password" value={userForm.password} onChange={e => setUserForm(f => ({...f,password:e.target.value}))} className="input-field" placeholder={t('password')} /></div>
+              <div><label className="label">{t('fullName')}</label><input value={userForm.name} onChange={e => setUserForm(f => ({...f,name:e.target.value}))} className="input-field" placeholder={t('fullNamePlaceholder')} minLength={3} required /></div>
+              <div><label className="label">{t('mobileNumber')}</label><input value={userForm.mobile} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 10); setUserForm(f => ({...f,mobile:val})); }} className="input-field" placeholder={t('mobileNumber')} required minLength={10} maxLength={10} pattern="[0-9]{10}" title="10 digit mobile number" /></div>
+              <div><label className="label">{t('emailAddr')}</label><input value={userForm.email} onChange={e => setUserForm(f => ({...f,email:e.target.value}))} className="input-field" placeholder={t('emailPlaceholder')} required type="email" /></div>
+              <div><label className="label">{t('password')}</label><input type="password" value={userForm.password} onChange={e => setUserForm(f => ({...f,password:e.target.value}))} className="input-field" placeholder={t('password')} required minLength={6} /></div>
               
               <div>
                 <label className="label">{t('role')}</label>
