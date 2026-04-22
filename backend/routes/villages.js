@@ -60,7 +60,10 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
     if (req.user.role === 'collector' && req.body.mandal) {
       const Mandal = require('../models/Mandal');
       const mandalObj = await Mandal.findById(req.body.mandal);
-      if (mandalObj && mandalObj.district.toString() !== villageDistrict.toString()) {
+      const userDistrictId = req.user.district ? req.user.district.toString() : null;
+      const mandalDistrictId = mandalObj && mandalObj.district ? mandalObj.district.toString() : null;
+      
+      if (!userDistrictId || mandalDistrictId !== userDistrictId) {
         return res.status(403).json({ success: false, message: 'You can only add villages to your own district' });
       }
     }
@@ -98,8 +101,13 @@ router.delete('/:id', protect, authorize('admin', 'collector'), async (req, res)
     }
 
     // Optional: check if collector owns this district
-    if (req.user.role === 'collector' && village.district.toString() !== req.user.district.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized to delete village in this district' });
+    if (req.user.role === 'collector') {
+      const villageDistrictId = village.district ? village.district.toString() : null;
+      const userDistrictId = req.user.district ? req.user.district.toString() : null;
+      
+      if (!userDistrictId || villageDistrictId !== userDistrictId) {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete village in this district' });
+      }
     }
 
     await village.deleteOne();
