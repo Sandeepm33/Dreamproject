@@ -10,6 +10,8 @@ export default function ManageVillagesPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const [villages, setVillages] = useState<any[]>([]);
+  const [mandals, setMandals] = useState<any[]>([]);
+  const [selectedMandal, setSelectedMandal] = useState<string>('');
   const [dataLoading, setDataLoading] = useState(true);
   const [newVillageModal, setNewVillageModal] = useState(false);
   const [villageForm, setVillageForm] = useState({ name: '', villageCode: '', mandal: '' });
@@ -22,12 +24,14 @@ export default function ManageVillagesPage() {
     }
   }, [user, loading, router]);
 
-  const fetchVillages = useCallback(async () => {
+  const fetchVillages = useCallback(async (mandalId?: string) => {
     if (!user) return;
     setDataLoading(true);
     try {
       const districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
-      const res = await api.getVillages(districtId ? { district: districtId } : {});
+      const params: any = districtId ? { district: districtId } : {};
+      if (mandalId) params.mandal = mandalId;
+      const res = await api.getVillages(params);
       setVillages(res.villages || []);
     } catch (err) {
       console.error(err);
@@ -36,9 +40,21 @@ export default function ManageVillagesPage() {
     }
   }, [user]);
 
+  const fetchMandals = useCallback(async () => {
+    if (!user) return;
+    try {
+      const districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
+      const res = await api.getMandals(districtId ? { district: districtId } : {});
+      setMandals(res.mandals || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [user]);
+
   useEffect(() => {
-    fetchVillages();
-  }, [fetchVillages]);
+    fetchVillages(selectedMandal);
+    fetchMandals();
+  }, [fetchVillages, fetchMandals, selectedMandal]);
 
   const handleCreateVillage = async () => {
     if (!villageForm.name || !villageForm.villageCode) {
@@ -68,9 +84,22 @@ export default function ManageVillagesPage() {
             <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>🏛️ {t('manageVillages')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('total')}: {villages.length} {t('villages')}</p>
           </div>
-          <button onClick={() => { setNewVillageModal(true); setError(''); }} className="btn-primary" style={{ fontSize: 13 }}>
-            ➕ {t('addVillage')}
-          </button>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <select 
+              value={selectedMandal} 
+              onChange={e => setSelectedMandal(e.target.value)} 
+              className="input-field" 
+              style={{ width: '200px', padding: '8px 12px' }}
+            >
+              <option value="">{t('allMandals') || 'All Mandals'}</option>
+              {mandals.map((m: any) => (
+                <option key={m._id} value={m._id}>{m.name}</option>
+              ))}
+            </select>
+            <button onClick={() => { setNewVillageModal(true); setError(''); }} className="btn-primary" style={{ fontSize: 13 }}>
+              ➕ {t('addVillage')}
+            </button>
+          </div>
         </div>
 
         <div className="table-container">
@@ -132,7 +161,11 @@ export default function ManageVillagesPage() {
                 <label className="label">{t('villageName')}</label>
                 <input 
                   value={villageForm.name} 
-                  onChange={e => setVillageForm(f => ({ ...f, name: e.target.value }))} 
+                  onChange={e => {
+                    const newName = e.target.value;
+                    const newCode = newName.substring(0, 3).toUpperCase() + Math.floor(Math.random() * 100);
+                    setVillageForm(f => ({ ...f, name: newName, villageCode: newCode }));
+                  }} 
                   className="input-field" 
                   placeholder="e.g. Gachibowli" 
                 />
@@ -148,12 +181,16 @@ export default function ManageVillagesPage() {
               </div>
               <div>
                 <label className="label">{t('mandalName')}</label>
-                <input 
+                <select 
                   value={villageForm.mandal} 
                   onChange={e => setVillageForm(f => ({ ...f, mandal: e.target.value }))} 
                   className="input-field" 
-                  placeholder="e.g. Serilingampally" 
-                />
+                >
+                  <option value="" disabled>Select a Mandal</option>
+                  {mandals.map((m: any) => (
+                    <option key={m._id} value={m._id}>{m.name}</option>
+                  ))}
+                </select>
               </div>
 
               {error && <div style={{ color: '#ef4444', fontSize: 13, background: 'rgba(239,68,68,0.1)', padding: '8px 12px', borderRadius: 8 }}>⚠️ {error}</div>}

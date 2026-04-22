@@ -1,14 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const Village = require('../models/Village');
+const Mandal = require('../models/Mandal');
 const { protect, authorize } = require('../middleware/auth');
 
 // Get all villages (can filter by district) — includes assigned secretary
 router.get('/', async (req, res) => {
   try {
-    const { district } = req.query;
+    const { district, mandal } = req.query;
     const query = { active: true };
     if (district) query.district = district;
+    if (mandal) query.mandal = mandal;
 
     const villages = await Village.find(query).populate('district', 'name').populate('mandal', 'name');
 

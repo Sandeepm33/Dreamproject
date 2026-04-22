@@ -133,6 +133,10 @@ class APIClient {
 
   // Village & District management
   async getDistricts() { return this.request('/districts'); }
+  async getMandals(params?: Record<string, any>) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request(`/mandals${qs}`);
+  }
   async getVillages(params?: Record<string, any>) {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request(`/villages${qs}`);

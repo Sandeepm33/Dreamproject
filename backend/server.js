@@ -79,6 +79,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/villages', require('./routes/villages'));
 app.use('/api/districts', require('./routes/districts'));
+app.use('/api/mandals', require('./routes/mandals'));
 app.use('/api/emergency-alerts', require('./routes/emergency-alerts'));
 app.use('/api/developments', require('./routes/developments'));
 app.use('/api/fcm', require('./routes/fcm'));
