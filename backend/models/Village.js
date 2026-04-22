@@ -4,7 +4,7 @@ const villageSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   villageCode: { type: String, required: true, unique: true, trim: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: 'District', required: true },
-  mandal: { type: String },
+  mandal: { type: mongoose.Schema.Types.ObjectId, ref: 'Mandal', required: true },
   active: { type: Boolean, default: true }
 }, { timestamps: true });
 

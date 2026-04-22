@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     const query = { active: true };
     if (district) query.district = district;
 
-    const villages = await Village.find(query).populate('district', 'name');
+    const villages = await Village.find(query).populate('district', 'name').populate('mandal', 'name');
 
     // For each village, find the assigned Panchayat Secretary
     const User = require('../models/User');
@@ -21,7 +21,9 @@ router.get('/', async (req, res) => {
           role: 'panchayat_secretary', 
           isActive: true 
         }).select('name mobile');
-        return { ...v.toObject(), secretary: secretary || null };
+        const vObj = v.toObject();
+        vObj.mandal = vObj.mandal ? vObj.mandal.name : null; // Send mandal name to frontend
+        return { ...vObj, secretary: secretary || null };
       })
     );
 
