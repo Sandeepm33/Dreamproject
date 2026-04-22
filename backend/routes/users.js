@@ -32,7 +32,12 @@ router.get('/', protect, authorize('admin', 'panchayat_secretary', 'officer', 'c
 
     const users = await User.find(query)
       .select('-password -otp')
-      .populate('village', 'name villageCode')
+      .populate({
+        path: 'village',
+        select: 'name villageCode mandal',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal', 'name')
       .populate('district', 'name')
       .limit(50);
     res.json({ success: true, users });
@@ -43,7 +48,7 @@ router.get('/', protect, authorize('admin', 'panchayat_secretary', 'officer', 'c
 
 router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'collector'), async (req, res) => {
   try {
-    const { name, mobile, email, password, role, department, village, district } = req.body;
+    const { name, mobile, email, password, role, department, village, district, mandal } = req.body;
 
     // Role Authorization Logic
     if (req.user.role === 'collector') {
@@ -74,13 +79,15 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
     }
 
     // Auto-scope based on creator
-    const userData = { name, mobile, email: emailLower, password, role, department, village };
+    const userData = { name, mobile, email: emailLower, password, role, department, mandal };
+    if (village && village !== '') userData.village = village;
     
     if (req.user.role === 'collector') {
       userData.district = req.user.district;
     } else if (req.user.role === 'panchayat_secretary') {
       userData.district = req.user.district;
       userData.village = req.user.village?._id || req.user.village;
+      userData.mandal = req.user.mandal?._id || req.user.mandal;
     } else if (district) {
       userData.district = district;
     }
@@ -130,7 +137,11 @@ router.patch('/:id/assign-village', protect, authorize('collector', 'admin'), as
       req.params.id,
       { village: villageId },
       { new: true }
-    ).populate('village', 'name villageCode').populate('district', 'name');
+    ).populate({
+      path: 'village',
+      select: 'name villageCode mandal',
+      populate: { path: 'mandal', select: 'name' }
+    }).populate('mandal', 'name').populate('district', 'name');
 
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 

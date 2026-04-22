@@ -126,7 +126,7 @@ export default function AdminDashboard() {
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                     {(user as any).district?.name && `📍 ${(user as any).district.name}`}
-                    {(user as any).village?.mandal && ` • ${(user as any).village.mandal} Mandal`}
+                    {(user as any).village?.mandal && ` • ${typeof (user as any).village.mandal === 'object' ? (user as any).village.mandal.name : (user as any).village.mandal} Mandal`}
                   </div>
                 </>
               ) : (

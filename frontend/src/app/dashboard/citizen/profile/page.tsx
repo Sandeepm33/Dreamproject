@@ -73,7 +73,9 @@ export default function ProfilePage() {
               {user?.department && <span style={{ fontSize:12, color:'var(--text-muted)' }}>· {user.department}</span>}
             </div>
             <div style={{ fontSize:13, color:'var(--text-muted)' }}>
-              📱 {user?.mobile} {user?.village && `· 📍 ${(user.village as any)?.name || (typeof user.village === 'string' ? user.village : '—')}`}
+              📱 {user?.mobile} 
+              {user?.village && ` · 📍 ${(user.village as any)?.name || (typeof user.village === 'string' ? user.village : '—')}`}
+              {((user?.mandal as any)?.name || (user?.village as any)?.mandal?.name) && ` · ${(user?.mandal as any)?.name || (user?.village as any)?.mandal?.name} Mandal`}
             </div>
           </div>
 
@@ -107,6 +109,15 @@ export default function ProfilePage() {
                   <label className="label">{t('village')}</label>
                   <input 
                     value={(user?.village as any)?.name || (typeof user?.village === 'string' ? user.village : '')} 
+                    readOnly 
+                    className="input-field" 
+                    style={{ opacity:0.6, cursor:'not-allowed' }} 
+                  />
+                </div>
+                <div>
+                  <label className="label">{t('mandalName')}</label>
+                  <input 
+                    value={(user?.mandal as any)?.name || (user?.village as any)?.mandal?.name || (typeof user?.mandal === 'string' ? user.mandal : '')} 
                     readOnly 
                     className="input-field" 
                     style={{ opacity:0.6, cursor:'not-allowed' }} 

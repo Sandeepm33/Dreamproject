@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     const query = { active: true };
     if (district) query.district = district;
 
-    const mandals = await Mandal.find(query).populate('district', 'name');
+    const mandals = await Mandal.find(query).sort({ name: 1 }).populate('district', 'name');
     res.json({ success: true, mandals });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

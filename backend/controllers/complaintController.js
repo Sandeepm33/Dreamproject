@@ -78,7 +78,11 @@ exports.createComplaint = async (req, res) => {
       console.error('Failed to notify secretary:', secErr);
     }
 
-    const populated = await complaint.populate('citizen', 'name mobile village');
+    const populated = await complaint.populate({
+      path: 'citizen',
+      select: 'name mobile village',
+      populate: { path: 'village', populate: { path: 'mandal', select: 'name' } }
+    });
     res.status(201).json({ success: true, complaint: populated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -132,7 +136,14 @@ exports.getComplaints = async (req, res) => {
 
     const total = await Complaint.countDocuments(query);
     const complaints = await Complaint.find(query)
-      .populate('citizen', 'name mobile email village district avatar')
+      .populate({
+        path: 'citizen',
+        select: 'name mobile email village mandal district avatar',
+        populate: [
+          { path: 'village', populate: { path: 'mandal', select: 'name' } },
+          { path: 'mandal', select: 'name' }
+        ]
+      })
       .populate('assignedTo', 'name role department')
       .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
       .skip((page - 1) * limit)
@@ -148,7 +159,14 @@ exports.getComplaints = async (req, res) => {
 exports.getComplaint = async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
-      .populate('citizen', 'name mobile email village district state avatar')
+      .populate({
+        path: 'citizen',
+        select: 'name mobile email village mandal district state avatar',
+        populate: [
+          { path: 'village', populate: { path: 'mandal', select: 'name' } },
+          { path: 'mandal', select: 'name' }
+        ]
+      })
       .populate('assignedTo', 'name role department')
       .populate('remarks.addedBy', 'name role')
       .populate('statusHistory.changedBy', 'name role');
@@ -319,8 +337,13 @@ exports.exportComplaints = async (req, res) => {
     }
 
     const complaints = await Complaint.find(query)
-      .populate('citizen', 'name mobile village')
-      .populate('village', 'name villageCode')
+      .populate('citizen', 'name mobile village mandal')
+      .populate({ path: 'citizen', populate: { path: 'mandal', select: 'name' } })
+      .populate({
+        path: 'village',
+        select: 'name villageCode mandal',
+        populate: { path: 'mandal', select: 'name' }
+      })
       .populate('district', 'name')
       .populate('assignedTo', 'name role department')
       .sort({ createdAt: -1 });

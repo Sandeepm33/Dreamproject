@@ -6,7 +6,7 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 // POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    let { name, mobile, email, password, role, village, villageCode, department, district } = req.body;
+    let { name, mobile, email, password, role, village, villageCode, department, district, mandal } = req.body;
 
     if (name) name = name.trim();
     if (mobile) mobile = mobile.trim();
@@ -25,7 +25,7 @@ exports.register = async (req, res) => {
     const existingEmail = await User.findOne({ email });
     if (existingEmail) return res.status(400).json({ success: false, message: 'Email already registered' });
 
-    const userData = { name, mobile, email, password, role: 'citizen', village, villageCode, department, district };
+    const userData = { name, mobile, email, password, role: 'citizen', village, villageCode, department, district, mandal };
 
     const user = await User.create(userData);
 
@@ -43,7 +43,12 @@ exports.register = async (req, res) => {
     }
 
     const token = generateToken(user._id);
-    const populatedUser = await User.findById(user._id).populate('village district');
+    const populatedUser = await User.findById(user._id)
+      .populate({
+        path: 'village',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal district');
     res.status(201).json({ success: true, token, user: populatedUser });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -75,7 +80,12 @@ exports.login = async (req, res) => {
 
     await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
     const token = generateToken(user._id);
-    const populatedUser = await User.findById(user._id).populate('village district');
+    const populatedUser = await User.findById(user._id)
+      .populate({
+        path: 'village',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal district');
     res.json({ success: true, token, user: populatedUser });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -90,7 +100,7 @@ exports.getMe = async (req, res) => {
 // PUT /api/auth/profile
 exports.updateProfile = async (req, res) => {
   try {
-    let { name, email, village, language, notificationsEnabled } = req.body;
+    let { name, email, village, mandal, language, notificationsEnabled } = req.body;
     
     if (name) name = name.trim();
     if (!email || email.trim() === '') return res.status(400).json({ success: false, message: 'Email is required' });
@@ -105,8 +115,16 @@ exports.updateProfile = async (req, res) => {
     if (village && require('mongoose').Types.ObjectId.isValid(village)) {
       updateData.village = village;
     }
+    if (mandal && require('mongoose').Types.ObjectId.isValid(mandal)) {
+      updateData.mandal = mandal;
+    }
 
-    const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true }).populate('village district');
+    const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true })
+      .populate({
+        path: 'village',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal district');
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

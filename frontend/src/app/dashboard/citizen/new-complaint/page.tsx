@@ -21,7 +21,7 @@ export default function NewComplaintPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    title: '', description: '', category: '', location: { address: '', lat: 0, lng: 0, village: '', district: '' }
+    title: '', description: '', category: '', location: { address: '', lat: 0, lng: 0, village: '', mandal: '', district: '' }
   });
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -38,10 +38,11 @@ export default function NewComplaintPage() {
   useEffect(() => {
     if (user && !form.location.village) {
       const vName = (user.village as any)?.name || (typeof user.village === 'string' ? user.village : '');
+      const mName = (user.mandal as any)?.name || (typeof user.mandal === 'string' ? user.mandal : '');
       const dName = (user.district as any)?.name || (typeof user.district === 'string' ? user.district : '');
       setForm(f => ({
         ...f,
-        location: { ...f.location, village: vName, district: dName }
+        location: { ...f.location, village: vName, mandal: mName, district: dName }
       }));
     }
   }, [user]);
@@ -163,7 +164,7 @@ export default function NewComplaintPage() {
           </div>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => router.push('/dashboard/citizen/complaints')} className="btn-primary">📋 {t('viewMyComplaints')}</button>
-            <button onClick={() => { setSuccess(null); setStep(1); setForm({ title:'',description:'',category:'',location:{address:'',lat:0,lng:0,village:'',district:''} }); setFiles([]); setPreviews([]); }} className="btn-ghost">➕ {t('raiseAnother')}</button>
+            <button onClick={() => { setSuccess(null); setStep(1); setForm({ title:'',description:'',category:'',location:{address:'',lat:0,lng:0,village:'',mandal:'',district:''} }); setFiles([]); setPreviews([]); }} className="btn-ghost">➕ {t('raiseAnother')}</button>
           </div>
         </div>
         <style>{`@keyframes float { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }`}</style>
@@ -293,10 +294,14 @@ export default function NewComplaintPage() {
                   <label className="label">{t('address')}</label>
                   <input name="address" value={form.location.address} onChange={handleLocationChange} className="input-field" placeholder={t('addressPlaceholder')} />
                 </div>
-                <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
                   <div>
                     <label className="label">{t('village')}</label>
                     <input name="village" value={form.location.village} onChange={handleLocationChange} className="input-field" placeholder={t('villageName')} />
+                  </div>
+                  <div>
+                    <label className="label">{t('mandalName')}</label>
+                    <input name="mandal" value={form.location.mandal} onChange={handleLocationChange} className="input-field" placeholder={t('mandalName')} />
                   </div>
                   <div>
                     <label className="label">{t('district')}</label>
@@ -352,6 +357,8 @@ export default function NewComplaintPage() {
                     { label: t('issueTitle'), value: form.title },
                     { label: t('category'), value: t(form.category as any) },
                     { label: t('description'), value: form.description },
+                    { label: t('village'), value: form.location.village },
+                    { label: t('mandalName'), value: form.location.mandal },
                     { label: t('address'), value: form.location.address || t('notSpecified') },
                     { label: t('attachedMedia'), value: `${files.length} ${t('fileAttached')}` },
                    ].map(({ label, value }) => (

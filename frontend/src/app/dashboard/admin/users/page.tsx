@@ -16,13 +16,16 @@ export default function AdminUsersPage() {
 
   const [dataLoading, setDataLoading] = useState(true);
   const [newOfficerModal, setNewUserModal] = useState(false);
-  const [userForm, setUserForm] = useState({ name:'', mobile:'', email: '', password:'', role: '', department:'', village: '' });
+  const [userForm, setUserForm] = useState({ name:'', mobile:'', email: '', password:'', role: '', department:'', village: '', mandal: '' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [villages, setVillages] = useState<any[]>([]);
   const [assignModal, setAssignModal] = useState<{userId: string, name: string} | null>(null);
   const [assignVillageId, setAssignVillageId] = useState('');
   const [assigning, setAssigning] = useState(false);
+  const [mandals, setMandals] = useState<any[]>([]);
+  const [formMandalId, setFormMandalId] = useState('');
+  const [assignMandalId, setAssignMandalId] = useState('');
 
   useEffect(() => {
     if (loading) return;
@@ -42,6 +45,7 @@ export default function AdminUsersPage() {
       const districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
       if (districtId) {
         api.getVillages({ district: districtId }).then(res => setVillages(res.villages || []));
+        api.getMandals({ district: districtId }).then(res => setMandals(res.mandals || []));
       }
     }
   }, [user, loading, router, role]);
@@ -102,16 +106,14 @@ export default function AdminUsersPage() {
       return;
     }
     
-    if (user?.role === 'collector' && userForm.role === 'panchayat_secretary' && !userForm.village) {
-      setError('Please assign a village to the secretary');
-      return;
-    }
-
+    /* Village is now optional during creation as it can be assigned later */
+    
     setCreating(true);
     try {
       await api.createUser(userForm);
       setNewUserModal(false);
-      setUserForm({ name:'', mobile:'', email: '', password:'', role:'', department:'', village:'' });
+      setUserForm({ name:'', mobile:'', email: '', password:'', role:'', department:'', village:'', mandal:'' });
+      setFormMandalId('');
       fetchUsers();
     } catch (err: any) {
       setError(err.message);
@@ -145,8 +147,13 @@ export default function AdminUsersPage() {
           <button onClick={() => { 
             setNewUserModal(true); 
             setError(''); 
+            setFormMandalId('');
             if (user?.role === 'panchayat_secretary') {
-              setUserForm(f => ({...f, village: (user as any).village?._id || (user as any).village }));
+              setUserForm(f => ({
+                ...f, 
+                village: (user as any).village?._id || (user as any).village,
+                mandal: (user as any).mandal?._id || (user as any).mandal
+              }));
             }
           }} className="btn-primary" style={{ fontSize:13 }}>➕ {t('addUser')}</button>
         </div>
@@ -171,7 +178,7 @@ export default function AdminUsersPage() {
         <div className="table-container">
           <table className="data-table">
             <thead>
-              <tr><th>{t('name')}</th><th>{t('mobile')}</th><th>{t('emailAddr')}</th><th>{t('role')}</th><th>{t('village')}</th><th>{t('department')}</th><th>{t('status')}</th><th>{t('joined')}</th><th>{t('actions')}</th></tr>
+              <tr><th>{t('name')}</th><th>{t('mobile')}</th><th>{t('emailAddr')}</th><th>{t('role')}</th><th>{t('mandalName')}</th><th>{t('village')}</th><th>{t('department')}</th><th>{t('status')}</th><th>{t('joined')}</th><th>{t('actions')}</th></tr>
             </thead>
             <tbody>
               {dataLoading ? [...Array(8)].map((_,i) => (
@@ -191,6 +198,7 @@ export default function AdminUsersPage() {
                   <td style={{ fontSize:13,fontFamily:'monospace' }}>{u.mobile}</td>
                   <td style={{ fontSize:13 }}>{u.email || '—'}</td>
                   <td><span style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', fontSize:11,padding:'3px 10px',borderRadius:20,background:`${roleColors[u.role]||'#94a3b8'}18`,color:roleColors[u.role]||'#94a3b8',fontWeight:600,textTransform:'capitalize' }}>{t(u.role as any)}</span></td>
+                  <td style={{ fontSize:13,color:'var(--text-muted)' }}>{u.mandal?.name || (u.village as any)?.mandal?.name || '—'}</td>
                   <td style={{ fontSize:13,color:'var(--text-muted)' }}>{u.village?.name || (typeof u.village === 'string' ? u.village : '—')}</td>
                   <td style={{ fontSize:13,color:'var(--text-muted)' }}>{t(u.department as any) || u.department || '—'}</td>
                   <td>
@@ -206,7 +214,12 @@ export default function AdminUsersPage() {
                       </button>
                       {user.role === 'collector' && u.role === 'panchayat_secretary' && (
                         <button 
-                          onClick={() => { setAssignModal({userId: u._id, name: u.name}); setAssignVillageId(u.village?._id || ''); setError(''); }}
+                          onClick={() => { 
+                            setAssignModal({userId: u._id, name: u.name}); 
+                            setAssignVillageId(u.village?._id || ''); 
+                            setAssignMandalId('');
+                            setError(''); 
+                          }}
                           className="btn-ghost" 
                           style={{ fontSize:11, padding:'5px 10px', color:'#a855f7', borderColor:'rgba(168,85,247,0.3)' }}
                         >
@@ -259,33 +272,41 @@ export default function AdminUsersPage() {
                   </select>
                 </div>
               )}
-              {(userForm.role === 'panchayat_secretary' || userForm.role === 'citizen' || userForm.role === 'admin') && (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label className="label">{t('village')}</label>
-                  {user?.role === 'collector' ? (
+              {((userForm.role === 'panchayat_secretary' && user?.role !== 'collector') || userForm.role === 'citizen' || userForm.role === 'admin' || userForm.role === 'officer') && user?.role !== 'panchayat_secretary' && (
+                <>
+                  <div>
+                    <label className="label">{t('mandalName')}</label>
+                    <select 
+                      value={formMandalId} 
+                      onChange={e => { 
+                        setFormMandalId(e.target.value); 
+                        setUserForm(f => ({...f, mandal: e.target.value, village:''})); 
+                      }} 
+                      className="input-field"
+                    >
+                      <option value="">{t('allMandals')}</option>
+                      {mandals.map(m => (
+                        <option key={m._id} value={m._id}>{m.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">{t('village')}</label>
                     <select 
                       value={userForm.village} 
                       onChange={e => setUserForm(f => ({...f, village: e.target.value}))} 
                       className="input-field"
                     >
                       <option value="">{t('selectVillage')}</option>
-                      {villages.map(v => (
-                        <option key={v._id} value={v._id}>{v.name} ({v.villageCode})</option>
-                      ))}
+                      {villages
+                        .filter(v => !formMandalId || (v.mandal?._id || v.mandal) === formMandalId)
+                        .map(v => (
+                          <option key={v._id} value={v._id}>{v.name}</option>
+                        ))
+                      }
                     </select>
-                  ) : user?.role === 'panchayat_secretary' ? (
-                    <div className="input-field" style={{ background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', cursor: 'not-allowed' }}>
-                      {(user as any).village?.name || 'Assigned Village'}
-                    </div>
-                  ) : (
-                    <input 
-                      value={userForm.village} 
-                      onChange={e => setUserForm(f => ({...f, village: e.target.value}))} 
-                      className="input-field" 
-                      placeholder={t('villagePlaceholder')} 
-                    />
-                  )}
-                </div>
+                  </div>
+                </>
               )}
               
               {error && <div style={{ gridColumn: '1 / -1', color:'#ef4444',fontSize:13,background:'rgba(239,68,68,0.1)',padding:'8px 12px',borderRadius:8 }}>⚠️ {t(error as any) || error}</div>}
@@ -306,16 +327,32 @@ export default function AdminUsersPage() {
             <p style={{ fontSize:13, color:'var(--text-muted)', marginBottom:20 }}>Assign <strong>{assignModal.name}</strong> to a village</p>
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
               <div>
+                <label className="label">{t('mandalName') || 'Mandal'}</label>
+                <select 
+                  value={assignMandalId} 
+                  onChange={e => { setAssignMandalId(e.target.value); setAssignVillageId(''); }} 
+                  className="input-field"
+                  style={{ marginBottom: 10 }}
+                >
+                  <option value="">{t('allMandals') || 'Select Mandal'}</option>
+                  {mandals.map(m => (
+                    <option key={m._id} value={m._id}>{m.name}</option>
+                  ))}
+                </select>
+                
                 <label className="label">{t('village')}</label>
                 <select 
                   value={assignVillageId} 
                   onChange={e => setAssignVillageId(e.target.value)} 
                   className="input-field"
                 >
-                  <option value="">{t('selectDistrict')}</option>
-                  {villages.map(v => (
-                    <option key={v._id} value={v._id}>{v.name} ({v.villageCode})</option>
-                  ))}
+                  <option value="">{t('selectVillage')}</option>
+                  {villages
+                    .filter(v => !assignMandalId || (v.mandal?._id || v.mandal) === assignMandalId)
+                    .map(v => (
+                      <option key={v._id} value={v._id}>{v.name} ({v.villageCode})</option>
+                    ))
+                  }
                 </select>
               </div>
               {error && <div style={{ color:'#ef4444', fontSize:13, background:'rgba(239,68,68,0.1)', padding:'8px 12px', borderRadius:8 }}>⚠️ {error}</div>}

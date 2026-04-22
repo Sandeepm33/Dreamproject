@@ -10,6 +10,7 @@ interface User {
   role: 'citizen' | 'admin' | 'officer' | 'panchayat_secretary' | 'collector';
   village?: string;
   villageCode?: string;
+  mandal?: string;
   department?: string;
   district?: string;
   avatar?: string;

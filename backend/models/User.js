@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['citizen', 'admin', 'officer', 'panchayat_secretary', 'collector'], default: 'citizen' },
   village: { type: mongoose.Schema.Types.ObjectId, ref: 'Village' },
   villageCode: { type: String }, // For historical/convenience use
+  mandal: { type: mongoose.Schema.Types.ObjectId, ref: 'Mandal' },
   district: { type: mongoose.Schema.Types.ObjectId, ref: 'District' },
   state: { type: String, default: 'Telangana' },
   department: { type: String },

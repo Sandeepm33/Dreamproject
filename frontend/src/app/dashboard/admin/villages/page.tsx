@@ -14,8 +14,8 @@ export default function ManageVillagesPage() {
   const [selectedMandal, setSelectedMandal] = useState<string>('');
   const [dataLoading, setDataLoading] = useState(true);
   const [newVillageModal, setNewVillageModal] = useState(false);
+  const [newMandalModal, setNewMandalModal] = useState(false);
   const [villageForm, setVillageForm] = useState({ name: '', villageCode: '', mandal: '' });
-  const [isAddingMandal, setIsAddingMandal] = useState(false);
   const [newMandalName, setNewMandalName] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -60,14 +60,16 @@ export default function ManageVillagesPage() {
 
   const handleCreateMandal = async () => {
     if (!newMandalName) return;
+    setCreating(true);
     try {
-      const res = await api.createMandal({ name: newMandalName });
+      await api.createMandal({ name: newMandalName });
       await fetchMandals();
-      setVillageForm(f => ({ ...f, mandal: res.mandal._id }));
-      setIsAddingMandal(false);
+      setNewMandalModal(false);
       setNewMandalName('');
     } catch (err: any) {
       alert(err.message || 'Failed to create Mandal');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -82,7 +84,7 @@ export default function ManageVillagesPage() {
       await api.createVillage(villageForm);
       setNewVillageModal(false);
       setVillageForm({ name: '', villageCode: '', mandal: '' });
-      fetchVillages();
+      fetchVillages(selectedMandal);
     } catch (err: any) {
       setError(err.message || 'Failed to create village');
     } finally {
@@ -111,6 +113,9 @@ export default function ManageVillagesPage() {
                 <option key={m._id} value={m._id}>{m.name}</option>
               ))}
             </select>
+            <button onClick={() => { setNewMandalModal(true); setError(''); }} className="btn-ghost" style={{ fontSize: 13, border: '1px solid var(--accent)', color: 'var(--accent)' }}>
+              ➕ {t('addMandal') || 'Add Mandal'}
+            </button>
             <button onClick={() => { setNewVillageModal(true); setError(''); }} className="btn-primary" style={{ fontSize: 13 }}>
               ➕ {t('addVillage')}
             </button>
@@ -145,7 +150,7 @@ export default function ManageVillagesPage() {
                 <tr key={v._id}>
                   <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{v.name}</td>
                   <td><code style={{ fontSize: 12, color: 'var(--accent)', background: 'rgba(245,158,11,0.1)', padding: '2px 6px', borderRadius: 4 }}>{v.villageCode}</code></td>
-                  <td>{v.mandal || '—'}</td>
+                  <td>{v.mandalName || '—'}</td>
                   <td>
                     {v.secretary ? (
                       <div>
@@ -214,38 +219,17 @@ export default function ManageVillagesPage() {
                 />
               </div>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label className="label" style={{ marginBottom: 0 }}>{t('mandalName')}</label>
-                  <button 
-                    onClick={() => setIsAddingMandal(!isAddingMandal)} 
-                    style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    {isAddingMandal ? 'Cancel' : '+ New Mandal'}
-                  </button>
-                </div>
-                
-                {isAddingMandal ? (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input 
-                      value={newMandalName} 
-                      onChange={e => setNewMandalName(e.target.value)} 
-                      className="input-field" 
-                      placeholder="e.g. New Mandal Name" 
-                    />
-                    <button onClick={handleCreateMandal} className="btn-primary" style={{ padding: '0 16px' }}>Add</button>
-                  </div>
-                ) : (
-                  <select 
-                    value={villageForm.mandal} 
-                    onChange={e => setVillageForm(f => ({ ...f, mandal: e.target.value }))} 
-                    className="input-field" 
-                  >
-                    <option value="" disabled>Select a Mandal</option>
-                    {mandals.map((m: any) => (
-                      <option key={m._id} value={m._id}>{m.name}</option>
-                    ))}
-                  </select>
-                )}
+                <label className="label">{t('mandalName')}</label>
+                <select 
+                  value={villageForm.mandal} 
+                  onChange={e => setVillageForm(f => ({ ...f, mandal: e.target.value }))} 
+                  className="input-field" 
+                >
+                  <option value="" disabled>Select a Mandal</option>
+                  {mandals.map((m: any) => (
+                    <option key={m._id} value={m._id}>{m.name}</option>
+                  ))}
+                </select>
               </div>
 
               {error && <div style={{ color: '#ef4444', fontSize: 13, background: 'rgba(239,68,68,0.1)', padding: '8px 12px', borderRadius: 8 }}>⚠️ {error}</div>}
@@ -255,6 +239,32 @@ export default function ManageVillagesPage() {
                   {creating ? `${t('creating')}...` : `✅ ${t('addVillage')}`}
                 </button>
                 <button onClick={() => setNewVillageModal(false)} className="btn-ghost" style={{ flex: 1 }}>
+                  {t('cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {newMandalModal && (
+        <div className="modal-overlay" onClick={() => setNewMandalModal(false)}>
+          <div className="modal-content" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 20 }}>➕ {t('addMandal') || 'Add Mandal'}</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label className="label">{t('mandalName')}</label>
+                <input 
+                  value={newMandalName} 
+                  onChange={e => setNewMandalName(e.target.value)} 
+                  className="input-field" 
+                  placeholder="e.g. Athmakur" 
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                <button onClick={handleCreateMandal} className="btn-primary" disabled={creating} style={{ flex: 1 }}>
+                  {creating ? `${t('creating')}...` : `✅ ${t('addMandal') || 'Add Mandal'}`}
+                </button>
+                <button onClick={() => setNewMandalModal(false)} className="btn-ghost" style={{ flex: 1 }}>
                   {t('cancel')}
                 </button>
               </div>

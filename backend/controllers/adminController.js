@@ -128,7 +128,12 @@ exports.getUsers = async (req, res) => {
 
     const total = await User.countDocuments(query);
     const users = await User.find(query)
-      .populate('village', 'name villageCode')
+      .populate({
+        path: 'village',
+        select: 'name villageCode mandal',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal', 'name')
       .populate('district', 'name')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

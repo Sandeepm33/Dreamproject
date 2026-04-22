@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({ name: '', mobile: '', email: '', password: '', confirmPassword: '', role: 'citizen', village: '', department: '', district: '' });
+  const [form, setForm] = useState({ name: '', mobile: '', email: '', password: '', confirmPassword: '', role: 'citizen', village: '', mandal: '', department: '', district: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [districts, setDistricts] = useState<any[]>([]);
+  const [mandals, setMandals] = useState<any[]>([]);
   const [villages, setVillages] = useState<any[]>([]);
 
   useEffect(() => {
@@ -38,9 +39,24 @@ export default function LoginPage() {
   };
 
   const handleDistrictChange = async (districtId: string) => {
-    setForm(f => ({ ...f, district: districtId, village: '' }));
+    setForm(f => ({ ...f, district: districtId, mandal: '', village: '' }));
+    setMandals([]);
+    setVillages([]);
+    if (!districtId) return;
     try {
-      const res = await api.getVillages({ district: districtId });
+      const res = await api.getMandals({ district: districtId });
+      setMandals(res.mandals || []);
+    } catch (err) {
+      console.error('Failed to fetch mandals');
+    }
+  };
+
+  const handleMandalChange = async (mandalId: string) => {
+    setForm(f => ({ ...f, mandal: mandalId, village: '' }));
+    setVillages([]);
+    if (!mandalId) return;
+    try {
+      const res = await api.getVillages({ mandal: mandalId });
       setVillages(res.villages || []);
     } catch (err) {
       console.error('Failed to fetch villages');
@@ -74,8 +90,8 @@ export default function LoginPage() {
           setLoading(false); 
           return; 
         }
-        if (!form.district || !form.village) {
-          setError('Please select Distict and Village');
+        if (!form.district || !(form as any).mandal || !form.village) {
+          setError('Please select District, Mandal and Village');
           setLoading(false);
           return;
         }
@@ -171,18 +187,32 @@ export default function LoginPage() {
                       <label className="v-label"><User size={14} /> {t('fullName')}</label>
                       <input name="name" value={form.name} onChange={handleChange} className="v-input" placeholder="Rajesh Kumar" required minLength={3} />
                     </div>
-                    <div className="input-row animate-in">
+                    <div className="input-group animate-in">
+                      <label className="v-label"><Globe size={14} /> {t('district')}</label>
+                      <select 
+                        className="v-input" 
+                        name="district" 
+                        value={(form as any).district} 
+                        onChange={(e) => handleDistrictChange(e.target.value)} 
+                        required
+                      >
+                        <option value="">{t('selectDistrict')}</option>
+                        {districts.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="input-row animate-in" style={{ marginTop: 20 }}>
                       <div className="input-group">
-                        <label className="v-label"><Globe size={14} /> {t('district')}</label>
+                        <label className="v-label"><Globe size={14} /> {t('mandalName')}</label>
                         <select 
                           className="v-input" 
-                          name="district" 
-                          value={(form as any).district} 
-                          onChange={(e) => handleDistrictChange(e.target.value)} 
+                          name="mandal" 
+                          value={(form as any).mandal} 
+                          onChange={(e) => handleMandalChange(e.target.value)} 
                           required
+                          disabled={!(form as any).district}
                         >
-                          <option value="">{t('selectDistrict')}</option>
-                          {districts.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
+                          <option value="">{t('allMandals')}</option>
+                          {mandals.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
                         </select>
                       </div>
                       <div className="input-group">
@@ -193,7 +223,7 @@ export default function LoginPage() {
                           value={form.village} 
                           onChange={handleChange} 
                           required
-                          disabled={!(form as any).district}
+                          disabled={!(form as any).mandal}
                         >
                           <option value="">{t('village')}</option>
                           {villages.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}

@@ -10,7 +10,13 @@ const protect = async (req, res, next) => {
     if (!token) return res.status(401).json({ success: false, message: 'Not authorized' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password -otp').populate('village district');
+    req.user = await User.findById(decoded.id)
+      .select('-password -otp')
+      .populate({
+        path: 'village',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal district');
     if (!req.user) return res.status(401).json({ success: false, message: 'User not found' });
     if (!req.user.isActive) return res.status(403).json({ success: false, message: 'Account deactivated' });
     next();
@@ -28,7 +34,13 @@ const optionalProtect = async (req, res, next) => {
     if (!token) return next();
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password -otp').populate('village district');
+    req.user = await User.findById(decoded.id)
+      .select('-password -otp')
+      .populate({
+        path: 'village',
+        populate: { path: 'mandal', select: 'name' }
+      })
+      .populate('mandal district');
     next();
   } catch (err) {
     next();
