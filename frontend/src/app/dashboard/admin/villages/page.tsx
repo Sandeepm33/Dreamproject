@@ -251,7 +251,21 @@ export default function ManageVillagesPage() {
                 <tr key={v._id}>
                   <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{v.name}</td>
                   <td><code style={{ fontSize: 12, color: 'var(--accent)', background: 'rgba(245,158,11,0.1)', padding: '2px 6px', borderRadius: 4 }}>{v.villageCode}</code></td>
-                  <td>{v.mandalName || '—'}</td>
+                   <td 
+                    onClick={() => {
+                      const mandalId = v.mandal?._id || v.mandal;
+                      if (mandalId && typeof mandalId === 'string') {
+                        setSelectedMandal(mandalId);
+                      }
+                    }}
+                    style={{ 
+                      cursor: v.mandal ? 'pointer' : 'default',
+                      color: v.mandal ? '#ffffff' : 'inherit',
+                      textDecoration: v.mandal ? 'underline decoration-transparent hover:decoration-current' : 'none'
+                    }}
+                  >
+                    {v.mandalName || '—'}
+                  </td>
                   <td>
                     {v.secretary ? (
                       <div>
@@ -276,7 +290,22 @@ export default function ManageVillagesPage() {
                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>{t('noData')}</td></tr>
               ) : mandals.map(m => (
                 <tr key={m._id}>
-                  <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{m.name}</td>
+                  <td 
+                    onClick={() => {
+                      setSelectedMandal(m._id);
+                      setView('villages');
+                    }}
+                    style={{ 
+                      fontWeight: 600, 
+                      color: '#ffffff', 
+                      cursor: 'pointer',
+                      textDecoration: 'underline decoration-transparent hover:decoration-current',
+                      transition: 'all 0.2s'
+                    }}
+                    title={`View villages in ${m.name}`}
+                  >
+                    {m.name}
+                  </td>
                   <td>{m.district?.name || '—'}</td>
                   <td>
                     <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: m.active ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: m.active ? '#22c55e' : '#ef4444' }}>
