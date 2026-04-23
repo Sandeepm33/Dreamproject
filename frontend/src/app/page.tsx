@@ -91,7 +91,7 @@ const GalleryCard = ({ post, onSelect }: { post: Post, onSelect: (post: Post) =>
             </div>
             {/* Status Label */}
             <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10 }}>
-              <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', tracking: '0.1em', padding: '4px 10px', borderRadius: 99, border: isPlaying ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255,255,255,0.1)', background: isPlaying ? 'rgba(20, 83, 45, 0.4)' : 'rgba(0,0,0,0.4)', color: isPlaying ? '#4ade80' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)' }}>
+              <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '4px 10px', borderRadius: 99, border: isPlaying ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255,255,255,0.1)', background: isPlaying ? 'rgba(20, 83, 45, 0.4)' : 'rgba(0,0,0,0.4)', color: isPlaying ? '#4ade80' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)' }}>
                 {isPlaying ? 'Playing Preview' : 'Preview Paused'}
               </span>
             </div>
@@ -503,7 +503,7 @@ export default function HomePage() {
             </div>
 
             <div style={{ textAlign: 'center', padding: '0 20px' }}>
-              {selectedPost.title && <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, color: 'white', marginBottom: 16, tracking: '-0.02em' }}>{selectedPost.title}</h2>}
+              {selectedPost.title && <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, color: 'white', marginBottom: 16, letterSpacing: '-0.02em' }}>{selectedPost.title}</h2>}
               <p style={{ color: '#9ca3af', fontSize: 'clamp(16px, 2vw, 18px)', lineHeight: 1.8, maxWidth: 850, margin: '0 auto' }}>{selectedPost.description}</p>
               
               <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
