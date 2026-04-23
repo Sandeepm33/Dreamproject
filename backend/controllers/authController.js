@@ -112,12 +112,17 @@ exports.updateProfile = async (req, res) => {
     if (existingEmail) return res.status(400).json({ success: false, message: 'Email already in use' });
     
     const updateData = { name, email, language, notificationsEnabled };
-    if (avatar && req.user.role !== 'citizen') {
-      // Delete old avatar from S3 if it exists and is different
-      if (req.user.avatar && req.user.avatar !== avatar) {
-        await deleteFromS3(req.user.avatar);
+    if (req.body.hasOwnProperty('avatar')) {
+      const newAvatar = req.body.avatar;
+      // If we are deleting or changing the avatar, delete the old one from S3
+      if (req.user.avatar && req.user.avatar !== newAvatar) {
+        try {
+          await deleteFromS3(req.user.avatar);
+        } catch (err) {
+          console.error('Failed to delete old avatar from S3:', err);
+        }
       }
-      updateData.avatar = avatar;
+      updateData.avatar = newAvatar || '';
     }
     // Only update village if it's a valid ObjectId to prevent CastError
     if (village && require('mongoose').Types.ObjectId.isValid(village)) {

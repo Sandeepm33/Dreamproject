@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import { Camera, Trash2, User as UserIcon, Shield, Save, LogOut } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, updateUser, logout } = useAuth();
@@ -63,6 +64,11 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarDelete = () => {
+    setForm(f => ({ ...f, avatar: '' }));
+    setMsg('🗑️ Profile picture removed. Click Save to apply.');
+  };
+
   const handlePwChange = async () => {
     if (!pwForm.currentPassword) { setPwMsg(`❌ Current Password is required`); return; }
     if (pwForm.newPassword.length < 6) { setPwMsg(`❌ ${t('passwordMinLength')}`); return; }
@@ -97,12 +103,41 @@ export default function ProfilePage() {
                 )}
               </div>
               
-              {user?.role !== 'citizen' && (
-                <label style={{ position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: '50%', background: 'var(--primary)', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                  {uploadLoading ? '⏳' : '📷'}
+              <div style={{ position: 'absolute', bottom: -4, right: -4, display: 'flex', gap: 6 }}>
+                <label 
+                  style={{ 
+                    width: 34, height: 34, borderRadius: '50%', background: 'var(--primary)', 
+                    border: '2px solid var(--bg-card)', display: 'flex', alignItems: 'center', 
+                    justifyContent: 'center', cursor: 'pointer', fontSize: 16, 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)', transition: 'all 0.2s' 
+                  }}
+                  className="hover:scale-110"
+                  title="Upload new photo"
+                >
+                  {uploadLoading ? (
+                    <span className="animate-spin text-white">⌛</span>
+                  ) : (
+                    <Camera size={16} className="text-white" />
+                  )}
                   <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} disabled={uploadLoading} />
                 </label>
-              )}
+                
+                {form.avatar && (
+                  <button 
+                    onClick={handleAvatarDelete}
+                    style={{ 
+                      width: 34, height: 34, borderRadius: '50%', background: '#ef4444', 
+                      border: '2px solid var(--bg-card)', display: 'flex', alignItems: 'center', 
+                      justifyContent: 'center', cursor: 'pointer', fontSize: 14, 
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: 'white', transition: 'all 0.2s' 
+                    }}
+                    className="hover:scale-110"
+                    title="Remove photo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <h2 style={{ fontSize:20, fontWeight:700, color:'var(--text-primary)', marginBottom:4 }}>{user?.name}</h2>

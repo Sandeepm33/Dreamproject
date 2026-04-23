@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image as ImageIcon, Plus, Trash2, ArrowLeft, Loader2, PlayCircle, Video, Calendar, User } from 'lucide-react';
+import { Image as ImageIcon, Plus, Trash2, ArrowLeft, Loader2, PlayCircle, Video, Calendar, User, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
@@ -19,6 +19,138 @@ interface Post {
   createdAt: string;
 }
 
+// Sub-component for Gallery Card
+const GalleryItemCard = ({ 
+  post, 
+  user, 
+  deletingId, 
+  onDelete, 
+  onSelect 
+}: { 
+  post: Post, 
+  user: any, 
+  deletingId: string | null, 
+  onDelete: (id: string) => void,
+  onSelect: (post: Post) => void 
+}) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const isVideo = post.imageUrl.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || post.imageUrl.startsWith('data:video');
+  const getMediaUrl = (url: string) => {
+    if (url.startsWith('http')) return url;
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    return `${base}${url}`;
+  };
+
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <div 
+      className="glass-card overflow-hidden flex flex-col h-full border-white/5 shadow-2xl group hover:border-accent/30 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+      onClick={() => onSelect(post)}
+    >
+      {/* Media Container */}
+      <div className="relative h-60 overflow-hidden bg-black">
+        {isVideo ? (
+          <div className="w-full h-full relative" onClick={togglePlay}>
+            <video 
+              ref={videoRef}
+              src={getMediaUrl(post.imageUrl)} 
+              className="w-full h-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
+              muted
+              loop
+              playsInline
+            />
+            <div className={`absolute inset-0 flex items-center justify-center transition-all ${isPlaying ? 'bg-transparent' : 'bg-black/40'}`}>
+              {!isPlaying ? (
+                <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center scale-110 shadow-2xl">
+                   <PlayCircle size={40} className="text-white fill-white/10" />
+                </div>
+              ) : (
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                   <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                      <div className="flex gap-1.5">
+                        <div className="w-1.5 h-6 bg-white rounded-full"></div>
+                        <div className="w-1.5 h-6 bg-white rounded-full"></div>
+                      </div>
+                   </div>
+                </div>
+              )}
+            </div>
+            {/* Status Label */}
+            <div className="absolute bottom-4 left-4 z-10">
+              <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${isPlaying ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-white/5 text-white/50 border-white/10'}`}>
+                {isPlaying ? 'Playing Preview' : 'Preview Paused'}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <img 
+            src={getMediaUrl(post.imageUrl)} 
+            alt={post.title} 
+            className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100 "
+            onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
+          />
+        )}
+        
+        {/* Delete Button - Overlay */}
+        {(user?.role === 'collector' || post.createdBy?._id === user?._id) && (
+          <div className="absolute top-4 right-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">
+            <button 
+              onClick={(e) => { e.stopPropagation(); onDelete(post._id); }}
+              disabled={deletingId === post._id}
+              className="w-10 h-10 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-xl backdrop-blur-md transition-all border border-red-500/20 shadow-xl"
+            >
+              {deletingId === post._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={18} />}
+            </button>
+          </div>
+        )}
+
+        <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+           <Calendar size={12} className="text-accent" />
+           <span className="text-[10px] font-black text-white uppercase tracking-widest">
+             {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+           </span>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="flex flex-col flex-1" style={{ padding: '25px 25px 25px 25px' }}>
+        <h3 className="text-xl font-extrabold text-white mb-4 line-clamp-1 group-hover:text-accent transition-colors tracking-tight">
+          {post.title || 'Village Update'}
+        </h3>
+        <p className="text-sm text-gray-400 leading-relaxed mb-8 line-clamp-3 font-medium">
+          {post.description}
+        </p>
+        
+        <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white font-black text-sm shadow-inner group-hover:scale-110 transition-transform">
+              {post.createdBy?.name?.charAt(0) || 'A'}
+            </div>
+            <div>
+              <p className="text-xs font-black text-white leading-none mb-1.5">{post.createdBy?.name || 'Admin'}</p>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Village Admin</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function GalleryManagementPage() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -26,6 +158,7 @@ export default function GalleryManagementPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const fetchPosts = async () => {
     try {
@@ -60,7 +193,7 @@ export default function GalleryManagementPage() {
   };
 
   const isVideo = (url: string) => {
-    return url.match(/\.(mp4|webm|ogg|mov)$|^data:video/i);
+    return url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || url.startsWith('data:video');
   };
 
   const getMediaUrl = (url: string) => {
@@ -90,7 +223,7 @@ export default function GalleryManagementPage() {
               </div>
             </div>
             
-            {(user?.role === 'collector' || user?.role === 'admin') && (
+            {user?.role === 'collector' && (
               <button 
                 onClick={() => router.push('/dashboard/admin/gallery/new')}
                 className="btn-primary flex items-center gap-3 px-8 py-4 shadow-[0_10px_30px_rgba(45,106,79,0.3)] hover:scale-105 active:scale-95 transition-all text-base"
@@ -109,75 +242,14 @@ export default function GalleryManagementPage() {
           ) : posts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {posts.map((post) => (
-                <div key={post._id} className="glass-card overflow-hidden flex flex-col h-full border-white/5 shadow-2xl group hover:border-accent/30 transition-all duration-500 hover:-translate-y-2">
-                  {/* Media Container */}
-                  <div className="relative h-60 overflow-hidden bg-black">
-                    {isVideo(post.imageUrl) ? (
-                      <div className="w-full h-full relative">
-                        <video 
-                          src={getMediaUrl(post.imageUrl)} 
-                          className="w-full h-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
-                          muted
-                          playsInline
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition-all">
-                          <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                             <PlayCircle size={32} className="text-white fill-white/10" />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <img 
-                        src={getMediaUrl(post.imageUrl)} 
-                        alt={post.title} 
-                        className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100 "
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
-                      />
-                    )}
-                    
-                    {/* Delete Button - Overlay */}
-                    {(user?.role === 'collector' || user?.role === 'admin' || post.createdBy?._id === user?._id) && (
-                      <div className="absolute top-4 right-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                        <button 
-                          onClick={() => handleDelete(post._id)}
-                          disabled={deletingId === post._id}
-                          className="w-10 h-10 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-xl backdrop-blur-md transition-all border border-red-500/20 shadow-xl"
-                        >
-                          {deletingId === post._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={18} />}
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
-                       <Calendar size={12} className="text-accent" />
-                       <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                         {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                       </span>
-                    </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="flex flex-col flex-1" style={{ padding: '25px 25px 25px 25px' }}>
-                    <h3 className="text-xl font-extrabold text-white mb-4 line-clamp-1 group-hover:text-accent transition-colors tracking-tight">
-                      {post.title || 'Village Update'}
-                    </h3>
-                    <p className="text-sm text-gray-400 leading-relaxed mb-8 line-clamp-3 font-medium">
-                      {post.description}
-                    </p>
-                    
-                    <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white font-black text-sm shadow-inner group-hover:scale-110 transition-transform">
-                          {post.createdBy?.name?.charAt(0) || 'A'}
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-white leading-none mb-1.5">{post.createdBy?.name || 'Admin'}</p>
-                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Village Admin</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <GalleryItemCard 
+                  key={post._id} 
+                  post={post} 
+                  user={user} 
+                  deletingId={deletingId} 
+                  onDelete={handleDelete} 
+                  onSelect={setSelectedPost} 
+                />
               ))}
             </div>
           ) : (
@@ -203,7 +275,7 @@ export default function GalleryManagementPage() {
                     Your gallery is currently empty. Start building your village's digital legacy by sharing photos or videos of progress and local events.
                   </p>
                   
-                  {(user?.role === 'collector' || user?.role === 'admin') && (
+                  {user?.role === 'collector' && (
                     <button 
                       onClick={() => router.push('/dashboard/admin/gallery/new')}
                       className="btn-primary flex items-center gap-3 px-10 py-4 shadow-xl group"
@@ -217,6 +289,57 @@ export default function GalleryManagementPage() {
             </div>
           )}
         </div>
+      {/* Lightbox / Media Modal */}
+      {selectedPost && (
+        <div 
+          className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in"
+          onClick={() => setSelectedPost(null)}
+        >
+          <button 
+            className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors p-3 bg-white/5 rounded-full hover:bg-white/10"
+            onClick={(e) => { e.stopPropagation(); setSelectedPost(null); }}
+          >
+            <X size={28} />
+          </button>
+
+          <div 
+            className="relative max-w-5xl w-full flex flex-col gap-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full rounded-3xl overflow-hidden shadow-2xl bg-black border border-white/10">
+              {isVideo(selectedPost.imageUrl) ? (
+                <video 
+                  src={getMediaUrl(selectedPost.imageUrl)}
+                  controls
+                  autoPlay
+                  className="w-full max-h-[70vh] block"
+                />
+              ) : (
+                <img 
+                  src={getMediaUrl(selectedPost.imageUrl)}
+                  alt={selectedPost.title}
+                  className="w-full max-h-[70vh] object-contain block"
+                />
+              )}
+            </div>
+
+            <div className="text-center px-4">
+              {selectedPost.title && <h2 className="text-3xl font-extrabold text-white mb-4 tracking-tight">{selectedPost.title}</h2>}
+              <p className="text-gray-400 text-lg leading-relaxed max-w-2xl mx-auto">{selectedPost.description}</p>
+              
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white font-black">
+                  {selectedPost.createdBy?.name?.charAt(0) || 'A'}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-black text-white leading-tight">{selectedPost.createdBy?.name}</p>
+                  <p className="text-[10px] text-accent font-black uppercase tracking-widest mt-1">Village Admin</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

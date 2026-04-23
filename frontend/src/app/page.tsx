@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import PublicNavbar from '@/components/PublicNavbar';
 import PublicFooter from '@/components/PublicFooter';
 import WeatherWidget from '@/components/WeatherWidget';
 import MapComponent from '@/components/MapComponent';
-import { Activity, Users, Shield, ArrowRight, Image as ImageIcon, PlayCircle, Map, X, Globe } from 'lucide-react';
+import { Activity, Users, Shield, ArrowRight, Image as ImageIcon, PlayCircle, Map, X, Globe, Calendar } from 'lucide-react';
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
@@ -25,6 +25,116 @@ interface Post {
   createdAt: string;
 }
 
+// Sub-component for Gallery Card
+const GalleryCard = ({ post, onSelect }: { post: Post, onSelect: (post: Post) => void }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const isVideo = post.imageUrl.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || post.imageUrl.startsWith('data:video');
+  const mediaUrl = post.imageUrl.startsWith('http') ? post.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${post.imageUrl}`;
+
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <div 
+      className="glass-card overflow-hidden flex flex-col h-full border-white/5 shadow-2xl group hover:border-accent/30 transition-all duration-500 hover:-translate-y-2 cursor-pointer" 
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 20 }}
+      onClick={() => onSelect(post)}
+    >
+      <div style={{ position: 'relative', height: 256, width: '100%', overflow: 'hidden', background: '#000' }}>
+        {isVideo ? (
+          <div style={{ width: '100%', height: '100%', position: 'relative' }} onClick={togglePlay}>
+            <video
+              ref={videoRef}
+              src={mediaUrl}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isPlaying ? 1 : 0.7, transition: 'opacity 0.3s' }}
+              muted
+              loop
+              playsInline
+            />
+            <div 
+              style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                background: isPlaying ? 'transparent' : 'rgba(0,0,0,0.4)', 
+                transition: 'all 0.3s ease' 
+              }}
+            >
+              {!isPlaying ? (
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'scale(1.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+                  <PlayCircle size={40} color="white" fill="rgba(255,255,255,0.1)" />
+                </div>
+              ) : (
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <div style={{ width: 4, height: 18, background: 'white', borderRadius: 2 }}></div>
+                      <div style={{ width: 4, height: 18, background: 'white', borderRadius: 2 }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Status Label */}
+            <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10 }}>
+              <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', tracking: '0.1em', padding: '4px 10px', borderRadius: 99, border: isPlaying ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255,255,255,0.1)', background: isPlaying ? 'rgba(20, 83, 45, 0.4)' : 'rgba(0,0,0,0.4)', color: isPlaying ? '#4ade80' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)' }}>
+                {isPlaying ? 'Playing Preview' : 'Preview Paused'}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <img
+            src={mediaUrl}
+            alt={post.title || "Gallery Post"}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 1s ease' }}
+            className="group-hover:scale-110"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
+          />
+        )}
+        <div style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)', padding: '6px 12px', borderRadius: 99, border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Calendar size={12} color="#4ade80" />
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+          </span>
+        </div>
+      </div>
+      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', marginBottom: 12, letterSpacing: '-0.01em' }}>
+          {post.title || 'Village Update'}
+        </h3>
+        <p style={{ color: '#9ca3af', fontSize: 14, lineHeight: 1.7, marginBottom: 24, flex: 1 }}>
+          {post.description}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 12, background: 'linear-gradient(135deg, #14532d, #064e3b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+              {post.createdBy?.name?.charAt(0) || 'A'}
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: 'white', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{post.createdBy?.name || 'Admin'}</p>
+              <p style={{ fontSize: 10, color: '#4ade80', textTransform: 'uppercase', fontWeight: 800, letterSpacing: 0.5, margin: 0 }}>{post.createdBy?.role || 'Admin'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function HomePage() {
   const { user, loading } = useAuth();
   const { t, language } = useLanguage();
@@ -32,6 +142,7 @@ export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [showMap, setShowMap] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
     // If logged in, we let them view the home page now, but they can click "Go to Dashboard"
@@ -278,54 +389,7 @@ export default function HomePage() {
           ) : posts.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 32 }}>
               {posts.map((post) => (
-                <div key={post._id} className="glass-card overflow-hidden group cursor-pointer glass-card-hover" style={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 16 }}>
-                  <div style={{ position: 'relative', height: 256, width: '100%', overflow: 'hidden', background: '#000' }}>
-                    {post.imageUrl.match(/\.(mp4|webm|ogg|mov)$|^data:video/i) ? (
-                      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                        <video
-                          src={post.imageUrl.startsWith('http') ? post.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${post.imageUrl}`}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          muted
-                          playsInline
-                          onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
-                          onMouseOut={(e) => { (e.target as HTMLVideoElement).pause(); (e.target as HTMLVideoElement).currentTime = 0; }}
-                        />
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)' }}>
-                          <PlayCircle size={48} color="white" style={{ opacity: 0.8 }} />
-                        </div>
-                      </div>
-                    ) : (
-                      <img
-                        src={post.imageUrl.startsWith('http') ? post.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${post.imageUrl}`}
-                        alt={post.title || "Gallery Post"}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }}
-                        className="group-hover:scale-110"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
-                      />
-                    )}
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,15,13,0.9), transparent)', opacity: 0, transition: 'opacity 0.3s ease' }} className="group-hover:opacity-100"></div>
-                  </div>
-                  <div style={{ padding: 24, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    {post.title && <h3 style={{ fontSize: 18, fontWeight: 700, color: 'white', marginBottom: 8 }}>{post.title}</h3>}
-                    <p style={{ color: '#d1d5db', fontSize: 14, lineHeight: 1.6, marginBottom: 16, flex: 1 }}>
-                      {post.description}
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(45,106,79,0.3)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#14532d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'white' }}>
-                          {post.createdBy?.name?.charAt(0) || 'A'}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 12, color: 'white', fontWeight: 500, margin: 0 }}>{post.createdBy?.name || 'Admin'}</p>
-                          <p style={{ fontSize: 10, color: '#4ade80', textTransform: 'capitalize', margin: 0 }}>{post.createdBy?.role || 'Admin'}</p>
-                        </div>
-                      </div>
-                      <span style={{ fontSize: 10, color: '#6b7280' }}>
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <GalleryCard key={post._id} post={post} onSelect={setSelectedPost} />
               ))}
             </div>
           ) : (
@@ -398,6 +462,60 @@ export default function HomePage() {
           </div>
           <div style={{ flex: 1, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
             <MapComponent />
+          </div>
+        </div>
+      )}
+      {/* Lightbox / Media Modal */}
+      {selectedPost && (
+        <div 
+          className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in"
+          onClick={() => setSelectedPost(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 10000, backgroundColor: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+        >
+          <button 
+            style={{ position: 'absolute', top: 40, right: 40, color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10001, transition: 'all 0.3s' }}
+            onMouseOver={(e) => e.currentTarget.style.color = 'white'}
+            onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+            onClick={(e) => { e.stopPropagation(); setSelectedPost(null); }}
+          >
+            <X size={32} />
+          </button>
+
+          <div 
+            style={{ position: 'relative', maxWidth: '1100px', width: '100%', display: 'flex', flexDirection: 'column', gap: 32 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ width: '100%', borderRadius: 32, overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.8)', background: '#000', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {selectedPost.imageUrl.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || selectedPost.imageUrl.startsWith('data:video') ? (
+                <video 
+                  src={selectedPost.imageUrl.startsWith('http') ? selectedPost.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedPost.imageUrl}`}
+                  controls
+                  autoPlay
+                  style={{ width: '100%', maxHeight: '70vh', display: 'block' }}
+                />
+              ) : (
+                <img 
+                  src={selectedPost.imageUrl.startsWith('http') ? selectedPost.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedPost.imageUrl}`}
+                  alt={selectedPost.title}
+                  style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', display: 'block' }}
+                />
+              )}
+            </div>
+
+            <div style={{ textAlign: 'center', padding: '0 20px' }}>
+              {selectedPost.title && <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, color: 'white', marginBottom: 16, tracking: '-0.02em' }}>{selectedPost.title}</h2>}
+              <p style={{ color: '#9ca3af', fontSize: 'clamp(16px, 2vw, 18px)', lineHeight: 1.8, maxWidth: 850, margin: '0 auto' }}>{selectedPost.description}</p>
+              
+              <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 16, background: 'linear-gradient(135deg, #14532d, #064e3b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: 'white', boxShadow: '0 10px 20px rgba(0,0,0,0.3)' }}>
+                  {selectedPost.createdBy?.name?.charAt(0) || 'A'}
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <p style={{ fontSize: 16, fontWeight: 900, color: 'white', margin: 0 }}>{selectedPost.createdBy?.name}</p>
+                  <p style={{ fontSize: 12, color: '#4ade80', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>{selectedPost.createdBy?.role}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
