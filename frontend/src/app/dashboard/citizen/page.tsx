@@ -50,12 +50,16 @@ export default function CitizenDashboard() {
   if (loading || !user) return null;
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ paddingTop: 20 }}>
       {/* Header */}
       <div className="layout-header" style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-              {user.name?.[0]?.toUpperCase()}
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: 'white', overflow: 'hidden' }}>
+              {user.avatar ? (
+                <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user.name?.[0]?.toUpperCase()
+              )}
             </div>
             <div>
               <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>
@@ -142,6 +146,7 @@ export default function CitizenDashboard() {
         <div className="responsive-grid" style={{ marginBottom: 24 }}>
           {[
             { icon: '🔍', label: t('trackComplaint'), desc: t('trackComplaintDesc'), href: '/dashboard/citizen/track', color: '#0ea5e9' },
+            { icon: '🏛️', label: t('villageOfficers'), desc: t('meetVillageOfficers'), href: '/dashboard/citizen/officers', color: '#a855f7' },
             { icon: '🔔', label: t('notifications'), desc: t('notifDesc'), href: '/dashboard/citizen/notifications', color: '#f59e0b' },
             { icon: '👤', label: t('profile'), desc: t('updateDetails'), href: '/dashboard/citizen/profile', color: '#22c55e' },
           ].map((item, i) => (

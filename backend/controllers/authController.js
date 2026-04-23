@@ -100,7 +100,7 @@ exports.getMe = async (req, res) => {
 // PUT /api/auth/profile
 exports.updateProfile = async (req, res) => {
   try {
-    let { name, email, village, mandal, language, notificationsEnabled } = req.body;
+    let { name, email, village, mandal, language, notificationsEnabled, avatar } = req.body;
     
     if (name) name = name.trim();
     if (!email || email.trim() === '') return res.status(400).json({ success: false, message: 'Email is required' });
@@ -111,6 +111,9 @@ exports.updateProfile = async (req, res) => {
     if (existingEmail) return res.status(400).json({ success: false, message: 'Email already in use' });
     
     const updateData = { name, email, language, notificationsEnabled };
+    if (avatar && req.user.role !== 'citizen') {
+      updateData.avatar = avatar;
+    }
     // Only update village if it's a valid ObjectId to prevent CastError
     if (village && require('mongoose').Types.ObjectId.isValid(village)) {
       updateData.village = village;

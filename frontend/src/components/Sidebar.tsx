@@ -146,8 +146,12 @@ export default function Sidebar({ collapsed, onCollapse, isMobileOpen, onCloseMo
           {!collapsed && (
             <div style={{ background: 'rgba(45,106,79,0.08)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
-                  {user?.name?.[0]?.toUpperCase() || '👤'}
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0, overflow: 'hidden' }}>
+                  {user?.avatar ? (
+                    <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    user?.name?.[0]?.toUpperCase() || '👤'
+                  )}
                 </div>
                 <div style={{ overflow: 'hidden' }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</div>

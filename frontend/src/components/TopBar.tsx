@@ -78,9 +78,14 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
               justifyContent: 'center',
               fontSize: 12,
               fontWeight: 700,
-              color: 'white'
+              color: 'white',
+              overflow: 'hidden'
              }}>
-              {user.name?.[0]?.toUpperCase() || '👤'}
+              {user.avatar ? (
+                <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user.name?.[0]?.toUpperCase() || '👤'
+              )}
             </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{user.name}</span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>▼</span>

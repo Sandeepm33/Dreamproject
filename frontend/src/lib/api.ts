@@ -160,6 +160,7 @@ class APIClient {
   async createDevelopmentRequest(body: any) { return this.request('/developments', { method: 'POST', body: JSON.stringify(body) }); }
   async getDevelopmentRequests() { return this.request('/developments'); }
   async updateDevelopmentStatus(id: string, body: { status: string, collectorNote?: string }) { return this.request(`/developments/${id}/status`, { method: 'PUT', body: JSON.stringify(body) }); }
+  async getVillageOfficers() { return this.request('/users/village-officers'); }
 }
 
 export const api = new APIClient();

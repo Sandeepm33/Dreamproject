@@ -86,6 +86,8 @@ export const translations = {
     myProfile: "My Profile",
     updateDetails: "Update your details",
     citizenPortal: "Citizen Portal",
+    villageOfficers: "Village Officers",
+    meetVillageOfficers: "Meet your village officers",
 
     // Track Status
     trackStatus: "Track Status",
@@ -528,6 +530,8 @@ export const translations = {
     myProfile: "నా ప్రొఫైల్",
     updateDetails: "మీ వివరాలను అప్డేట్ చేయండి",
     citizenPortal: "సిటిజన్ పోర్టల్",
+    villageOfficers: "గ్రామ అధికారులు",
+    meetVillageOfficers: "మీ గ్రామ అధికారులను కలవండి",
 
     // Track Status
     trackStatus: "ఫిర్యాదు స్థితి",

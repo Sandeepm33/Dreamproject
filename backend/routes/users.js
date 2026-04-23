@@ -164,4 +164,22 @@ router.patch('/:id/assign-village', protect, authorize('collector', 'admin'), as
   }
 });
 
+// GET /users/village-officers — Citizens see officers in their village
+router.get('/village-officers', protect, async (req, res) => {
+  try {
+    const villageId = req.user.village?._id || req.user.village;
+    if (!villageId) return res.json({ success: true, officers: [] });
+
+    const officers = await User.find({
+      village: villageId,
+      role: { $in: ['panchayat_secretary', 'officer'] },
+      isActive: true
+    }).select('name role department avatar email mobile');
+
+    res.json({ success: true, officers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

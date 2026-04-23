@@ -12,10 +12,12 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ 
     name: user?.name||'', 
     email: user?.email||'', 
-    language: user?.language||'en' 
+    language: user?.language||'en',
+    avatar: user?.avatar||''
   });
   const [pwForm, setPwForm] = useState({ currentPassword:'', newPassword:'', confirmPassword:'' });
   const [saving, setSaving] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [changingPw, setChangingPw] = useState(false);
   const [msg, setMsg] = useState('');
   const [pwMsg, setPwMsg] = useState('');
@@ -40,6 +42,27 @@ export default function ProfilePage() {
     finally { setSaving(false); }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setMsg('❌ Image size should be less than 2MB');
+      return;
+    }
+    setUploadLoading(true);
+    try {
+      const res = await api.uploadFiles([file]);
+      if (res.success && res.files?.[0]?.url) {
+        setForm(f => ({ ...f, avatar: res.files[0].url }));
+        setMsg('✅ Profile picture uploaded. Click Save to apply.');
+      }
+    } catch (err: any) {
+      setMsg(`❌ Upload failed: ${err.message}`);
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   const handlePwChange = async () => {
     if (!pwForm.currentPassword) { setPwMsg(`❌ Current Password is required`); return; }
     if (pwForm.newPassword.length < 6) { setPwMsg(`❌ ${t('passwordMinLength')}`); return; }
@@ -57,16 +80,31 @@ export default function ProfilePage() {
   const roleColor = roleColors[user?.role||'citizen'];
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ paddingTop: 20 }}>
       <div style={{ maxWidth:600, margin:'0 auto' }}>
         <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)', marginBottom:28 }}>👤 {t('profile')}</h1>
 
           {/* Profile Card */}
           <div className="glass-card" style={{ padding:28, marginBottom:20, textAlign:'center', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:0, left:0, right:0, height:4, background:`linear-gradient(90deg, ${roleColor}, var(--accent))` }} />
-            <div style={{ width:80, height:80, borderRadius:'50%', background:`linear-gradient(135deg, ${roleColor}40, ${roleColor}20)`, border:`3px solid ${roleColor}60`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:36, margin:'0 auto 16px', fontWeight:800, color:roleColor }}>
-              {user?.name?.[0]?.toUpperCase()}
+            
+            <div style={{ position: 'relative', width: 100, height: 100, margin: '0 auto 16px' }}>
+              <div style={{ width:100, height:100, borderRadius:'50%', background:`linear-gradient(135deg, ${roleColor}40, ${roleColor}20)`, border:`3px solid ${roleColor}60`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:42, fontWeight:800, color:roleColor, overflow: 'hidden' }}>
+                {form.avatar ? (
+                  <img src={form.avatar.startsWith('http') ? form.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${form.avatar}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  user?.name?.[0]?.toUpperCase()
+                )}
+              </div>
+              
+              {user?.role !== 'citizen' && (
+                <label style={{ position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: '50%', background: 'var(--primary)', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                  {uploadLoading ? '⏳' : '📷'}
+                  <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} disabled={uploadLoading} />
+                </label>
+              )}
             </div>
+
             <h2 style={{ fontSize:20, fontWeight:700, color:'var(--text-primary)', marginBottom:4 }}>{user?.name}</h2>
             <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:8 }}>
               <span style={{ fontSize:13, padding:'3px 14px', borderRadius:20, background:`${roleColor}18`, color:roleColor, fontWeight:600, textTransform:'capitalize', border:`1px solid ${roleColor}40` }}>{t(user?.role as any || 'citizen')}</span>
