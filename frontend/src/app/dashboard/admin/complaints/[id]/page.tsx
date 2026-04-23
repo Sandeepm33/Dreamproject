@@ -2,7 +2,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/api';
+import { api, getFullImageUrl } from '@/lib/api';
 
 const catIcons: Record<string, string> = { water: '💧', roads: '🛣️', electricity: '⚡', sanitation: '🧹', others: '📋' };
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
@@ -226,16 +226,16 @@ export default function AdminComplaintDetailPage() {
                         {complaint.beforeImage && (
                           <div style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 8, background: 'rgba(255,255,255,0.01)' }}>
                             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 700 }}>📸 {t('beforeLabel')}</div>
-                            <a href={`${API_BASE}${complaint.beforeImage}`} target="_blank" rel="noreferrer">
-                              <img src={`${API_BASE}${complaint.beforeImage}`} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8 }} />
+                            <a href={getFullImageUrl(complaint.beforeImage)} target="_blank" rel="noreferrer">
+                              <img src={getFullImageUrl(complaint.beforeImage)} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8 }} />
                             </a>
                           </div>
                         )}
                         {complaint.afterImage && (
                           <div style={{ border: '1px solid var(--success)', borderRadius: 12, padding: 8, background: 'rgba(34,197,94,0.03)' }}>
                             <div style={{ fontSize: 10, color: '#22c55e', marginBottom: 4, fontWeight: 700 }}>✅ {t('afterResolution')}</div>
-                            <a href={`${API_BASE}${complaint.afterImage}`} target="_blank" rel="noreferrer">
-                              <img src={`${API_BASE}${complaint.afterImage}`} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8 }} />
+                            <a href={getFullImageUrl(complaint.afterImage)} target="_blank" rel="noreferrer">
+                              <img src={getFullImageUrl(complaint.afterImage)} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8 }} />
                             </a>
                           </div>
                         )}
@@ -245,8 +245,8 @@ export default function AdminComplaintDetailPage() {
                           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{t('additionalMedia')}</div>
                           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {complaint.media.map((m: any, i: number) => (
-                              <a key={i} href={`${API_BASE}${m.url}`} target="_blank" rel="noreferrer">
-                                <img src={`${API_BASE}${m.url}`} style={{ width: 100, height: 75, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }} />
+                              <a key={i} href={getFullImageUrl(m.url)} target="_blank" rel="noreferrer">
+                                <img src={getFullImageUrl(m.url)} style={{ width: 100, height: 75, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }} />
                               </a>
                             ))}
                           </div>

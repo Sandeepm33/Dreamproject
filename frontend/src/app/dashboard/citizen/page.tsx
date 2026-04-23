@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/api';
+import { api, getFullImageUrl } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function CitizenDashboard() {
@@ -56,7 +56,7 @@ export default function CitizenDashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: 'white', overflow: 'hidden' }}>
               {user.avatar ? (
-                <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={getFullImageUrl(user.avatar)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 user.name?.[0]?.toUpperCase()
               )}

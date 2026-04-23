@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getFullImageUrl } from '@/lib/api';
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -82,7 +83,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
               overflow: 'hidden'
              }}>
               {user.avatar ? (
-                <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={getFullImageUrl(user.avatar)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 user.name?.[0]?.toUpperCase() || '👤'
               )}

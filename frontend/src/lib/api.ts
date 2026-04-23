@@ -2,6 +2,14 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 export const IMAGE_BASE = API_BASE.replace(/\/api\/?$/, '');
 
+export const getFullImageUrl = (url: string | null | undefined) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('data:')) return url;
+  const path = url.startsWith('/') ? url : `/${url}`;
+  return `${IMAGE_BASE}${path}`;
+};
+
 class APIClient {
   private getToken(): string | null {
     if (typeof window !== 'undefined') {

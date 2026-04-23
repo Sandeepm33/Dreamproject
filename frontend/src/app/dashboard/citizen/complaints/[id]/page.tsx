@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/api';
+import { api, getFullImageUrl } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
 const catIcons: Record<string,string> = { water:'💧', roads:'🛣️', electricity:'⚡', sanitation:'🧹', others:'📋' };
@@ -161,16 +161,16 @@ export default function ComplaintDetailPage() {
                 {complaint.beforeImage && (
                   <div>
                     <h3 style={{ fontSize:13, fontWeight:700, color:'var(--text-secondary)', marginBottom:8 }}>📸 {t('initialPhoto')}</h3>
-                    <a href={`${API_BASE}${complaint.beforeImage}`} target="_blank" rel="noreferrer">
-                      <img src={`${API_BASE}${complaint.beforeImage}`} style={{ width:'100%', height:160, objectFit:'cover', borderRadius:12, border:'1px solid var(--border)' }} />
+                    <a href={getFullImageUrl(complaint.beforeImage)} target="_blank" rel="noreferrer">
+                      <img src={getFullImageUrl(complaint.beforeImage)} style={{ width:'100%', height:160, objectFit:'cover', borderRadius:12, border:'1px solid var(--border)' }} />
                     </a>
                   </div>
                 )}
                 {complaint.afterImage && (
                   <div>
                     <h3 style={{ fontSize:13, fontWeight:700, color:'#22c55e', marginBottom:8 }}>✅ {t('resolutionPhoto')}</h3>
-                    <a href={`${API_BASE}${complaint.afterImage}`} target="_blank" rel="noreferrer">
-                      <img src={`${API_BASE}${complaint.afterImage}`} style={{ width:'100%', height:160, objectFit:'cover', borderRadius:12, border:'2px solid var(--success)' }} />
+                    <a href={getFullImageUrl(complaint.afterImage)} target="_blank" rel="noreferrer">
+                      <img src={getFullImageUrl(complaint.afterImage)} style={{ width:'100%', height:160, objectFit:'cover', borderRadius:12, border:'2px solid var(--success)' }} />
                     </a>
                   </div>
                 )}
@@ -181,8 +181,8 @@ export default function ComplaintDetailPage() {
                   <h3 style={{ fontSize:13, fontWeight:700, color:'var(--text-secondary)', marginBottom:8 }}>📷 {t('attachedMedia')}</h3>
                   <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                     {complaint.media.map((m: any, i: number) => (
-                      <a key={i} href={`${API_BASE}${m.url}`} target="_blank" rel="noreferrer">
-                        <img src={`${API_BASE}${m.url}`} style={{ width:80, height:60, objectFit:'cover', borderRadius:8, border:'1px solid var(--border)' }} />
+                      <a key={i} href={getFullImageUrl(m.url)} target="_blank" rel="noreferrer">
+                        <img src={getFullImageUrl(m.url)} style={{ width:80, height:60, objectFit:'cover', borderRadius:8, border:'1px solid var(--border)' }} />
                       </a>
                     ))}
                   </div>

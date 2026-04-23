@@ -306,7 +306,7 @@ function EmergencySection({ activeAlerts, onLaunch, onResolve, onDelete }: { act
             🆘 Village Emergency
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: '100%', lineHeight: 1.5 }}>
-            Press to send an immediate high-priority alert to all registered citizens, officers and emergency services in your village.
+            Press to send an immediate high-priority alert to all registered citizens and officers in your village.
           </div>
         </div>
         <button
@@ -622,10 +622,7 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
 
               {/* Scope info */}
               <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 20, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>
-                <strong style={{ color: '#fff' }}>This alert will be sent to:</strong><br />
-                🏘️ All registered citizens in {user?.role === 'collector' ? (villages.find(v => v._id === targetVillageId)?.name || 'the selected village') : 'your village'}<br />
-                🏢 District officers &amp; relevant departments<br />
-                🔥 Fire Station, 🚑 Medical, 👮 Police (emergency numbers shown)
+                High priority alert will be broadcasted to all citizens and officers.
               </div>
 
               {/* PIN entry (last 4 digits of mobile) */}

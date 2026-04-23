@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Image as ImageIcon, Plus, Trash2, ArrowLeft, Loader2, PlayCircle, Video, Calendar, User, X } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, getFullImageUrl } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -37,11 +37,7 @@ const GalleryItemCard = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const isVideo = post.imageUrl.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || post.imageUrl.startsWith('data:video');
-  const getMediaUrl = (url: string) => {
-    if (url.startsWith('http')) return url;
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
-    return `${base}${url}`;
-  };
+
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -67,7 +63,7 @@ const GalleryItemCard = ({
           <div className="w-full h-full relative" onClick={togglePlay}>
             <video 
               ref={videoRef}
-              src={getMediaUrl(post.imageUrl)} 
+              src={getFullImageUrl(post.imageUrl)} 
               className="w-full h-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
               muted
               loop
@@ -98,7 +94,7 @@ const GalleryItemCard = ({
           </div>
         ) : (
           <img 
-            src={getMediaUrl(post.imageUrl)} 
+            src={getFullImageUrl(post.imageUrl)} 
             alt={post.title} 
             className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100 "
             onError={(e) => { (e.target as HTMLImageElement).src = '/village-placeholder.jpg' }}
@@ -196,11 +192,6 @@ export default function GalleryManagementPage() {
     return url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || url.startsWith('data:video');
   };
 
-  const getMediaUrl = (url: string) => {
-    if (url.startsWith('http')) return url;
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
-    return `${base}${url}`;
-  };
 
   return (
     <div className="animate-fade-in">
@@ -309,14 +300,14 @@ export default function GalleryManagementPage() {
             <div className="w-full rounded-3xl overflow-hidden shadow-2xl bg-black border border-white/10">
               {isVideo(selectedPost.imageUrl) ? (
                 <video 
-                  src={getMediaUrl(selectedPost.imageUrl)}
+                  src={getFullImageUrl(selectedPost.imageUrl)}
                   controls
                   autoPlay
                   className="w-full max-h-[70vh] block"
                 />
               ) : (
                 <img 
-                  src={getMediaUrl(selectedPost.imageUrl)}
+                  src={getFullImageUrl(selectedPost.imageUrl)}
                   alt={selectedPost.title}
                   className="w-full max-h-[70vh] object-contain block"
                 />

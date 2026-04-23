@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icons in react-leaflet
+import { getFullImageUrl } from '@/lib/api';
 const customIcon = (color: string) => {
   return new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
@@ -154,13 +154,7 @@ export default function IssueMap({ complaints, centerLat = 17.3850, centerLng = 
                     )}
                     
                     {group.map((complaint, index) => {
-                      let image = complaint.beforeImage || (complaint.media && complaint.media.length > 0 ? complaint.media[0].url : null);
-                      
-                      // Fix relative paths missing API host
-                      if (image && image.startsWith('/')) {
-                        const apiRoot = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
-                        image = apiRoot + image;
-                      }
+                      let image = getFullImageUrl(complaint.beforeImage || (complaint.media && complaint.media.length > 0 ? complaint.media[0].url : null));
 
                       const formattedTime = complaint.createdAt ? new Date(complaint.createdAt).toLocaleString() : '';
 
