@@ -138,12 +138,15 @@ class APIClient {
     return this.request(`/mandals${qs}`);
   }
   async createMandal(body: any) { return this.request('/mandals', { method: 'POST', body: JSON.stringify(body) }); }
+  async deleteMandal(id: string) { return this.request(`/mandals/${id}`, { method: 'DELETE' }); }
   async getVillages(params?: Record<string, any>) {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request(`/villages${qs}`);
   }
   async createVillage(body: any) { return this.request('/villages', { method: 'POST', body: JSON.stringify(body) }); }
   async deleteVillage(id: string) { return this.request(`/villages/${id}`, { method: 'DELETE' }); }
+  async createDistrict(body: any) { return this.request('/districts', { method: 'POST', body: JSON.stringify(body) }); }
+  async deleteDistrict(id: string) { return this.request(`/districts/${id}`, { method: 'DELETE' }); }
   async assignVillage(userId: string, villageId: string) { return this.request(`/users/${userId}/assign-village`, { method: 'PATCH', body: JSON.stringify({ villageId }) }); }
 
   // Emergency Alerts
