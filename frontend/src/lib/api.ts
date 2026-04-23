@@ -1,5 +1,6 @@
 // API client utility for frontend
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export const IMAGE_BASE = API_BASE.replace(/\/api\/?$/, '');
 
 class APIClient {
   private getToken(): string | null {
@@ -98,6 +99,7 @@ class APIClient {
   async getOfficers() { return this.request('/admin/officers'); }
   async createUser(body: any) { return this.request('/users/create', { method: 'POST', body: JSON.stringify(body) }); }
   async toggleUser(id: string) { return this.request(`/admin/users/${id}/toggle`, { method: 'PUT' }); }
+  async updateUser(id: string, body: any) { return this.request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }); }
   async broadcastNotification(body: any) { return this.request('/admin/broadcast', { method: 'POST', body: JSON.stringify(body) }); }
 
   // Notifications

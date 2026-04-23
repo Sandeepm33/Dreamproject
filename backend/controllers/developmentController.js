@@ -11,7 +11,7 @@ const sendNotification = async (userId, title, message, type, requestId) => {
 exports.createRequest = async (req, res) => {
   try {
     const { title, description, category, priority, estimatedBudget, attachments } = req.body;
-    
+
     const request = await DevelopmentRequest.create({
       title, description, category, priority, estimatedBudget, attachments,
       requestedBy: req.user._id,
@@ -21,7 +21,7 @@ exports.createRequest = async (req, res) => {
 
     // Notify all collectors in this district (or just a general notification)
     // For now, just create the request.
-    
+
     res.status(201).json({ success: true, request });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -32,7 +32,7 @@ exports.createRequest = async (req, res) => {
 exports.getRequests = async (req, res) => {
   try {
     const query = {};
-    
+
     if (req.user.role === 'panchayat_secretary') {
       query.village = req.user.village;
     } else if (req.user.role === 'collector') {

@@ -14,12 +14,12 @@ router.get('/', protect, authorize('admin', 'panchayat_secretary', 'officer', 'c
     if (req.user.role === 'panchayat_secretary') {
       const villageId = req.user.village?._id || req.user.village;
       if (!villageId) return res.json({ success: true, users: [] }); // No village assigned, can't manage anyone
-      
+
       query.village = villageId.toString();
-      
+
       // Secretary can only see these roles: admin, officer, citizen, and themselves
       const allowedRoles = ['citizen', 'officer', 'admin', 'panchayat_secretary'];
-      
+
       if (!role) {
         query.role = { $in: allowedRoles };
       } else if (!allowedRoles.includes(role)) {
@@ -71,7 +71,7 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
       return res.status(400).json({ success: false, message: 'Email is required' });
     }
     const emailLower = email.trim().toLowerCase();
-    
+
     // Check for existing mobile or email
     const existingUser = await User.findOne({ $or: [{ mobile }, { email: emailLower }] });
     if (existingUser) {
@@ -81,7 +81,7 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
     // Auto-scope based on creator
     const userData = { name, mobile, email: emailLower, password, role, department, mandal };
     if (village && village !== '') userData.village = village;
-    
+
     if (req.user.role === 'collector') {
       userData.district = req.user.district;
     } else if (req.user.role === 'panchayat_secretary') {
@@ -98,7 +98,7 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
     try {
       const sendEmail = require('../utils/sendEmail');
       const message = `Hello ${user.name},\n\nAn account has been created for you on the Smart Gram Panchayat Portal by your administrator.\n\nYour Login Email: ${user.email}\nYour Temporary Password: ${password}\n\nPlease log in and change your password immediately for security purposes.`;
-      
+
       await sendEmail({
         email: user.email,
         subject: 'Your SGPIMS Account Credentials',

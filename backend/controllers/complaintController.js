@@ -48,18 +48,18 @@ exports.createComplaint = async (req, res) => {
 
     await sendNotification(reportee._id, 'Complaint Submitted', `Your complaint ${complaint.complaintId} has been submitted successfully.`, 'complaint_created', complaint._id);
     // Fire real push notification (non-blocking)
-    fcm.notifyComplaintCreated(reportee._id, complaint._id.toString(), complaint.complaintId).catch(() => {});
+    fcm.notifyComplaintCreated(reportee._id, complaint._id.toString(), complaint.complaintId).catch(() => { });
 
     // Notify Panchayat Secretary of this village
     try {
       const villageId = reportee.village?._id || reportee.village;
       if (villageId) {
-        const secretary = await User.findOne({ 
-          village: villageId, 
+        const secretary = await User.findOne({
+          village: villageId,
           role: 'panchayat_secretary',
           isActive: true
         });
-        
+
         console.log(`[Notification Debug] Querying for Secretary in village: ${villageId}`);
         console.log(`[Notification Debug] Found Secretary: ${secretary ? (secretary.name + ' [ID: ' + secretary._id + ']') : 'NOT FOUND'}`);
 
@@ -70,7 +70,7 @@ exports.createComplaint = async (req, res) => {
             data: { type: 'new_complaint', complaintId: complaint._id.toString(), url: `/dashboard/admin/complaints` }
           });
           console.log(`[Notification Debug] FCM Send result to Secretary:`, result);
-          
+
           await sendNotification(secretary._id, 'New Complaint Received', `A new complaint ${complaint.complaintId} has been filed in your village.`, 'complaint_created', complaint._id);
         }
       }
@@ -110,20 +110,20 @@ exports.getComplaints = async (req, res) => {
 
     if (status) query.status = status;
     if (category) query.category = category;
-    
+
     // Auto-visibility: If status is 'escalated', it should be flagged for Collector attention
     // (Already handled by district filter for Collector)
-    
+
     // Geographic Filtering
     if (lat && lng) {
       const r = parseFloat(radius) || 5; // km
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
-      
+
       // Rough approximation: 1 degree approx 111km
       const latDelta = r / 111;
       const lngDelta = r / (111 * Math.cos(latitude * Math.PI / 180));
-      
+
       query['location.lat'] = { $gte: latitude - latDelta, $lte: latitude + latDelta };
       query['location.lng'] = { $gte: longitude - lngDelta, $lte: longitude + lngDelta };
     }
@@ -196,13 +196,13 @@ exports.updateStatus = async (req, res) => {
     await sendNotification(complaint.citizen, 'Status Updated', `Your complaint ${complaint.complaintId} status changed to ${status}.`, 'status_update', complaint._id);
     // Push: specific message for resolved status
     if (status === 'resolved') {
-      fcm.notifyComplaintResolved(complaint.citizen, complaint._id.toString(), complaint.complaintId).catch(() => {});
+      fcm.notifyComplaintResolved(complaint.citizen, complaint._id.toString(), complaint.complaintId).catch(() => { });
     } else {
       fcm.sendToUser(complaint.citizen, {
         title: '📋 Status Updated',
         body: `Your complaint ${complaint.complaintId} status changed to ${status}.`,
         data: { type: 'status_update', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` },
-      }).catch(() => {});
+      }).catch(() => { });
     }
     const updated = await complaint.populate('citizen assignedTo');
     res.json({ success: true, complaint: updated });
@@ -222,7 +222,7 @@ exports.assignComplaint = async (req, res) => {
     if (!complaint) return res.status(404).json({ success: false, message: 'Not found' });
 
     await sendNotification(complaint.citizen._id, 'Complaint Assigned', `Your complaint ${complaint.complaintId} has been assigned to ${department}.`, 'status_update', complaint._id);
-    fcm.notifyComplaintAssigned(complaint.citizen._id, complaint._id.toString(), complaint.complaintId, department).catch(() => {});
+    fcm.notifyComplaintAssigned(complaint.citizen._id, complaint._id.toString(), complaint.complaintId, department).catch(() => { });
 
     // Notify the assigned Officer
     if (officerId) {
@@ -231,7 +231,7 @@ exports.assignComplaint = async (req, res) => {
         title: '🛠️ New Work Assigned',
         body: `You have been assigned to resolve complaint ${complaint.complaintId} (${department}).`,
         data: { type: 'complaint_assigned', complaintId: complaint._id.toString(), url: `/dashboard/officer/complaints/${complaint._id}` }
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     res.json({ success: true, complaint });
@@ -283,12 +283,12 @@ exports.escalateToCollector = async (req, res) => {
       triggeredAt: new Date(),
       reason: reason || 'Escalated by Panchayat Secretary for District Administration attention.'
     };
-    complaint.statusHistory.push({ 
-      status: 'escalated', 
-      changedBy: req.user._id, 
-      note: `Escalated to Collector: ${reason}` 
+    complaint.statusHistory.push({
+      status: 'escalated',
+      changedBy: req.user._id,
+      note: `Escalated to Collector: ${reason}`
     });
-    
+
     await complaint.save();
 
     // Notify citizens
@@ -297,7 +297,7 @@ exports.escalateToCollector = async (req, res) => {
       title: '🚨 Complaint Escalated',
       body: `Your complaint ${complaint.complaintId} has been escalated to the District Collector.`,
       data: { type: 'complaint_escalated', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
-    }).catch(() => {});
+    }).catch(() => { });
 
     // Notify the Collector of this district
     try {
@@ -309,7 +309,7 @@ exports.escalateToCollector = async (req, res) => {
           title: '⚠️ High Priority Escalation',
           body: `Complaint ${complaint.complaintId} has been escalated from ${complaint.villageCode}. Needs your attention.`,
           data: { type: 'complaint_escalated', complaintId: complaint._id.toString(), url: `/dashboard/admin/complaints` }
-        }).catch(() => {});
+        }).catch(() => { });
       }
     } catch (collErr) {
       console.error('Failed to notify collector:', collErr);
@@ -350,20 +350,20 @@ exports.exportComplaints = async (req, res) => {
 
     // Build CSV with expanded columns and better formatting
     const header = [
-      'Complaint ID', 
-      'Title', 
+      'Complaint ID',
+      'Title',
       'Description',
-      'Category', 
+      'Category',
       'Priority',
-      'Status', 
-      'Citizen', 
-      'Mobile Number', 
-      'Village', 
+      'Status',
+      'Citizen',
+      'Mobile Number',
+      'Village',
       'Village Code',
-      'District', 
+      'District',
       'Department',
       'Assigned To',
-      'Created At', 
+      'Created At',
       'Resolved At'
     ].join(',');
 
@@ -372,7 +372,7 @@ exports.exportComplaints = async (req, res) => {
       // preventing scientific notation (e.g. 9.7E+09)
       const mobile = c.citizen?.mobile || '';
       const formattedMobile = mobile ? `"\t${mobile}"` : '""';
-      
+
       // Format dates to be human readable with time (DD/MM/YYYY HH:mm)
       // Excel hack: prefixing with \t (tab) forces Excel to treat this as text,
       // which prevents the '#########' display in narrow columns.
@@ -405,10 +405,10 @@ exports.exportComplaints = async (req, res) => {
     });
 
     const csv = [header, ...rows].join('\n');
-    
+
     // Set UTF-8 BOM to ensure Excel opens Indian languages/special chars correctly if any
     const BOM = '\uFEFF';
-    
+
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename=Complaints_Report_${new Date().toISOString().split('T')[0]}.csv`);
     res.status(200).send(BOM + csv);

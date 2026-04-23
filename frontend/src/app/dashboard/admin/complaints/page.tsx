@@ -2,12 +2,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/api';
+import { api, IMAGE_BASE } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 
-const catIcons: Record<string,string> = { water:'💧', roads:'🛣️', electricity:'⚡', sanitation:'🧹', others:'📋' };
-const STATUS_OPTIONS = ['all','pending','assigned','in_progress','resolved','rejected','escalated'];
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace('/api','') || 'http://localhost:5000';
+const catIcons: Record<string, string> = { water: '💧', roads: '🛣️', electricity: '⚡', sanitation: '🧹', others: '📋' };
+const STATUS_OPTIONS = ['all', 'pending', 'assigned', 'in_progress', 'resolved', 'rejected', 'escalated'];
+
 
 export default function AdminComplaintsPage() {
   const { user, loading } = useAuth();
@@ -33,7 +33,7 @@ export default function AdminComplaintsPage() {
     Promise.all([api.getVillages(), api.getDistricts()]).then(([vRes, dRes]) => {
       const vMap: any = {}; vRes.villages?.forEach((v: any) => vMap[v._id] = v.name); setVillageMap(vMap);
       const dMap: any = {}; dRes.districts?.forEach((d: any) => dMap[d._id] = d.name); setDistrictMap(dMap);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function AdminComplaintsPage() {
   }, [fetchComplaints]);
 
   useEffect(() => {
-    api.getOfficers().then(r => setOfficers(r.officers || [])).catch(() => {});
+    api.getOfficers().then(r => setOfficers(r.officers || [])).catch(() => { });
   }, []);
 
   const handleAssign = async () => {
@@ -100,7 +100,7 @@ export default function AdminComplaintsPage() {
       setAssignModal(null);
       setAssignOfficer('');
       fetchComplaints();
-    } catch {}
+    } catch { }
     finally { setAssigning(false); }
   };
 
@@ -108,7 +108,7 @@ export default function AdminComplaintsPage() {
     try {
       await api.updateStatus(id, { status: newStatus, note: `Status updated to ${newStatus} by admin` });
       fetchComplaints();
-    } catch {}
+    } catch { }
   };
 
   const handleDownload = async () => {
@@ -134,130 +134,145 @@ export default function AdminComplaintsPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="layout-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-          <div>
-            <h1 style={{ fontSize:24, fontWeight:800, fontFamily:'Poppins', color:'var(--text-primary)' }}>{t('allComplaints')}</h1>
-            <p style={{ color:'var(--text-muted)', fontSize:14, marginTop:2 }}>{t('totalComplaints').replace('{count}', total.toString())}</p>
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button onClick={handleDownload} disabled={exporting} className="btn-primary" style={{ fontSize: 13, background: 'var(--success)', borderColor: 'var(--success)' }}>
-              {exporting ? '⏳ ...' : `📥 ${t('downloadReports') || 'Download CSV'}`}
-            </button>
-            <button onClick={() => router.push('/dashboard/citizen/new-complaint')} className="btn-accent" style={{ fontSize: 13 }}>➕ {t('newComplaint')}</button>
-            <button onClick={() => fetchComplaints()} className="btn-ghost" style={{ fontSize:13 }}>🔄 {t('refresh')}</button>
-          </div>
+      <div className="layout-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>{t('allComplaints')}</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 2 }}>{t('totalComplaints').replace('{count}', total.toString())}</p>
         </div>
-
-        {/* Filters */}
-        <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}>
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="input-field" placeholder={t('searchComplaintsPlaceholder')} style={{ maxWidth:260 }} />
-          <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="input-field" style={{ width:'auto', minWidth:140 }}>
-            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s === 'all' ? t('allStatus') : t(s === 'in_progress' ? 'inProgress' : s as any)}</option>)}
-          </select>
-          <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} className="input-field" style={{ width:'auto', minWidth:140 }}>
-            <option value="all">{t('allCategories')}</option>
-            {['water','roads','electricity','sanitation','others'].map(c => <option key={c} value={c}>{catIcons[c]} {t(c as any)}</option>)}
-          </select>
-
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <label style={{ color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: isMine ? 'rgba(168, 85, 247, 0.1)' : 'transparent', padding: '6px 12px', borderRadius: 8, border: '1px solid', borderColor: isMine ? 'var(--primary-light)' : 'var(--border)' }}>
-              <input type="checkbox" checked={isMine} onChange={e => { setIsMine(e.target.checked); setPage(1); }} style={{ cursor: 'pointer' }} />
-              <span style={{ color: isMine ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: isMine ? 600 : 400 }}>👤 {t('myComplaints')}</span>
-            </label>
-          </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={handleDownload} disabled={exporting} className="btn-primary" style={{ fontSize: 13, background: 'var(--success)', borderColor: 'var(--success)' }}>
+            {exporting ? '⏳ ...' : `📥 ${t('downloadReports') || 'Download CSV'}`}
+          </button>
+          <button onClick={() => router.push('/dashboard/citizen/new-complaint')} className="btn-accent" style={{ fontSize: 13 }}>➕ {t('newComplaint')}</button>
+          <button onClick={() => fetchComplaints()} className="btn-ghost" style={{ fontSize: 13 }}>🔄 {t('refresh')}</button>
         </div>
+      </div>
 
-        {/* Table */}
-        <div className="table-container">
-          <div style={{ overflowX:'auto' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t('id')}</th><th>{t('title')}</th><th>{t('media')}</th><th>{t('category')}</th><th>{t('citizen')}</th><th>{t('dept')}</th><th>{t('status')}</th><th>{t('votes')}</th><th>{t('filedOn')}</th><th>{t('actions')}</th>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="input-field" placeholder={t('searchComplaintsPlaceholder')} style={{ maxWidth: 260 }} />
+        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="input-field" style={{ width: 'auto', minWidth: 140 }}>
+          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s === 'all' ? t('allStatus') : t(s === 'in_progress' ? 'inProgress' : s as any)}</option>)}
+        </select>
+        <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} className="input-field" style={{ width: 'auto', minWidth: 140 }}>
+          <option value="all">{t('allCategories')}</option>
+          {['water', 'roads', 'electricity', 'sanitation', 'others'].map(c => <option key={c} value={c}>{catIcons[c]} {t(c as any)}</option>)}
+        </select>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label style={{ color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, background: isMine ? 'rgba(168, 85, 247, 0.1)' : 'transparent', padding: '6px 12px', borderRadius: 8, border: '1px solid', borderColor: isMine ? 'var(--primary-light)' : 'var(--border)' }}>
+            <input type="checkbox" checked={isMine} onChange={e => { setIsMine(e.target.checked); setPage(1); }} style={{ cursor: 'pointer' }} />
+            <span style={{ color: isMine ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: isMine ? 600 : 400 }}>👤 {t('myComplaints')}</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="table-container">
+        <div style={{ overflowX: 'auto' }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>{t('id')}</th><th>{t('title')}</th><th>{t('media')}</th><th>{t('category')}</th><th>{t('citizen')}</th><th>{t('dept')}</th><th>{t('status')}</th><th>{t('votes')}</th><th>{t('filedOn')}</th><th>{t('actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dataLoading ? (
+                [...Array(8)].map((_, i) => (
+                  <tr key={i}>{[...Array(10)].map((_, j) => <td key={j}><div className="skeleton" style={{ height: 20, borderRadius: 4 }} /></td>)}</tr>
+                ))
+              ) : complaints.length === 0 ? (
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>📭 {t('noComplaints')}</td></tr>
+              ) : complaints.map(c => (
+                <tr key={c._id} style={{ cursor: 'pointer' }}>
+                  <td onClick={() => router.push(`/dashboard/admin/complaints/${c._id}`)}>
+                    <code style={{ fontSize: 11, color: 'var(--accent)', background: 'rgba(245,158,11,0.1)', padding: '2px 6px', borderRadius: 4 }}>{c.complaintId}</code>
+                  </td>
+                  <td onClick={() => router.push(`/dashboard/admin/complaints/${c._id}`)} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</td>
+                    <td>
+                      {(() => {
+                        const imagePath = c.afterImage || c.beforeImage || (c.media && c.media[0]?.url);
+                        if (!imagePath) return <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{t('noMedia')}</span>;
+                        
+                        const imageUrl = imagePath.startsWith('http') 
+                          ? imagePath 
+                          : `${IMAGE_BASE}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+                          
+                        return (
+                          <div style={{ width: 40, height: 30, borderRadius: 4, overflow: 'hidden', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <img 
+                              src={imageUrl}
+                              style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iMzAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmaWxsPSIjNjY2IiBmb250LXNpemU9IjgiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBkeT0iLjNlbSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SU1HPC90ZXh0Pjwvc3ZnPg==';
+                              }}
+                            />
+                          </div>
+                        );
+                      })()}
+                    </td>
+                  <td><span style={{ fontSize: 13 }}>{catIcons[c.category]} {t(c.category as any)}</span></td>
+                  <td style={{ fontSize: 13 }}>
+                    <div>{c.citizen?.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.citizen?.mobile} · {c.village?.name || villageMap[c.village] || c.citizen?.village?.name || villageMap[c.citizen?.village] || c.location?.village || (user?.role === 'panchayat_secretary' ? (user as any).village?.name : null) || (typeof c.citizen?.village === 'string' && !c.citizen.village.match(/^[0-9a-fA-F]{24}$/) ? c.citizen.village : '—')}</div>
+                  </td>
+                  <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t(c.department as any) || c.department || '—'}</td>
+                  <td>
+                    {user?.role === 'collector' ? (
+                      <span className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`} style={{ fontSize: 11 }}>
+                        {t(c.status === 'in_progress' ? 'inProgress' : c.status as any).toUpperCase()}
+                      </span>
+                    ) : (
+                      <select value={c.status} onChange={e => handleStatusChange(c._id, e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 11 }}>
+                        {['pending', 'assigned', 'in_progress', 'resolved', 'rejected', 'escalated'].map(s =>
+                          <option key={s} value={s} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{t(s === 'in_progress' ? 'inProgress' : s as any)}</option>
+                        )}
+                      </select>
+                    )}
+                  </td>
+                  <td style={{ color: 'var(--accent)', fontSize: 13 }}>👍 {c.voteCount}</td>
+                  <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
+                  <td>
+                    {user?.role !== 'collector' && (
+                      <button onClick={e => { e.stopPropagation(); setAssignModal(c); setAssignOfficer(c.assignedTo?._id || ''); }}
+                        className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px', whiteSpace: 'nowrap' }}>
+                        🎯 {t('assign')}
+                      </button>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {dataLoading ? (
-                  [...Array(8)].map((_,i) => (
-                    <tr key={i}>{[...Array(10)].map((_,j) => <td key={j}><div className="skeleton" style={{ height:20, borderRadius:4 }} /></td>)}</tr>
-                  ))
-                ) : complaints.length === 0 ? (
-                  <tr><td colSpan={10} style={{ textAlign:'center', padding:'60px 0', color:'var(--text-muted)' }}>📭 {t('noComplaints')}</td></tr>
-                ) : complaints.map(c => (
-                  <tr key={c._id} style={{ cursor:'pointer' }}>
-                    <td onClick={() => router.push(`/dashboard/admin/complaints/${c._id}`)}>
-                      <code style={{ fontSize:11, color:'var(--accent)', background:'rgba(245,158,11,0.1)', padding:'2px 6px', borderRadius:4 }}>{c.complaintId}</code>
-                    </td>
-                    <td onClick={() => router.push(`/dashboard/admin/complaints/${c._id}`)} style={{ maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.title}</td>
-                    <td>
-                      {(c.beforeImage || c.afterImage || c.media?.[0]?.url) ? (
-                        <div style={{ width:40, height:30, borderRadius:4, overflow:'hidden', border:'1px solid var(--border)' }}>
-                          <img src={`${API_BASE}${c.afterImage || c.beforeImage || c.media[0].url}`} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                        </div>
-                      ) : <span style={{ color:'var(--text-muted)', fontSize:10 }}>{t('noMedia')}</span>}
-                    </td>
-                    <td><span style={{ fontSize:13 }}>{catIcons[c.category]} {t(c.category as any)}</span></td>
-                    <td style={{ fontSize:13 }}>
-                      <div>{c.citizen?.name}</div>
-                      <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.citizen?.mobile} · {c.village?.name || villageMap[c.village] || c.citizen?.village?.name || villageMap[c.citizen?.village] || c.location?.village || (user?.role === 'panchayat_secretary' ? (user as any).village?.name : null) || (typeof c.citizen?.village === 'string' && !c.citizen.village.match(/^[0-9a-fA-F]{24}$/) ? c.citizen.village : '—')}</div>
-                    </td>
-                    <td style={{ fontSize:12, color:'var(--text-muted)' }}>{t(c.department as any) || c.department || '—'}</td>
-                    <td>
-                      {user?.role === 'collector' ? (
-                        <span className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`} style={{ fontSize: 11 }}>
-                           {t(c.status === 'in_progress' ? 'inProgress' : c.status as any).toUpperCase()}
-                        </span>
-                      ) : (
-                        <select value={c.status} onChange={e => handleStatusChange(c._id, e.target.value)}
-                          onClick={e => e.stopPropagation()}
-                          className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`}
-                          style={{ background:'transparent', border:'none', cursor:'pointer', fontSize:11 }}>
-                          {['pending','assigned','in_progress','resolved','rejected','escalated'].map(s =>
-                            <option key={s} value={s} style={{ background:'var(--bg-card)', color:'var(--text-primary)' }}>{t(s === 'in_progress' ? 'inProgress' : s as any)}</option>
-                          )}
-                        </select>
-                      )}
-                    </td>
-                    <td style={{ color:'var(--accent)', fontSize:13 }}>👍 {c.voteCount}</td>
-                    <td style={{ fontSize:12, color:'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
-                    <td>
-                      {user?.role !== 'collector' && (
-                        <button onClick={e => { e.stopPropagation(); setAssignModal(c); setAssignOfficer(c.assignedTo?._id || ''); }}
-                          className="btn-ghost" style={{ fontSize:11, padding:'6px 10px', whiteSpace:'nowrap' }}>
-                          🎯 {t('assign')}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        {/* Pagination */}
-        {total > 15 && (
-          <div style={{ display:'flex', justifyContent:'center', gap:8, marginTop:20 }}>
-            <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1} className="btn-ghost" style={{ fontSize:13 }}>← {t('prev')}</button>
-            <span style={{ display:'flex',alignItems:'center',color:'var(--text-muted)',fontSize:13 }}>{t('page')} {page} {t('of')} {Math.ceil(total/15)}</span>
-            <button onClick={() => setPage(p => p+1)} disabled={page>=Math.ceil(total/15)} className="btn-ghost" style={{ fontSize:13 }}>{t('next')} →</button>
-          </div>
-        )}
+      {/* Pagination */}
+      {total > 15 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-ghost" style={{ fontSize: 13 }}>← {t('prev')}</button>
+          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 13 }}>{t('page')} {page} {t('of')} {Math.ceil(total / 15)}</span>
+          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 15)} className="btn-ghost" style={{ fontSize: 13 }}>{t('next')} →</button>
+        </div>
+      )}
 
       {/* Assign Modal */}
       {assignModal && (
         <div className="modal-overlay" onClick={() => setAssignModal(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize:18, fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>🎯 {t('assignComplaint')}</h2>
-            <p style={{ fontSize:13, color:'var(--text-muted)', marginBottom:20 }}>{assignModal.title}</p>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>🎯 {t('assignComplaint')}</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>{assignModal.title}</p>
             <label className="label">{t('chooseOfficer')}</label>
-            <select value={assignOfficer} onChange={e => setAssignOfficer(e.target.value)} className="input-field" style={{ marginBottom:20 }}>
+            <select value={assignOfficer} onChange={e => setAssignOfficer(e.target.value)} className="input-field" style={{ marginBottom: 20 }}>
               <option value="">— {t('chooseOfficer')} —</option>
               {officers.map(o => (
                 <option key={o._id} value={o._id}>{o.name} ({t(o.role as any)}) {o.department ? `· ${t(o.department as any) || o.department}` : ''}</option>
               ))}
             </select>
-            <div style={{ display:'flex', gap:12 }}>
+            <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={handleAssign} className="btn-primary" disabled={assigning || !assignOfficer}>{assigning ? t('assigning') : `✅ ${t('assign')}`}</button>
               <button onClick={() => setAssignModal(null)} className="btn-ghost">{t('cancel')}</button>
             </div>

@@ -93,9 +93,9 @@ exports.getUsers = async (req, res) => {
     if (req.user.role === 'panchayat_secretary') {
       const vId = req.user.village?._id || req.user.village;
       if (!vId) return res.json({ success: true, users: [], total: 0 });
-      
+
       query.village = vId;
-      
+
       // Role restrictions for Secretary
       const allowedRoles = ['citizen', 'officer', 'admin', 'panchayat_secretary'];
       if (role) {
@@ -120,7 +120,7 @@ exports.getUsers = async (req, res) => {
         { mobile: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     console.log('--- ADMIN GET USERS ---');
     console.log('Role Request:', role);
     console.log('User Role:', req.user.role);
@@ -138,7 +138,7 @@ exports.getUsers = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
-      
+
     console.log(`Returning ${users.length} users and total: ${total}`);
     res.json({ success: true, users, total });
   } catch (err) {
@@ -151,14 +151,62 @@ exports.getUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { password, ...updateData } = req.body;
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ success: false, message: 'User not found' });
 
-    Object.assign(user, updateData);
-    if (password) user.password = password;
+    // --- Role-Based Permission Logic ---
+    const requesterRole = req.user.role;
+    const targetRole = targetUser.role;
 
-    await user.save();
-    res.json({ success: true, user });
+    let isAuthorized = false;
+
+    if (requesterRole === 'admin') {
+      isAuthorized = true; // Global admin can update anyone
+    } else if (requesterRole === 'collector') {
+      // Collector can only update Panchayat Secretaries in their district
+      if (targetRole === 'panchayat_secretary') {
+        const collectorDistrict = req.user.district?._id || req.user.district;
+        const targetDistrict = targetUser.district?._id || targetUser.district;
+        if (String(collectorDistrict) === String(targetDistrict)) {
+          isAuthorized = true;
+        }
+      }
+    } else if (requesterRole === 'panchayat_secretary') {
+      // Secretary can edit admin, officer, citizen in their village
+      const allowedTargetRoles = ['admin', 'officer', 'citizen', 'panchayat_secretary']; // Including themselves
+      if (allowedTargetRoles.includes(targetRole)) {
+        const secretaryVillage = req.user.village?._id || req.user.village;
+        const targetVillage = targetUser.village?._id || targetUser.village;
+
+        // If updating themselves, always authorized
+        if (String(req.user._id) === String(targetUser._id)) {
+          isAuthorized = true;
+        } else if (String(secretaryVillage) === String(targetVillage)) {
+          isAuthorized = true;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, message: 'You do not have permission to update this user profile' });
+    }
+
+    // --- Prevent Escalation ---
+    // A Secretary should not be able to promote someone to Admin or Collector if they aren't one
+    if (updateData.role && updateData.role !== targetRole) {
+      if (requesterRole !== 'admin') {
+        // Only global admin can change roles to 'admin' or 'collector'
+        if (['admin', 'collector'].includes(updateData.role)) {
+          return res.status(403).json({ success: false, message: 'You cannot assign high-level administrative roles' });
+        }
+      }
+    }
+
+    Object.assign(targetUser, updateData);
+    if (password) targetUser.password = password;
+
+    await targetUser.save();
+    res.json({ success: true, user: targetUser });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -180,7 +228,7 @@ exports.toggleUserStatus = async (req, res) => {
 exports.getOfficers = async (req, res) => {
   try {
     const query = { role: { $in: ['officer', 'admin'] }, isActive: true };
-    
+
     if (req.user.role === 'panchayat_secretary') {
       const vId = req.user.village?._id || req.user.village;
       if (vId) query.village = vId;
