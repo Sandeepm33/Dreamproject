@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { deleteFromS3 } = require('../utils/s3Utils');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
 
@@ -112,6 +113,10 @@ exports.updateProfile = async (req, res) => {
     
     const updateData = { name, email, language, notificationsEnabled };
     if (avatar && req.user.role !== 'citizen') {
+      // Delete old avatar from S3 if it exists and is different
+      if (req.user.avatar && req.user.avatar !== avatar) {
+        await deleteFromS3(req.user.avatar);
+      }
       updateData.avatar = avatar;
     }
     // Only update village if it's a valid ObjectId to prevent CastError

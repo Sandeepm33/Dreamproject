@@ -1,4 +1,5 @@
 const Post = require('../models/Post');
+const { deleteFromS3 } = require('../utils/s3Utils');
 
 // Get all active posts
 exports.getPosts = async (req, res) => {
@@ -89,6 +90,11 @@ exports.deletePost = async (req, res) => {
         success: false,
         message: 'Not authorized to delete this post'
       });
+    }
+
+    // Delete image from S3 if it exists
+    if (post.imageUrl) {
+      await deleteFromS3(post.imageUrl);
     }
 
     await post.deleteOne();
