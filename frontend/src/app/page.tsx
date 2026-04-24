@@ -145,7 +145,14 @@ export default function HomePage() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
-    // If logged in, we let them view the home page now, but they can click "Go to Dashboard"
+    // If logged in, we redirect to dashboard on mobile for better UX
+    // But we use a check to ensure we don't redirect if the user purposefully came back to home
+    if (!loading && user) {
+      const dashboardRole = (user.role === 'panchayat_secretary' || user.role === 'collector') ? 'admin' : user.role;
+      router.push(`/dashboard/${dashboardRole}`);
+      return;
+    }
+
     const fetchPosts = async () => {
       try {
         const response = await api.getPosts();
@@ -157,7 +164,7 @@ export default function HomePage() {
       }
     };
     fetchPosts();
-  }, []);
+  }, [user, loading, router]);
 
   return (
     <div style={{ backgroundColor: '#0a0f0d', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', fontFamily: '"Inter", sans-serif' }}>
@@ -211,8 +218,10 @@ export default function HomePage() {
               {t('heroSub')}
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 20 }}>
-              {!loading && user ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 20, minHeight: 64 }}>
+              {loading ? (
+                <div style={{ width: 40, height: 40, border: '3px solid rgba(34, 197, 94, 0.3)', borderTopColor: '#4ade80', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              ) : user ? (
                 <button
                   onClick={() => {
                     const dashboardRole = (user.role === 'panchayat_secretary' || user.role === 'collector') ? 'admin' : user.role;

@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Leaf, LogIn, Globe, Menu, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PublicNavbar() {
+  const { user, loading } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const getDashboardUrl = () => {
+    if (!user) return '/login';
+    const role = (user.role === 'panchayat_secretary' || user.role === 'collector') ? 'admin' : user.role;
+    return `/dashboard/${role}`;
+  };
 
   return (
     <nav style={{ position: 'fixed', top: 0, width: '100%', zIndex: 100, background: 'rgba(10, 15, 13, 0.9)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(45, 106, 79, 0.3)' }}>
@@ -44,12 +52,14 @@ export default function PublicNavbar() {
                 <Globe size={16} color="#4ade80" />
                 {language === 'en' ? 'English' : 'తెలుగు'}
               </button>
-              <Link href="/login">
-                <button className="btn-primary flex items-center gap-2">
-                  <LogIn size={18} />
-                  <span>{t('loginRegister')}</span>
-                </button>
-              </Link>
+              {!loading && (
+                <Link href={user ? getDashboardUrl() : "/login"}>
+                  <button className="btn-primary flex items-center gap-2">
+                    <LogIn size={18} />
+                    <span>{user ? t('dashboard') : t('loginRegister')}</span>
+                  </button>
+                </Link>
+              )}
             </div>
 
             {/* Mobile Menu Toggle */}
@@ -93,12 +103,14 @@ export default function PublicNavbar() {
               <Globe size={18} color="#4ade80" />
               {language === 'en' ? 'Switch to తెలుగు' : 'Switch to English'}
             </button>
-            <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-              <button className="btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '14px' }}>
-                <LogIn size={20} />
-                <span>{t('loginRegister')}</span>
-              </button>
-            </Link>
+            {!loading && (
+              <Link href={user ? getDashboardUrl() : "/login"} onClick={() => setIsMenuOpen(false)}>
+                <button className="btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '14px' }}>
+                  <LogIn size={20} />
+                  <span>{user ? t('dashboard') : t('loginRegister')}</span>
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       )}
