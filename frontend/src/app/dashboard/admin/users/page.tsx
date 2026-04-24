@@ -29,6 +29,8 @@ export default function AdminUsersPage() {
   const [mandals, setMandals] = useState<any[]>([]);
   const [formMandalId, setFormMandalId] = useState('');
   const [assignMandalId, setAssignMandalId] = useState('');
+  const [viewModal, setViewModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -113,7 +115,13 @@ export default function AdminUsersPage() {
 
     setCreating(true);
     try {
-      await api.createUser(userForm);
+      // Clean up empty strings for ObjectId fields to prevent BSON errors
+      const submissionData = { ...userForm };
+      if (!submissionData.mandal) delete (submissionData as any).mandal;
+      if (!submissionData.village) delete (submissionData as any).village;
+      if (!submissionData.department) delete (submissionData as any).department;
+
+      await api.createUser(submissionData);
       setNewUserModal(false);
       setUserForm({ name: '', mobile: '', email: '', password: '', role: '', department: '', village: '', mandal: '' });
       setFormMandalId('');
@@ -201,58 +209,81 @@ export default function AdminUsersPage() {
       <div className="table-container">
         <table className="data-table">
           <thead>
-            <tr><th>{t('name')}</th><th>{t('mobile')}</th><th>{t('emailAddr')}</th><th>{t('role')}</th><th>{t('mandalName')}</th><th>{t('village')}</th><th>{t('department')}</th><th>{t('status')}</th><th>{t('joined')}</th><th>{t('actions')}</th></tr>
+            <tr>
+              <th>{t('name')}</th>
+              {user.role !== 'collector' && (
+                <>
+                  <th>{t('mobile')}</th>
+                  <th>{t('emailAddr')}</th>
+                </>
+              )}
+              <th>{t('role')}</th>
+              <th>{t('mandalName')}</th>
+              <th>{t('village')}</th>
+              <th>{t('department')}</th>
+              <th>{t('status')}</th>
+              <th>{t('joined')}</th>
+              <th>{t('actions')}</th>
+            </tr>
           </thead>
           <tbody>
             {dataLoading ? [...Array(8)].map((_, i) => (
-              <tr key={i}>{[...Array(9)].map((_, j) => <td key={j}><div className="skeleton" style={{ height: 20, borderRadius: 4 }} /></td>)}</tr>
+              <tr key={i}>{[...Array(user.role === 'collector' ? 8 : 10)].map((_, j) => <td key={j}><div className="skeleton" style={{ height: 20, borderRadius: 4 }} /></td>)}</tr>
             )) : users.length === 0 ? (
-              <tr><td colSpan={9} style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>{t('noUsersFound' as any) || 'No users found matching this criteria'}</td></tr>
+              <tr><td colSpan={user.role === 'collector' ? 8 : 10} style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>{t('noUsersFound' as any) || 'No users found matching this criteria'}</td></tr>
             ) : users.map(u => (
-              <tr key={u._id}>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${roleColors[u.role] || 'var(--primary-light)'}20`, border: `1px solid ${roleColors[u.role] || 'var(--primary-light)'}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: roleColors[u.role] }}>
+              <tr key={u._id} onClick={() => { setSelectedUser(u); setViewModal(true); }} style={{ cursor: 'pointer' }} className="hover-row">
+                <td style={{ minWidth: 200 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${roleColors[u.role] || 'var(--primary-light)'}20`, border: `1px solid ${roleColors[u.role] || 'var(--primary-light)'}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: roleColors[u.role], flexShrink: 0 }}>
                       {u.name?.[0]?.toUpperCase()}
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{u.name}</span>
                   </div>
                 </td>
-                <td style={{ fontSize: 13, fontFamily: 'monospace' }}>{u.mobile}</td>
-                <td style={{ fontSize: 13 }}>{u.email || '—'}</td>
-                <td><span style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', fontSize: 11, padding: '3px 10px', borderRadius: 20, background: `${roleColors[u.role] || '#94a3b8'}18`, color: roleColors[u.role] || '#94a3b8', fontWeight: 600, textTransform: 'capitalize' }}>{t(u.role as any)}</span></td>
-                <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>{u.mandal?.name || (u.village as any)?.mandal?.name || '—'}</td>
-                <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>{u.village?.name || (typeof u.village === 'string' ? u.village : '—')}</td>
-                <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t(u.department as any) || u.department || '—'}</td>
-                <td>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', fontSize: 11, padding: '3px 10px', borderRadius: 20, background: u.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: u.isActive ? '#22c55e' : '#ef4444', border: `1px solid ${u.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-                    {u.isActive ? `● ${t('active')}` : `○ ${t('inactive')}`}
+                {user.role !== 'collector' && (
+                  <>
+                    <td style={{ fontSize: 13, fontFamily: 'monospace', width: 130 }}>{u.mobile}</td>
+                    <td style={{ fontSize: 13, width: 200 }}>{u.email || '—'}</td>
+                  </>
+                )}
+                <td style={{ width: 140 }}><span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 100, fontSize: 10, padding: '4px 10px', borderRadius: 20, background: `${roleColors[u.role] || '#94a3b8'}18`, color: roleColors[u.role] || '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t(u.role as any)}</span></td>
+                <td style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 120 }}>{u.mandal?.name || (u.village as any)?.mandal?.name || '—'}</td>
+                <td style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 120 }}>{u.village?.name || (typeof u.village === 'string' ? u.village : '—')}</td>
+                <td style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 150 }}>{t(u.department as any) || u.department || '—'}</td>
+                <td style={{ width: 120 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', fontSize: 10, padding: '4px 12px', borderRadius: 20, background: u.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: u.isActive ? '#22c55e' : '#ef4444', border: `1px solid ${u.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`, fontWeight: 700, textTransform: 'uppercase' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} /> {u.isActive ? t('active') : t('inactive')}
                   </span>
                 </td>
-                <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <button onClick={() => handleToggle(u._id)} className="btn-ghost" style={{ fontSize: 11, padding: '5px 10px', color: u.isActive ? '#ef4444' : '#22c55e', borderColor: u.isActive ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)' }}>
-                      {u.isActive ? t('deactivate') : t('activate')}
-                    </button>
-                    <button onClick={() => {
-                      setEditingUserId(u._id);
-                      setUserForm({
-                        name: u.name,
-                        mobile: u.mobile,
-                        email: u.email || '',
-                        password: '',
-                        role: u.role,
-                        department: u.department || '',
-                        village: u.village?._id || u.village || '',
-                        mandal: u.mandal?._id || u.mandal || ''
-                      });
-                      setFormMandalId(u.mandal?._id || u.mandal || '');
-                      setEditModal(true);
-                      setError('');
-                    }} className="btn-ghost" style={{ fontSize: 11, padding: '5px 10px', color: 'var(--primary)', borderColor: 'var(--primary-light)' }}>
-                      ✏️ {t('edit' as any) || 'Edit'}
-                    </button>
+                <td style={{ fontSize: 13, color: 'var(--text-muted)', width: 110 }}>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
+                <td onClick={e => e.stopPropagation()} style={{ width: 220 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {(user.role !== 'collector' || u.role === 'panchayat_secretary') && (
+                      <>
+                        <button onClick={() => handleToggle(u._id)} className="btn-ghost" style={{ fontSize: 11, padding: '6px 12px', color: u.isActive ? '#ef4444' : '#22c55e', borderColor: u.isActive ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)', minWidth: 85 }}>
+                          {u.isActive ? t('deactivate') : t('activate')}
+                        </button>
+                        <button onClick={() => {
+                          setEditingUserId(u._id);
+                          setUserForm({
+                            name: u.name,
+                            mobile: u.mobile,
+                            email: u.email || '',
+                            password: '',
+                            role: u.role,
+                            department: u.department || '',
+                            village: u.village?._id || u.village || '',
+                            mandal: u.mandal?._id || u.mandal || ''
+                          });
+                          setFormMandalId(u.mandal?._id || u.mandal || '');
+                          setEditModal(true);
+                          setError('');
+                        }} className="btn-ghost" style={{ fontSize: 11, padding: '6px 12px', color: 'var(--text-secondary)', borderColor: 'var(--border)' }}>
+                          ✏️ {t('edit' as any) || 'Edit'}
+                        </button>
+                      </>
+                    )}
                     {user.role === 'collector' && u.role === 'panchayat_secretary' && (
                       <button
                         onClick={() => {
@@ -262,7 +293,7 @@ export default function AdminUsersPage() {
                           setError('');
                         }}
                         className="btn-ghost"
-                        style={{ fontSize: 11, padding: '5px 10px', color: '#a855f7', borderColor: 'rgba(168,85,247,0.3)' }}
+                        style={{ fontSize: 11, padding: '6px 12px', color: '#a855f7', borderColor: 'rgba(168,85,247,0.3)', width: '100%', marginTop: 4 }}
                       >
                         🏛️ {t('assignSecretary')}
                       </button>
@@ -312,7 +343,7 @@ export default function AdminUsersPage() {
                   </select>
                 </div>
               )}
-              {((userForm.role === 'panchayat_secretary' && user?.role !== 'collector') || userForm.role === 'citizen' || userForm.role === 'admin' || userForm.role === 'officer') && user?.role !== 'panchayat_secretary' && (
+              {((userForm.role === 'panchayat_secretary') || userForm.role === 'citizen' || userForm.role === 'admin' || userForm.role === 'officer') && user?.role !== 'panchayat_secretary' && (
                 <>
                   <div>
                     <label className="label">{t('mandalName')}</label>
@@ -458,6 +489,90 @@ export default function AdminUsersPage() {
                   {assigning ? `${t('assigning')}...` : `✅ ${t('assign')}`}
                 </button>
                 <button onClick={() => setAssignModal(null)} className="btn-ghost" style={{ flex: 1 }}>{t('cancel')}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* View User Profile Modal */}
+      {viewModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => setViewModal(false)}>
+          <div className="modal-content" style={{ maxWidth: 650, width: '95%', padding: 0, overflow: 'hidden', borderRadius: 24, border: '1px solid var(--border)', background: 'var(--bg-card)' }} onClick={e => e.stopPropagation()}>
+            {/* Header / Banner */}
+            <div style={{ height: 80, background: `linear-gradient(135deg, ${roleColors[selectedUser.role] || 'var(--primary)'}40, ${roleColors[selectedUser.role] || 'var(--primary)'}10)`, position: 'relative' }}>
+              <button onClick={() => setViewModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>✕</button>
+            </div>
+            
+            {/* Profile Info */}
+            <div style={{ padding: '0 24px 20px', marginTop: -32, position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, marginBottom: 16 }}>
+                <div style={{ width: 70, height: 70, minWidth: 70, borderRadius: '50%', background: 'var(--bg-card)', border: '3px solid var(--bg-card)', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 800, color: roleColors[selectedUser.role] }}>
+                  {selectedUser.name?.[0]?.toUpperCase()}
+                </div>
+                <div style={{ paddingBottom: 4 }}>
+                  <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 2 }}>{selectedUser.name}</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 20, background: `${roleColors[selectedUser.role]}20`, color: roleColors[selectedUser.role], fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t(selectedUser.role as any)}</span>
+                    <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 20, background: selectedUser.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: selectedUser.isActive ? '#22c55e' : '#ef4444', fontWeight: 600 }}>{selectedUser.isActive ? t('active') : t('inactive')}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', fontWeight: 600 }}>{t('mobileNumber')}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500, fontFamily: 'monospace' }}>{selectedUser.mobile}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', fontWeight: 600 }}>{t('emailAddr')}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedUser.email || '—'}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', fontWeight: 600 }}>{t('mandalName')}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{selectedUser.mandal?.name || (selectedUser.village as any)?.mandal?.name || '—'}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', fontWeight: 600 }}>{t('village')}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{selectedUser.village?.name || (typeof selectedUser.village === 'string' ? selectedUser.village : '—')}</div>
+                </div>
+                {selectedUser.department && (
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', fontWeight: 600 }}>{t('department')}</div>
+                    <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{t(selectedUser.department as any) || selectedUser.department}</div>
+                  </div>
+                )}
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', fontWeight: 600 }}>{t('joined')}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{new Date(selectedUser.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+                {(user.role !== 'collector' || selectedUser.role === 'panchayat_secretary') && (
+                  <button 
+                    className="btn-primary" 
+                    style={{ flex: 1, padding: '10px 20px' }} 
+                    onClick={() => {
+                      setViewModal(false);
+                      setEditingUserId(selectedUser._id);
+                      setUserForm({
+                        name: selectedUser.name,
+                        mobile: selectedUser.mobile,
+                        email: selectedUser.email || '',
+                        password: '',
+                        role: selectedUser.role,
+                        department: selectedUser.department || '',
+                        village: selectedUser.village?._id || selectedUser.village || '',
+                        mandal: selectedUser.mandal?._id || selectedUser.mandal || ''
+                      });
+                      setFormMandalId(selectedUser.mandal?._id || selectedUser.mandal || '');
+                      setEditModal(true);
+                    }}
+                  >
+                    ✏️ {t('edit' as any) || 'Edit Profile'}
+                  </button>
+                )}
+                <button className="btn-ghost" style={{ flex: 1, padding: '10px 20px' }} onClick={() => setViewModal(false)}>{t('close' as any) || 'Close'}</button>
               </div>
             </div>
           </div>

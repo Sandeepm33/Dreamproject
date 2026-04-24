@@ -47,17 +47,18 @@ exports.getDashboard = async (req, res) => {
     const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
 
     // Average resolution time
-    const resolvedComplaints = await Complaint.find({ status: 'resolved', resolvedAt: { $exists: true } });
+    const resolvedComplaints = await Complaint.find({ ...complaintQuery, status: 'resolved', resolvedAt: { $exists: true } });
     let avgResolutionHours = 0;
     if (resolvedComplaints.length > 0) {
       const totalHours = resolvedComplaints.reduce((sum, c) => {
-        return sum + (c.resolvedAt - c.createdAt) / (1000 * 60 * 60);
+        return sum + (c.resolvedAt - (c.createdAt || c._id.getTimestamp())) / (1000 * 60 * 60);
       }, 0);
       avgResolutionHours = Math.round(totalHours / resolvedComplaints.length);
     }
 
     // SLA breached
     const slaBreached = await Complaint.countDocuments({
+      ...complaintQuery,
       status: { $nin: ['resolved', 'rejected'] },
       slaDeadline: { $lt: new Date() }
     });
@@ -66,8 +67,19 @@ exports.getDashboard = async (req, res) => {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
     const monthlyTrend = await Complaint.aggregate([
-      { $match: { createdAt: { $gte: sixMonthsAgo } } },
-      { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, count: { $sum: 1 } } },
+      { $match: { ...complaintQuery, createdAt: { $gte: sixMonthsAgo } } },
+      { 
+        $group: { 
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, 
+          count: { $sum: 1 },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+          assigned: { $sum: { $cond: [{ $eq: ['$status', 'assigned'] }, 1, 0] } },
+          inProgress: { $sum: { $cond: [{ $eq: ['$status', 'in_progress'] }, 1, 0] } },
+          resolved: { $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] } },
+          rejected: { $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] } },
+          escalated: { $sum: { $cond: [{ $eq: ['$status', 'escalated'] }, 1, 0] } }
+        } 
+      },
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
