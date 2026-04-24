@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Lock, Smartphone, User, Home, ArrowRight, ShieldCheck, Mail, Globe, ArrowLeft } from 'lucide-react';
+import { Lock, Smartphone, User, Home, ArrowRight, ShieldCheck, Mail, Globe, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { api } from '@/lib/api';
 
@@ -12,6 +12,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { login, register } = useAuth();
   const { t, language, setLanguage } = useLanguage();
@@ -33,6 +35,12 @@ export default function LoginPage() {
     // Strictly allow only numbers for mobile during registration
     if (e.target.name === 'mobile' && isRegister) {
       value = value.replace(/\D/g, '').slice(0, 10);
+    }
+    // Capping login identifier to 10 if it's numeric
+    if (e.target.name === 'mobile' && !isRegister) {
+      if (/^\d+$/.test(value)) {
+        value = value.slice(0, 10);
+      }
     }
     setForm(f => ({ ...f, [e.target.name]: value }));
     setError('');
@@ -245,9 +253,41 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <div className="input-group">
+                <div className="input-group" style={{ position: 'relative' }}>
                   <label className="v-label"><Lock size={14} /> {t('password')}</label>
-                  <input name="password" value={form.password} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" minLength={6} />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      name="password" 
+                      value={form.password} 
+                      onChange={handleChange} 
+                      className="v-input" 
+                      placeholder="••••••••" 
+                      required 
+                      type={showPassword ? 'text' : 'password'} 
+                      minLength={6} 
+                      style={{ width: '100%', paddingRight: '45px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#6b7280',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 {!isRegister && (
@@ -263,12 +303,44 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {isRegister && (
-                  <div className="input-group animate-in">
-                    <label className="v-label"><Lock size={14} /> {t('confirmPassword')}</label>
-                    <input name="confirmPassword" value={form.confirmPassword} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" minLength={6} />
-                  </div>
-                )}
+                 {isRegister && (
+                   <div className="input-group animate-in">
+                     <label className="v-label"><Lock size={14} /> {t('confirmPassword')}</label>
+                     <div style={{ position: 'relative' }}>
+                       <input 
+                         name="confirmPassword" 
+                         value={form.confirmPassword} 
+                         onChange={handleChange} 
+                         className="v-input" 
+                         placeholder="••••••••" 
+                         required 
+                         type={showConfirmPassword ? 'text' : 'password'} 
+                         minLength={6} 
+                         style={{ width: '100%', paddingRight: '45px' }}
+                       />
+                       <button
+                         type="button"
+                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                         style={{
+                           position: 'absolute',
+                           right: '12px',
+                           top: '50%',
+                           transform: 'translateY(-50%)',
+                           background: 'none',
+                           border: 'none',
+                           color: '#6b7280',
+                           cursor: 'pointer',
+                           display: 'flex',
+                           alignItems: 'center',
+                           justifyContent: 'center',
+                           zIndex: 10
+                         }}
+                       >
+                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                       </button>
+                     </div>
+                   </div>
+                 )}
 
                 {error && (
                   <div className="error-box">

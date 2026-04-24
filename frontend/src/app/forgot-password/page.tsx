@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, ArrowRight, ArrowLeft, ShieldCheck, Lock, Hash } from 'lucide-react';
+import { Mail, ArrowRight, ArrowLeft, ShieldCheck, Lock, Hash, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { api } from '@/lib/api';
 
@@ -15,6 +15,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -168,28 +170,72 @@ export default function ForgotPasswordPage() {
 
                   <div className="input-group">
                     <label className="v-label"><Lock size={14} /> {t('newPassword')}</label>
-                    <input 
-                      type="password" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      className="v-input" 
-                      placeholder="••••••••" 
-                      required 
-                      minLength={6}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showPassword ? 'text' : 'password'} 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        className="v-input" 
+                        placeholder="••••••••" 
+                        required 
+                        minLength={6}
+                        style={{ width: '100%', paddingRight: '45px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          zIndex: 10
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="input-group">
                     <label className="v-label"><Lock size={14} /> {t('confirmNewPassword')}</label>
-                    <input 
-                      type="password" 
-                      value={confirmPassword} 
-                      onChange={(e) => setConfirmPassword(e.target.value)} 
-                      className="v-input" 
-                      placeholder="••••••••" 
-                      required 
-                      minLength={6}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showConfirmPassword ? 'text' : 'password'} 
+                        value={confirmPassword} 
+                        onChange={(e) => setConfirmPassword(e.target.value)} 
+                        className="v-input" 
+                        placeholder="••••••••" 
+                        required 
+                        minLength={6}
+                        style={{ width: '100%', paddingRight: '45px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          zIndex: 10
+                        }}
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
 
                   {error && <div className="error-box">⚠️ {error}</div>}
