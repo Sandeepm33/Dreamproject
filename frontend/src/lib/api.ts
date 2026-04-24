@@ -70,6 +70,8 @@ class APIClient {
   async updateProfile(body: any) { return this.request('/auth/profile', { method: 'PUT', body: JSON.stringify(body) }); }
   async changePassword(body: any) { return this.request('/auth/change-password', { method: 'POST', body: JSON.stringify(body) }); }
   async forgotPassword(email: string) { return this.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }); }
+  async verifyResetOtp(email: string, otp: string) { return this.request('/auth/verify-reset-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }); }
+  async resetPasswordWithOtp(body: any) { return this.request('/auth/reset-password-otp', { method: 'POST', body: JSON.stringify(body) }); }
   async resetPassword(token: string, body: any) { return this.request(`/auth/reset-password/${token}`, { method: 'POST', body: JSON.stringify(body) }); }
   async logout() { return this.request('/auth/logout', { method: 'POST' }); }
 

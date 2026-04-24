@@ -1,12 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Mail, ArrowRight, ArrowLeft, ShieldCheck, Lock, Hash } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { api } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [step, setStep] = useState(1); // 1: Email, 2: OTP & Password
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -19,7 +23,7 @@ export default function ForgotPasswordPage() {
     setMounted(true);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -27,10 +31,37 @@ export default function ForgotPasswordPage() {
     try {
       const res = await api.forgotPassword(email);
       if (res.success) {
-        setMessage(t('checkEmailForLink'));
+        setMessage(t('checkEmailForLink') || 'OTP sent to your email');
+        setStep(2);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset link');
+      setError(err.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError(t('passwordsDoNotMatch') || 'Passwords do not match');
+      return;
+    }
+    if (password.length < 6) {
+      setError(t('passwordMinLength') || 'Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.resetPasswordWithOtp({ email, otp, password });
+      if (res.success) {
+        setMessage(t('passwordResetSuccess') || 'Password reset successful!');
+        setStep(3); // Success step
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }
@@ -46,7 +77,7 @@ export default function ForgotPasswordPage() {
 
       <div className="login-content-wrapper">
         <button 
-          onClick={() => router.push('/login')}
+          onClick={() => step === 2 ? setStep(1) : router.push('/login')}
           className="back-btn"
         >
           <ArrowLeft size={18} />
@@ -71,8 +102,14 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
             <div className="visual-message">
-              <h2 className="welcome-text">{t('forgotPassword')}</h2>
-              <p className="sub-text">{t('enterRegisteredEmail')}</p>
+              <h2 className="welcome-text">{step === 1 ? t('forgotPassword') : step === 2 ? 'Verify OTP' : 'Success!'}</h2>
+              <p className="sub-text">
+                {step === 1 
+                  ? t('enterRegisteredEmail') 
+                  : step === 2 
+                  ? 'Please enter the 6-digit OTP sent to your email and choose a new password.' 
+                  : 'Your password has been reset successfully. You can now log in to your account.'}
+              </p>
             </div>
             <div className="visual-footer">
               <div className="trust-item"><ShieldCheck size={18} /><span>{t('secureEgov')}</span></div>
@@ -82,19 +119,12 @@ export default function ForgotPasswordPage() {
           <div className="auth-form-side shadow-2xl">
             <div className="form-inner">
               <div className="form-header">
-                <h3>{t('resetPassword')}</h3>
-                <p>{t('verifyEmail')}</p>
+                <h3>{step === 3 ? 'Done' : t('resetPassword')}</h3>
+                <p>{step === 1 ? t('verifyEmail') : step === 2 ? 'Security Verification' : 'Access Restored'}</p>
               </div>
 
-              {message ? (
-                <div className="success-box">
-                  ✅ {message}
-                  <button onClick={() => router.push('/login')} className="v-btn-primary" style={{ marginTop: 20 }}>
-                    {t('backToLogin')}
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="village-form">
+              {step === 1 && (
+                <form onSubmit={handleSendOtp} className="village-form">
                   <div className="input-group">
                     <label className="v-label"><Mail size={14} /> {t('emailAddr')}</label>
                     <input 
@@ -107,23 +137,82 @@ export default function ForgotPasswordPage() {
                     />
                   </div>
 
-                  {error && (
-                    <div className="error-box">
-                      ⚠️ {error}
-                    </div>
-                  )}
+                  {error && <div className="error-box">⚠️ {error}</div>}
 
                   <button type="submit" className="v-btn-primary" disabled={loading}>
-                    {loading ? (
-                      <div className="spinner" />
-                    ) : (
+                    {loading ? <div className="spinner" /> : (
                       <>
-                        <span>{t('sendResetLink')}</span>
+                        <span>{t('sendResetLink') || 'Send OTP'}</span>
                         <ArrowRight size={18} />
                       </>
                     )}
                   </button>
                 </form>
+              )}
+
+              {step === 2 && (
+                <form onSubmit={handleResetPassword} className="village-form">
+                  <div className="input-group">
+                    <label className="v-label"><Hash size={14} /> Enter 6-Digit OTP</label>
+                    <input 
+                      type="text" 
+                      value={otp} 
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} 
+                      className="v-input" 
+                      placeholder="123456" 
+                      required 
+                      maxLength={6}
+                      minLength={6}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="v-label"><Lock size={14} /> {t('newPassword')}</label>
+                    <input 
+                      type="password" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                      className="v-input" 
+                      placeholder="••••••••" 
+                      required 
+                      minLength={6}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="v-label"><Lock size={14} /> {t('confirmNewPassword')}</label>
+                    <input 
+                      type="password" 
+                      value={confirmPassword} 
+                      onChange={(e) => setConfirmPassword(e.target.value)} 
+                      className="v-input" 
+                      placeholder="••••••••" 
+                      required 
+                      minLength={6}
+                    />
+                  </div>
+
+                  {error && <div className="error-box">⚠️ {error}</div>}
+                  {message && <div className="success-box" style={{ padding: '10px', fontSize: '14px', marginBottom: '10px' }}>✅ {message}</div>}
+
+                  <button type="submit" className="v-btn-primary" disabled={loading}>
+                    {loading ? <div className="spinner" /> : (
+                      <>
+                        <span>{t('updatePassword') || 'Reset Password'}</span>
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {step === 3 && (
+                <div className="success-box">
+                  ✅ {message}
+                  <button onClick={() => router.push('/login')} className="v-btn-primary" style={{ marginTop: 20 }}>
+                    {t('backToLogin')}
+                  </button>
+                </div>
               )}
             </div>
           </div>

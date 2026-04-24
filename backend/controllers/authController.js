@@ -184,37 +184,79 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(20).toString('hex');
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Hash token and set to resetPasswordToken field
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-    // Set expire (1 hour)
-    user.resetPasswordExpires = Date.now() + 3600000;
+    // Set OTP and expiry (10 minutes)
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 600000;
 
     await user.save({ validateBeforeSave: false });
 
-    // Create reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    const message = `You are receiving this email because you (or someone else) have requested the reset of a password. Please make a POST request to:\n\n ${resetUrl} \n\n If you did not request this, please ignore this email and your password will remain unchanged.`;
+    const message = `Hello ${user.name},\n\nYour OTP for password reset is: ${otp}\n\nThis OTP is valid for 10 minutes. If you did not request this, please ignore this email.`;
 
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Password Reset Token',
+        subject: 'Password Reset OTP',
         message
       });
 
-      res.status(200).json({ success: true, message: 'Email sent' });
+      res.status(200).json({ success: true, message: 'OTP sent to email' });
     } catch (err) {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
+      user.otp = undefined;
+      user.otpExpiry = undefined;
       await user.save({ validateBeforeSave: false });
 
       return res.status(500).json({ success: false, message: 'Email could not be sent' });
     }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/auth/verify-reset-otp
+exports.verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      otp,
+      otpExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+
+    res.status(200).json({ success: true, message: 'OTP verified' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/auth/reset-password-otp
+exports.resetPasswordWithOtp = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    if (!email || !otp || !password) return res.status(400).json({ success: false, message: 'All fields are required' });
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      otp,
+      otpExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+
+    // Set new password
+    user.password = password;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password reset successful' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
