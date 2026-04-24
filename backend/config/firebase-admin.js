@@ -11,15 +11,24 @@ function getFirebaseAdmin() {
   if (firebaseAdmin) return firebaseAdmin;
 
   try {
-    // Build service account object from individual env vars
-    // (avoids needing a JSON file in the repo)
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    
+    if (privateKey) {
+      // Robust parsing for production environments (Vercel, Amplify, etc.)
+      // 1. Remove surrounding quotes if they were pasted into the env UI
+      privateKey = privateKey.trim();
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        privateKey = privateKey.substring(1, privateKey.length - 1);
+      }
+      // 2. Convert literal \n strings back to actual newlines
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+
     const serviceAccount = {
       type: 'service_account',
       project_id: process.env.FIREBASE_PROJECT_ID,
       private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-      private_key: process.env.FIREBASE_PRIVATE_KEY
-        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-        : undefined,
+      private_key: privateKey,
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
       client_id: process.env.FIREBASE_CLIENT_ID,
       auth_uri: 'https://accounts.google.com/o/oauth2/auth',
@@ -31,7 +40,7 @@ function getFirebaseAdmin() {
     const missing = required.filter(k => !serviceAccount[k]);
 
     if (missing.length > 0) {
-      console.warn(`⚠️  Firebase Admin: missing env vars [${missing.join(', ')}]. Push notifications disabled.`);
+      console.warn(`[FCM] Missing env vars [${missing.join(', ')}]. Push notifications will be skipped.`);
       return null;
     }
 
@@ -39,13 +48,13 @@ function getFirebaseAdmin() {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
+      console.log(`✅ [FCM] Firebase Admin SDK initialized for project: ${serviceAccount.project_id}`);
     }
 
     firebaseAdmin = admin;
-    console.log('✅ Firebase Admin SDK initialized');
     return firebaseAdmin;
   } catch (err) {
-    console.error('❌ Firebase Admin init error:', err.message);
+    console.error('❌ [FCM] Firebase Admin init error:', err.message);
     return null;
   }
 }

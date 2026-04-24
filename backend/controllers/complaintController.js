@@ -67,7 +67,7 @@ exports.createComplaint = async (req, res) => {
           const result = await fcm.sendToUser(secretary._id, {
             title: '🆕 New Complaint Received',
             body: `A new complaint (${complaint.complaintId}) has been filed in your village. Please review it.`,
-            data: { type: 'new_complaint', complaintId: complaint._id.toString(), url: `/dashboard/admin/complaints` }
+            data: { type: 'new_complaint', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
           });
           console.log(`[Notification Debug] FCM Send result to Secretary:`, result);
 
@@ -230,7 +230,7 @@ exports.assignComplaint = async (req, res) => {
       fcm.sendToUser(officerId, {
         title: '🛠️ New Work Assigned',
         body: `You have been assigned to resolve complaint ${complaint.complaintId} (${department}).`,
-        data: { type: 'complaint_assigned', complaintId: complaint._id.toString(), url: `/dashboard/officer/complaints/${complaint._id}` }
+        data: { type: 'complaint_assigned', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
       }).catch(() => { });
     }
 
@@ -308,7 +308,7 @@ exports.escalateToCollector = async (req, res) => {
         fcm.sendToUser(collector._id, {
           title: '⚠️ High Priority Escalation',
           body: `Complaint ${complaint.complaintId} has been escalated from ${complaint.villageCode}. Needs your attention.`,
-          data: { type: 'complaint_escalated', complaintId: complaint._id.toString(), url: `/dashboard/admin/complaints` }
+          data: { type: 'complaint_escalated', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
         }).catch(() => { });
       }
     } catch (collErr) {

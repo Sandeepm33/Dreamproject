@@ -12,7 +12,8 @@ import { getMessagingInstance } from './firebase';
 const VAPID_KEY =
   'BNxWJHplLmYhX1weVJ6si0Nj9iIv24p5wcte_Xuaxvjt7wm0QVzEFNQZU97a1BHHy1i2CAihDNmIh2JPZxCNpcw';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace('/api', '');
+// Fallback to relative URL if NEXT_PUBLIC_API_URL is missing, to work correctly in production browser
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/api\/?$/, '');
 
 /* ─────────────────────────────────────────────────────────────
    Permission + Token
@@ -75,7 +76,10 @@ export async function saveTokenToBackend(token: string): Promise<void> {
     const authToken = localStorage.getItem('sgpims_token');
     if (!authToken) return;
 
-    await fetch(`${API_BASE}/api/fcm/token`, {
+    const url = `${API_BASE}/api/fcm/token`;
+    console.log(`[FCM] Saving token to: ${url}`);
+
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,6 +87,13 @@ export async function saveTokenToBackend(token: string): Promise<void> {
       },
       body: JSON.stringify({ token, platform: 'web' }),
     });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      console.error('[FCM] Backend save failed:', res.status, errData.message);
+    } else {
+      console.log('[FCM] Token synced with backend');
+    }
   } catch (err) {
     console.error('[FCM] saveTokenToBackend error:', err);
   }
