@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   otp: { type: String },
   otpExpiry: { type: Date },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
   lastLogin: { type: Date },
   notificationsEnabled: { type: Boolean, default: true },
   language: { type: String, enum: ['en', 'te'], default: 'en' }

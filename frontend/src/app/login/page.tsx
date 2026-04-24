@@ -250,6 +250,19 @@ export default function LoginPage() {
                   <input name="password" value={form.password} onChange={handleChange} className="v-input" placeholder="••••••••" required type="password" minLength={6} />
                 </div>
 
+                {!isRegister && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -10 }}>
+                    <button 
+                      type="button" 
+                      onClick={() => router.push('/forgot-password')} 
+                      className="toggle-btn"
+                      style={{ fontSize: '13px', opacity: 0.8 }}
+                    >
+                      {t('forgotPassword')}
+                    </button>
+                  </div>
+                )}
+
                 {isRegister && (
                   <div className="input-group animate-in">
                     <label className="v-label"><Lock size={14} /> {t('confirmPassword')}</label>
