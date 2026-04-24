@@ -37,12 +37,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('sgpims_token');
+    const storedUser = localStorage.getItem('sgpims_user');
+    
     if (storedToken) {
       setToken(storedToken);
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          // If we have both token and user, we can stop loading immediately
+          // and let the background check update the user data later.
+          setLoading(false);
+        } catch (e) {
+          console.error('Failed to parse stored user');
+        }
+      }
+      
       api.getMe()
-        .then(res => setUser(res.user))
-        .catch(() => { localStorage.removeItem('sgpims_token'); })
-        .finally(() => setLoading(false));
+        .then(res => {
+          setUser(res.user);
+          localStorage.setItem('sgpims_user', JSON.stringify(res.user));
+        })
+        .catch((err) => { 
+          console.error('Auth check failed:', err);
+          // Only logout if the error is 401 (Unauthorized) or 403 (Forbidden)
+          if (err.status === 401 || err.status === 403) {
+            localStorage.removeItem('sgpims_token');
+            localStorage.removeItem('sgpims_user');
+            setToken(null);
+            setUser(null);
+          }
+        })
+        .finally(() => {
+          // Ensure loading is false even if no storedUser was found
+          setLoading(false);
+        });
     } else {
       setLoading(false);
     }
@@ -51,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (mobile: string, password: string): Promise<User> => {
     const res = await api.login({ mobile, password });
     localStorage.setItem('sgpims_token', res.token);
+    localStorage.setItem('sgpims_user', JSON.stringify(res.user));
     setToken(res.token);
     setUser(res.user);
     return res.user;
@@ -59,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: any): Promise<User> => {
     const res = await api.register(data);
     localStorage.setItem('sgpims_token', res.token);
+    localStorage.setItem('sgpims_user', JSON.stringify(res.user));
     setToken(res.token);
     setUser(res.user);
     return res.user;
@@ -71,13 +102,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', err);
     } finally {
       localStorage.removeItem('sgpims_token');
+      localStorage.removeItem('sgpims_user');
       setToken(null);
       setUser(null);
     }
   };
 
   const updateUser = (data: any) => {
-    setUser(prev => prev ? { ...prev, ...data } : null);
+    setUser(prev => {
+      const newUser = prev ? { ...prev, ...data } : null;
+      if (newUser) {
+        localStorage.setItem('sgpims_user', JSON.stringify(newUser));
+      }
+      return newUser;
+    });
   };
 
   return (

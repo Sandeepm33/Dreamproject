@@ -49,7 +49,9 @@ class APIClient {
     }
 
     if (!response.ok) {
-      throw new Error(data.message || 'Request failed');
+      const error = new Error(data.message || 'Request failed') as any;
+      error.status = response.status;
+      throw error;
     }
 
     // Save to cache if it's a GET request
