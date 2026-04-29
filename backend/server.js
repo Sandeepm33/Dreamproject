@@ -85,6 +85,7 @@ app.use('/api/mandals', require('./routes/mandals'));
 app.use('/api/emergency-alerts', require('./routes/emergency-alerts'));
 app.use('/api/developments', require('./routes/developments'));
 app.use('/api/fcm', require('./routes/fcm'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));

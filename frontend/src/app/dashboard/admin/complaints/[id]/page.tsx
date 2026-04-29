@@ -25,6 +25,8 @@ export default function AdminComplaintDetailPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [villageMap, setVillageMap] = useState<Record<string, string>>({});
   const [districtMap, setDistrictMap] = useState<Record<string, string>>({});
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedText, setTranslatedText] = useState('');
 
   useEffect(() => {
     Promise.all([api.getVillages(), api.getDistricts()]).then(([vRes, dRes]) => {
@@ -187,8 +189,31 @@ export default function AdminComplaintDetailPage() {
                   )}
 
                   <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{t('description')}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('description')}</div>
+                      <button 
+                        onClick={async () => {
+                          if (translatedText) { setTranslatedText(''); return; }
+                          setIsTranslating(true);
+                          try {
+                            const res = await api.aiTranslate(complaint.description, 'English');
+                            if (res.success) setTranslatedText(res.translated);
+                          } catch (err) { console.error(err); }
+                          finally { setIsTranslating(false); }
+                        }}
+                        disabled={isTranslating}
+                        style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#3b82f6', borderRadius: 20, padding: '2px 10px', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                      >
+                        {isTranslating ? '⏳ Translating...' : translatedText ? '✕ Clear Translation' : '✨ AI Translate to English'}
+                      </button>
+                    </div>
                     <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7 }}>{complaint.description}</p>
+                    {translatedText && (
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(59,130,246,0.05)', borderLeft: '3px solid #3b82f6', borderRadius: '0 8px 8px 0' }}>
+                        <div style={{ fontSize: 10, color: '#3b82f6', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase' }}>AI Translation (English)</div>
+                        <p style={{ fontSize: 13, color: 'var(--text-primary)', fontStyle: 'italic' }}>{translatedText}</p>
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     {[

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import { PanchayatSahayak } from './PanchayatSahayak';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -66,6 +67,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </div>
       </div>
+      
+      {/* AI Assistant */}
+      <PanchayatSahayak />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Activity, Users, Shield, ArrowRight, Image as ImageIcon, PlayCircle, Ma
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import { PanchayatSahayak } from '@/components/PanchayatSahayak';
 
 // Type for Post
 interface Post {
@@ -422,8 +423,8 @@ export default function HomePage() {
         onClick={() => setShowMap(!showMap)}
         style={{
           position: 'fixed',
-          bottom: 40,
-          right: 40,
+          bottom: 24,
+          right: 32,
           width: 64,
           height: 64,
           borderRadius: '50%',
@@ -528,6 +529,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
+      <PanchayatSahayak />
     </div>
   );
 }

@@ -177,6 +177,21 @@ class APIClient {
   async getDevelopmentRequests() { return this.request('/developments'); }
   async updateDevelopmentStatus(id: string, body: { status: string, collectorNote?: string }) { return this.request(`/developments/${id}/status`, { method: 'PUT', body: JSON.stringify(body) }); }
   async getVillageOfficers() { return this.request('/users/village-officers'); }
+
+  // AI Services
+  async aiChat(message: string, history: any[] = []) { return this.request('/ai/chat', { method: 'POST', body: JSON.stringify({ message, history }) }); }
+  async aiTranslate(text: string, targetLanguage: string) { return this.request('/ai/translate', { method: 'POST', body: JSON.stringify({ text, targetLanguage }) }); }
+  async aiTranscribe(audioBlob: Blob) {
+    const token = this.getToken();
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'voice_report.webm');
+    const res = await fetch(`${API_BASE}/ai/transcribe`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData
+    });
+    return res.json();
+  }
 }
 
 export const api = new APIClient();

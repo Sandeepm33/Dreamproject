@@ -99,32 +99,56 @@ export default function NewComplaintPage() {
     setPreviews(p => p.filter((_,idx) => idx !== i));
   };
 
-  const startListening = (field: 'title' | 'description') => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setError(t('speechNotSupported'));
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const toggleVoiceRecord = async (field: 'title' | 'description') => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = language === 'te' ? 'te-IN' : 'en-IN';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event: any) => {
-      setError(`Speech error: ${event.error}`);
-      setIsListening(false);
-    };
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
 
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setForm(f => ({ ...f, [field]: f[field] + (f[field] ? ' ' : '') + transcript }));
-    };
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setIsLoadingAI(true);
+        try {
+          const res = await api.aiTranscribe(audioBlob);
+          if (res.success) {
+            setForm(f => ({ 
+              ...f, 
+              [field]: f[field] + (f[field] ? ' ' : '') + (res.translation || res.transcription) 
+            }));
+          }
+        } catch (err) {
+          console.error('Transcription error:', err);
+          setError('AI Transcription failed. Please try typing.');
+        } finally {
+          setIsLoadingAI(false);
+        }
+        stream.getTracks().forEach(t => t.stop());
+      };
 
-    recognition.start();
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Mic error:', err);
+      setError('Could not access microphone.');
+    }
   };
+
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.title || !form.description || !form.category) { setError(t('fillAllRequired')); return; }
@@ -248,10 +272,10 @@ export default function NewComplaintPage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <label className="label" style={{ marginBottom: 0 }}>{t('issueTitle')} <span style={{ color: '#ef4444' }}>*</span></label>
-                    <button onClick={() => startListening('title')} disabled={isListening} 
-                      style={{ background: isListening ? '#ef4444' : 'rgba(45,106,79,0.1)', border: `1px solid ${isListening ? '#ef4444' : 'rgba(45,106,79,0.3)'}`, color: isListening ? 'white' : 'var(--text-primary)', borderRadius: 20, padding: '4px 12px', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s' }}>
-                      {isListening ? <MicOff size={12} /> : <Mic size={12} />}
-                      {isListening ? t('listening') : t('voiceToText')}
+                    <button onClick={() => toggleVoiceRecord('title')} disabled={isLoadingAI} 
+                      style={{ background: isRecording ? '#ef4444' : 'rgba(45,106,79,0.1)', border: `1px solid ${isRecording ? '#ef4444' : 'rgba(45,106,79,0.3)'}`, color: isRecording ? 'white' : 'var(--text-primary)', borderRadius: 20, padding: '4px 12px', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s' }}>
+                      {isRecording ? <MicOff size={12} /> : <Mic size={12} />}
+                      {isRecording ? 'Stop Recording' : isLoadingAI ? 'AI Processing...' : 'AI Voice Report'}
                     </button>
                   </div>
                   <input name="title" value={form.title} onChange={handleChange} className="input-field" placeholder={t('titlePlaceholder')} maxLength={200} />
@@ -273,10 +297,10 @@ export default function NewComplaintPage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <label className="label" style={{ marginBottom: 0 }}>{t('description')} <span style={{ color: '#ef4444' }}>*</span></label>
-                    <button onClick={() => startListening('description')} disabled={isListening} 
-                      style={{ background: isListening ? '#ef4444' : 'rgba(45,106,79,0.1)', border: `1px solid ${isListening ? '#ef4444' : 'rgba(45,106,79,0.3)'}`, color: isListening ? 'white' : 'var(--text-primary)', borderRadius: 20, padding: '4px 12px', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s' }}>
-                      {isListening ? <MicOff size={12} /> : <Mic size={12} />}
-                      {isListening ? t('listening') : t('voiceToText')}
+                    <button onClick={() => toggleVoiceRecord('description')} disabled={isLoadingAI} 
+                      style={{ background: isRecording ? '#ef4444' : 'rgba(45,106,79,0.1)', border: `1px solid ${isRecording ? '#ef4444' : 'rgba(45,106,79,0.3)'}`, color: isRecording ? 'white' : 'var(--text-primary)', borderRadius: 20, padding: '4px 12px', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s' }}>
+                      {isRecording ? <MicOff size={12} /> : <Mic size={12} />}
+                      {isRecording ? 'Stop Recording' : isLoadingAI ? 'AI Processing...' : 'AI Voice Report'}
                     </button>
                   </div>
                   <textarea name="description" value={form.description} onChange={handleChange as any} className="input-field" placeholder={t('descPlaceholder')} rows={5} maxLength={2000} style={{ resize: 'vertical' }} />
