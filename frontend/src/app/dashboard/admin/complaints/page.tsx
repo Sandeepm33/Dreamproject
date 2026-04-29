@@ -38,7 +38,7 @@ export default function AdminComplaintsPage() {
 
   useEffect(() => {
     if (!loading) {
-      if (!user || !['admin', 'panchayat_secretary', 'collector'].includes(user.role)) {
+      if (!user || !['admin', 'panchayat_secretary', 'collector', 'secretariat_office'].includes(user.role)) {
         router.replace('/login');
       }
     }
@@ -218,7 +218,7 @@ export default function AdminComplaintsPage() {
                   </td>
                   <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t(c.department as any) || c.department || '—'}</td>
                   <td>
-                    {user?.role === 'collector' ? (
+                    {(user?.role === 'collector' || user?.role === 'secretariat_office') ? (
                       <span className={`badge badge-${c.status === 'in_progress' ? 'inprogress' : c.status}`} style={{ fontSize: 11 }}>
                         {t(c.status === 'in_progress' ? 'inProgress' : c.status as any).toUpperCase()}
                       </span>
@@ -236,7 +236,7 @@ export default function AdminComplaintsPage() {
                   <td style={{ color: 'var(--accent)', fontSize: 13 }}>👍 {c.voteCount}</td>
                   <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
                   <td>
-                    {user?.role !== 'collector' && (
+                    {!(user?.role === 'collector' || user?.role === 'secretariat_office') && (
                       <button onClick={e => { e.stopPropagation(); setAssignModal(c); setAssignOfficer(c.assignedTo?._id || ''); }}
                         className="btn-ghost" style={{ fontSize: 11, padding: '6px 10px', whiteSpace: 'nowrap' }}>
                         🎯 {t('assign')}

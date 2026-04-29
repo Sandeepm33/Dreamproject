@@ -311,7 +311,7 @@ export default function AdminComplaintDetailPage() {
                     </div>
                   ))}
                   {!complaint.remarks?.length && <p style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>{t('noRemarks')}</p>}
-                  {user?.role !== 'collector' && (
+                  {!(user?.role === 'collector' || user?.role === 'secretariat_office') && (
                     <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                       <input value={remark} onChange={e => setRemark(e.target.value)} className="input-field" placeholder={t('addRemarkPlaceholder')} />
                       <button onClick={async () => { if (remark.trim()) { await api.addRemark(id as string, remark); setRemark(''); fetch(); } }} className="btn-primary" style={{ whiteSpace: 'nowrap' }}>{t('send')}</button>
@@ -324,7 +324,7 @@ export default function AdminComplaintDetailPage() {
 
           {/* Sidebar Panel */}
           <div>
-            {user?.role !== 'collector' && (
+            {!(user?.role === 'collector' || user?.role === 'secretariat_office') && (
               <div className="glass-card" style={{ padding: 20, marginBottom: 16 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>{t('quickActions')}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

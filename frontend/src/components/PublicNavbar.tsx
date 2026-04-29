@@ -11,7 +11,7 @@ export default function PublicNavbar() {
 
   const getDashboardUrl = () => {
     if (!user) return '/login';
-    const role = (user.role === 'panchayat_secretary' || user.role === 'collector') ? 'admin' : user.role;
+    const role = (user.role === 'panchayat_secretary' || (user.role === 'collector' || user.role === 'secretariat_office')) ? 'admin' : user.role;
     return `/dashboard/${role}`;
   };
 

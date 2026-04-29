@@ -7,10 +7,16 @@ const { protect, authorize } = require('../middleware/auth');
 // Get all villages (can filter by district) — includes assigned secretary
 router.get('/', async (req, res) => {
   try {
-    const { district, mandal } = req.query;
+    const { district, mandal, search } = req.query;
     const query = { active: true };
     if (district) query.district = district;
     if (mandal) query.mandal = mandal;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { villageCode: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     const villages = await Village.find(query)
       .sort({ name: 1 })
@@ -40,7 +46,7 @@ router.get('/', async (req, res) => {
 });
 
 // Collector or Admin creates a village
-router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
+router.post('/', protect, authorize('admin', 'collector', 'secretariat_office'), async (req, res) => {
   try {
     const { name, villageCode, district } = req.body;
     
@@ -97,7 +103,7 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
 });
 
 // Delete a village
-router.delete('/:id', protect, authorize('admin', 'collector'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin', 'collector', 'secretariat_office'), async (req, res) => {
   try {
     const village = await Village.findById(req.params.id);
     if (!village) {
@@ -116,6 +122,37 @@ router.delete('/:id', protect, authorize('admin', 'collector'), async (req, res)
 
     await village.deleteOne();
     res.json({ success: true, message: 'Village deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Update a village
+router.put('/:id', protect, authorize('admin', 'collector', 'secretariat_office'), async (req, res) => {
+  try {
+    const village = await Village.findById(req.params.id);
+    if (!village) {
+      return res.status(404).json({ success: false, message: 'Village not found' });
+    }
+
+    // Security check for collector
+    if (req.user.role === 'collector') {
+      const villageDistrictId = village.district?._id ? village.district._id.toString() : (village.district ? village.district.toString() : null);
+      const userDistrictId = req.user.district?._id ? req.user.district._id.toString() : (req.user.district ? req.user.district.toString() : null);
+      if (villageDistrictId !== userDistrictId) {
+        return res.status(403).json({ success: false, message: 'Not authorized to update village in this district' });
+      }
+    }
+
+    const { name, villageCode, district, mandal, active } = req.body;
+    if (name) village.name = name.trim();
+    if (villageCode) village.villageCode = villageCode.toUpperCase();
+    if (district && req.user.role !== 'collector') village.district = district;
+    if (mandal) village.mandal = mandal;
+    if (typeof active === 'boolean') village.active = active;
+
+    await village.save();
+    res.json({ success: true, village });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

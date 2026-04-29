@@ -11,7 +11,7 @@ const developmentRequestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'reviewed', 'approved', 'rejected', 'in_progress', 'completed'],
+    enum: ['pending', 'reviewed', 'approved', 'rejected', 'in_progress', 'completed', 'forwarded'],
     default: 'pending'
   },
   priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
@@ -29,7 +29,9 @@ const developmentRequestSchema = new mongoose.Schema({
     url: { type: String },
     name: { type: String }
   }],
-  collectorNote: { type: String }
+  collectorNote: { type: String },
+  forwardedToSecretariat: { type: Boolean, default: false },
+  secretariatNote: { type: String }
 }, { timestamps: true });
 
 developmentRequestSchema.pre('save', async function() {

@@ -33,7 +33,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!loading) {
-      if (!user || !['admin','panchayat_secretary','collector'].includes(user.role)) {
+      if (!user || !['admin','panchayat_secretary','collector','secretariat_office'].includes(user.role)) {
         router.replace('/login');
       }
     }

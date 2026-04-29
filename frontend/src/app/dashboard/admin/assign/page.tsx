@@ -18,9 +18,9 @@ export default function AdminAssignPage() {
 
   useEffect(() => {
     if (!loading) {
-      if (!user || !['admin', 'panchayat_secretary', 'collector'].includes(user.role)) {
+      if (!user || !['admin', 'panchayat_secretary', 'collector', 'secretariat_office'].includes(user.role)) {
         router.replace('/login');
-      } else if (user.role === 'collector') {
+      } else if ((user.role === 'collector' || user.role === 'secretariat_office')) {
         router.replace('/dashboard/admin/users');
       }
     }

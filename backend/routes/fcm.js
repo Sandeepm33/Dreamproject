@@ -71,7 +71,7 @@ router.delete('/token', protect, async (req, res) => {
 router.post(
   '/send',
   protect,
-  authorize('admin', 'panchayat_secretary', 'collector'),
+  authorize('admin', 'panchayat_secretary', 'collector', 'secretariat_office'),
   async (req, res) => {
     try {
       const { userId, title, body, data = {}, imageUrl } = req.body;
@@ -95,7 +95,7 @@ router.post(
 router.post(
   '/broadcast',
   protect,
-  authorize('admin', 'panchayat_secretary', 'collector'),
+  authorize('admin', 'panchayat_secretary', 'collector', 'secretariat_office'),
   async (req, res) => {
     try {
       const { title, body, data = {}, imageUrl } = req.body;

@@ -12,7 +12,7 @@ exports.getDashboard = async (req, res) => {
     if (req.user.role === 'panchayat_secretary') {
       const vId = req.user.village?._id || req.user.village;
       if (vId) complaintQuery.village = vId;
-    } else if (req.user.role === 'collector') {
+    } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
       // Collector can see all villages as per user request
       // const dId = req.user.district?._id || req.user.district;
       // if (dId) complaintQuery.district = dId;
@@ -117,7 +117,7 @@ exports.getUsers = async (req, res) => {
       } else {
         query.role = { $in: allowedRoles };
       }
-    } else if (req.user.role === 'collector') {
+    } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
       const dId = req.user.district?._id || req.user.district;
       if (dId) query.district = dId;
       if (role) query.role = role;
@@ -175,18 +175,23 @@ exports.updateUser = async (req, res) => {
 
     if (requesterRole === 'admin') {
       isAuthorized = true; // Global admin can update anyone
+    } else if (requesterRole === 'secretariat_office') {
+      // Secretariat can update anyone except Admins or other Secretariat users
+      if (['collector', 'panchayat_secretary', 'officer', 'citizen'].includes(targetRole)) {
+        isAuthorized = true;
+      }
     } else if (requesterRole === 'collector') {
-      // Collector can only update Panchayat Secretaries in their district
-      if (targetRole === 'panchayat_secretary') {
-        const collectorDistrict = req.user.district?._id || req.user.district;
+      // Collector can only update Panchayat Secretaries (and below) in their district
+      if (['panchayat_secretary', 'officer', 'citizen'].includes(targetRole)) {
+        const adminDistrict = req.user.district?._id || req.user.district;
         const targetDistrict = targetUser.district?._id || targetUser.district;
-        if (String(collectorDistrict) === String(targetDistrict)) {
+        if (String(adminDistrict) === String(targetDistrict)) {
           isAuthorized = true;
         }
       }
     } else if (requesterRole === 'panchayat_secretary') {
-      // Secretary can edit admin, officer, citizen in their village
-      const allowedTargetRoles = ['admin', 'officer', 'citizen', 'panchayat_secretary']; // Including themselves
+      // Secretary can edit officer, citizen in their village
+      const allowedTargetRoles = ['officer', 'citizen', 'panchayat_secretary']; // Including themselves
       if (allowedTargetRoles.includes(targetRole)) {
         const secretaryVillage = req.user.village?._id || req.user.village;
         const targetVillage = targetUser.village?._id || targetUser.village;
@@ -205,11 +210,15 @@ exports.updateUser = async (req, res) => {
     }
 
     // --- Prevent Escalation ---
-    // A Secretary should not be able to promote someone to Admin or Collector if they aren't one
     if (updateData.role && updateData.role !== targetRole) {
-      if (requesterRole !== 'admin') {
-        // Only global admin can change roles to 'admin' or 'collector'
-        if (['admin', 'collector'].includes(updateData.role)) {
+      if (requesterRole === 'secretariat_office') {
+        // Secretariat can assign Collector or below, but not Admin or Secretariat
+        if (['admin', 'secretariat_office'].includes(updateData.role)) {
+          return res.status(403).json({ success: false, message: 'You cannot assign Admin or Secretariat roles' });
+        }
+      } else if (requesterRole !== 'admin') {
+        // Others can only assign Panchayat Secretary or below
+        if (['admin', 'collector', 'secretariat_office'].includes(updateData.role)) {
           return res.status(403).json({ success: false, message: 'You cannot assign high-level administrative roles' });
         }
       }
@@ -245,7 +254,7 @@ exports.getOfficers = async (req, res) => {
     if (req.user.role === 'panchayat_secretary') {
       const vId = req.user.village?._id || req.user.village;
       if (vId) query.village = vId;
-    } else if (req.user.role === 'collector') {
+    } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
       const dId = req.user.district?._id || req.user.district;
       if (dId) query.district = dId;
     }
@@ -268,7 +277,7 @@ exports.broadcastNotification = async (req, res) => {
       const vId = req.user.village?._id || req.user.village;
       if (vId) query.village = vId;
       else return res.status(403).json({ success: false, message: 'You must be assigned to a village to broadcast' });
-    } else if (req.user.role === 'collector') {
+    } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
       const dId = req.user.district?._id || req.user.district;
       if (dId) query.district = dId;
       else return res.status(403).json({ success: false, message: 'You must be assigned to a district to broadcast' });

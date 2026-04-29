@@ -27,7 +27,7 @@ router.post('/', protect, authorize('panchayat_secretary', 'collector'), async (
     let targetVillageId = toId(req.user.village);
     
     // If collector, allow specifying villageId in body
-    if (req.user.role === 'collector' && req.body.villageId) {
+    if (['collector', 'secretariat_office'].includes(req.user.role) && req.body.villageId) {
       targetVillageId = req.body.villageId;
     }
 
@@ -95,7 +95,7 @@ router.post('/', protect, authorize('panchayat_secretary', 'collector'), async (
 router.get('/active', protect, async (req, res) => {
   try {
     const villageId = toId(req.user.village);
-    const isCollector = req.user.role === 'collector';
+    const isCollector = ['collector', 'secretariat_office'].includes(req.user.role);
 
     // Citizens with no village assigned see no alerts
     if (!villageId && !isCollector) {

@@ -14,7 +14,7 @@ export default function NewGalleryPostPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (user && user.role !== 'collector') {
+    if (user && !(user.role === 'collector' || user.role === 'secretariat_office')) {
       router.replace('/dashboard/admin/gallery');
     }
   }, [user, router]);

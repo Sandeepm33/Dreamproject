@@ -48,7 +48,7 @@ export default function NewComplaintPage() {
   }, [user]);
 
   useEffect(() => {
-    if (onBehalf && user && (user.role === 'admin' || user.role === 'panchayat_secretary' || user.role === 'collector')) {
+    if (onBehalf && user && (user.role === 'admin' || user.role === 'panchayat_secretary' || (user.role === 'collector' || user.role === 'secretariat_office'))) {
       const fetchCitizens = async () => {
         setLoadingCitizens(true);
         try {

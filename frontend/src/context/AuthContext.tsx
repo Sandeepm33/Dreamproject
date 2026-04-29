@@ -7,7 +7,7 @@ interface User {
   name: string;
   mobile: string;
   email?: string;
-  role: 'citizen' | 'admin' | 'officer' | 'panchayat_secretary' | 'collector';
+  role: 'citizen' | 'admin' | 'officer' | 'panchayat_secretary' | 'collector' | 'secretariat_office';
   village?: string;
   villageCode?: string;
   mandal?: string;

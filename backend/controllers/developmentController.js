@@ -45,6 +45,16 @@ exports.getRequests = async (req, res) => {
       query.village = req.user.village;
     } else if (req.user.role === 'collector') {
       query.district = req.user.district;
+    } else if (req.user.role === 'secretariat_office') {
+      // Secretariat office sees all forwarded requests or requests in their district if they have one
+      if (req.user.district) {
+        query.$or = [
+          { district: req.user.district },
+          { forwardedToSecretariat: true }
+        ];
+      } else {
+        query.forwardedToSecretariat = true;
+      }
     } else if (req.user.role === 'admin') {
       // Admin sees all or restricted by village/district if applicable
     }
@@ -63,19 +73,28 @@ exports.getRequests = async (req, res) => {
 // PUT /api/developments/:id/status
 exports.updateStatus = async (req, res) => {
   try {
-    const { status, collectorNote } = req.body;
+    const { status, collectorNote, secretariatNote } = req.body;
     const request = await DevelopmentRequest.findById(req.params.id);
     if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
 
-    if (req.user.role !== 'collector' && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Only Collector or Admin can update status' });
+    if (req.user.role === 'collector') {
+      if (status === 'forwarded') {
+        request.forwardedToSecretariat = true;
+      }
+      if (collectorNote) request.collectorNote = collectorNote;
+    } else if (req.user.role === 'secretariat_office') {
+      if (secretariatNote) request.secretariatNote = secretariatNote;
     }
 
     request.status = status;
-    if (collectorNote) request.collectorNote = collectorNote;
     await request.save();
 
-    await sendNotification(request.requestedBy, 'Development Request Updated', `Your request ${request.requestId} status changed to ${status}.`, 'development_update', request._id);
+    let notificationMsg = `Your request ${request.requestId} status changed to ${status}.`;
+    if (status === 'forwarded') {
+      notificationMsg = `Your request ${request.requestId} has been forwarded to the Secretariat Office for review.`;
+    }
+
+    await sendNotification(request.requestedBy, 'Development Request Updated', notificationMsg, 'development_update', request._id);
 
     res.json({ success: true, request });
   } catch (err) {

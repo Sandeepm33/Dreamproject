@@ -102,7 +102,7 @@ const GalleryItemCard = ({
         )}
         
         {/* Delete Button - Overlay */}
-        {(user?.role === 'collector' || post.createdBy?._id === user?._id) && (
+        {((user?.role === 'collector' || user?.role === 'secretariat_office') || post.createdBy?._id === user?._id) && (
           <div className="absolute top-4 right-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(post._id); }}
@@ -214,7 +214,7 @@ export default function GalleryManagementPage() {
               </div>
             </div>
             
-            {user?.role === 'collector' && (
+            {(user?.role === 'collector' || user?.role === 'secretariat_office') && (
               <button 
                 onClick={() => router.push('/dashboard/admin/gallery/new')}
                 className="btn-primary flex items-center gap-3 px-8 py-4 shadow-[0_10px_30px_rgba(45,106,79,0.3)] hover:scale-105 active:scale-95 transition-all text-base"
@@ -266,7 +266,7 @@ export default function GalleryManagementPage() {
                     Your gallery is currently empty. Start building your village's digital legacy by sharing photos or videos of progress and local events.
                   </p>
                   
-                  {user?.role === 'collector' && (
+                  {(user?.role === 'collector' || user?.role === 'secretariat_office') && (
                     <button 
                       onClick={() => router.push('/dashboard/admin/gallery/new')}
                       className="btn-primary flex items-center gap-3 px-10 py-4 shadow-xl group"

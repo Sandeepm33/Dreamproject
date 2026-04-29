@@ -4,9 +4,9 @@ const { getDashboard, getUsers, updateUser, toggleUserStatus, getOfficers, broad
 const { exportComplaints } = require('../controllers/complaintController');
 const { protect, authorize } = require('../middleware/auth');
 
-const adminOnly = [protect, authorize('admin', 'panchayat_secretary', 'collector')];
+const adminOnly = [protect, authorize('admin', 'panchayat_secretary', 'collector', 'secretariat_office')];
 router.get('/dashboard', ...adminOnly, getDashboard);
-router.get('/users', protect, authorize('admin', 'panchayat_secretary', 'collector'), getUsers);
+router.get('/users', protect, authorize('admin', 'panchayat_secretary', 'collector', 'secretariat_office'), getUsers);
 router.put('/users/:id', ...adminOnly, updateUser);
 router.put('/users/:id/toggle', ...adminOnly, toggleUserStatus);
 router.get('/officers', protect, getOfficers);

@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   mobile: { type: String, required: true, unique: true, trim: true },
   email: { type: String, required: true, trim: true, lowercase: true, unique: true },
   password: { type: String },
-  role: { type: String, enum: ['citizen', 'admin', 'officer', 'panchayat_secretary', 'collector'], default: 'citizen' },
+  role: { type: String, enum: ['citizen', 'admin', 'officer', 'panchayat_secretary', 'collector', 'secretariat_office'], default: 'citizen' },
   village: { type: mongoose.Schema.Types.ObjectId, ref: 'Village' },
   villageCode: { type: String }, // For historical/convenience use
   mandal: { type: mongoose.Schema.Types.ObjectId, ref: 'Mandal' },

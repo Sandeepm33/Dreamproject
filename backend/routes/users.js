@@ -25,7 +25,7 @@ router.get('/', protect, authorize('admin', 'panchayat_secretary', 'officer', 'c
       } else if (!allowedRoles.includes(role)) {
         return res.json({ success: true, users: [] }); // Reject bad role requests
       }
-    } else if (req.user.role === 'collector') {
+    } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
       query.district = (req.user.district?._id || req.user.district)?.toString();
       if (village) query.village = village; // Collector can filter by specific village in their district
     }
@@ -46,7 +46,7 @@ router.get('/', protect, authorize('admin', 'panchayat_secretary', 'officer', 'c
   }
 });
 
-router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'collector'), async (req, res) => {
+router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'collector', 'secretariat_office'), async (req, res) => {
   try {
     const { name, mobile, email, password, role, department, village, district, mandal } = req.body;
 
@@ -55,8 +55,10 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
       if (role !== 'panchayat_secretary') {
         return res.status(403).json({ success: false, message: 'Collector can only create Panchayat Secretaries' });
       }
-      // Ensure the Collector is creating a secretary for a village in THEIR district
-      // We'll enforce this by overwriting the district field with the collector's own district
+    } else if (req.user.role === 'secretariat_office') {
+      if (!['panchayat_secretary', 'collector'].includes(role)) {
+        return res.status(403).json({ success: false, message: 'Secretariat can only create Collectors and Secretaries' });
+      }
     } else if (req.user.role === 'panchayat_secretary') {
       if (!['officer', 'citizen'].includes(role)) {
         return res.status(403).json({ success: false, message: 'Secretary can only create Officers or Citizens' });
@@ -84,6 +86,9 @@ router.post('/create', protect, authorize('admin', 'panchayat_secretary', 'colle
 
     if (req.user.role === 'collector') {
       userData.district = req.user.district;
+    } else if (req.user.role === 'secretariat_office') {
+      if (district) userData.district = district;
+      else if (req.user.district) userData.district = req.user.district;
     } else if (req.user.role === 'panchayat_secretary') {
       userData.district = req.user.district;
       userData.village = req.user.village?._id || req.user.village;
@@ -124,7 +129,7 @@ router.patch('/:id/assign-village', protect, authorize('collector', 'admin'), as
     const mongoose = require('mongoose');
 
     // Validate village belongs to Collector's district
-    if (req.user.role === 'collector') {
+    if (['collector', 'secretariat_office'].includes(req.user.role)) {
       const collectorDistrictId = req.user.district?._id || req.user.district;
       const village = await Village.findById(villageId);
       if (!village) return res.status(404).json({ success: false, message: 'Village not found' });

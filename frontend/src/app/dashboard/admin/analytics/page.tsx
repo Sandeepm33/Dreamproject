@@ -19,7 +19,7 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   useEffect(() => {
-    if (!loading && (!user || !['admin','panchayat_secretary','collector'].includes(user.role))) {
+    if (!loading && (!user || !['admin','panchayat_secretary','collector','secretariat_office'].includes(user.role))) {
       router.replace('/login');
     }
   }, [user, loading, router]);
@@ -100,23 +100,73 @@ export default function AnalyticsPage() {
             </div>
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:24 }}>
-              {/* Monthly Trend */}
-              <div className="glass-card" style={{ padding:24 }}>
-                <h3 style={{ fontSize:15, fontWeight:700, color:'var(--text-primary)', marginBottom:20 }}>📅 {t('monthlyTrend')} (6 {t('months')})</h3>
-                <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:180 }}>
-                  {(data?.byMonth || []).slice(-8).map((m: any, i: number) => (
-                    <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-                      <div style={{ fontSize:11, color:'var(--accent)', fontWeight:600 }}>{m.count}</div>
-                      <div style={{ width:'100%', height:`${(m.count/maxMonthly)*150}px`, minHeight:6, background:'linear-gradient(180deg,var(--primary-light),var(--primary))', borderRadius:'4px 4px 0 0', transition:'height 1s' }} />
-                      <div style={{ width:'100%', height:`${(m.resolved/maxMonthly)*150}px`, minHeight:m.resolved>0?3:0, background:'rgba(34,197,94,0.6)', borderRadius:'4px 4px 0 0' }} />
-                      <span style={{ fontSize:10, color:'var(--text-muted)' }}>{MONTHS[(m._id.month-1)]}</span>
+              {/* Monthly Trend Chart */}
+              <div className="glass-card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: 'var(--text-primary)' }}>📈 {t('monthlyTrend')}</h3>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', gap: 40, height: 240, paddingBottom: 10 }}>
+                  {(data?.byMonth || []).slice(-6).map((m: any, i: number) => (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+                      <div 
+                        style={{ 
+                          width: '100%',
+                          height: 200, 
+                          display: 'flex', 
+                          alignItems: 'flex-end', 
+                          justifyContent: 'center',
+                          gap: 12
+                        }}
+                      >
+                        {/* Grouped Bars */}
+                        {[
+                          { key: 'pending', color: '#f59e0b' },
+                          { key: 'assigned', color: '#0ea5e9' },
+                          { key: 'inProgress', color: '#a855f7' },
+                          { key: 'resolved', color: '#22c55e' },
+                          { key: 'rejected', color: '#ef4444' },
+                          { key: 'escalated', color: '#f97316' }
+                        ].map(status => {
+                          const val = m[status.key] || 0;
+                          const heightPct = (val / maxMonthly) * 100;
+                          return (
+                            <div 
+                              key={status.key}
+                              title={`${val} ${t(status.key as any) || status.key}`}
+                              style={{ 
+                                flex: 1,
+                                maxWidth: 45,
+                                minWidth: 15,
+                                height: `${Math.max(heightPct, 2)}%`, 
+                                background: val > 0 ? status.color : 'rgba(255,255,255,0.06)',
+                                borderRadius: '6px 6px 0 0',
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer',
+                                opacity: val > 0 ? 1 : 0.2
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                      <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2 }}>{MONTHS[(m._id.month - 1)]}</span>
                     </div>
                   ))}
-                  {!data?.byMonth?.length && <div style={{ flex:1,textAlign:'center',color:'var(--text-muted)',fontSize:13,padding:'60px 0' }}>{t('noData')}</div>}
+                  {!data?.byMonth?.length && <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-muted)', fontSize:13 }}>{t('noData')}</div>}
                 </div>
-                <div style={{ display:'flex', gap:16, marginTop:8 }}>
-                  <span style={{ display:'flex',alignItems:'center',gap:6,fontSize:11,color:'var(--text-muted)' }}><span style={{ width:10,height:10,borderRadius:2,background:'var(--primary-light)',display:'inline-block' }} />{t('filed')}</span>
-                  <span style={{ display:'flex',alignItems:'center',gap:6,fontSize:11,color:'var(--text-muted)' }}><span style={{ width:10,height:10,borderRadius:2,background:'rgba(34,197,94,0.6)',display:'inline-block' }} />{t('resolved')}</span>
+                
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: 32, marginTop: 40, justifyContent: 'center', flexWrap: 'wrap', padding: '0 20px' }}>
+                  {[
+                    { label: t('pending'), color: '#f59e0b' },
+                    { label: t('assigned'), color: '#0ea5e9' },
+                    { label: t('inProgress'), color: '#a855f7' },
+                    { label: t('resolved'), color: '#22c55e' },
+                    { label: t('rejected'), color: '#ef4444' },
+                    { label: t('escalated'), color: '#f97316' }
+                  ].map(l => (
+                    <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                      <span style={{ width: 12, height: 12, borderRadius: 3, background: l.color, display: 'inline-block' }} />
+                      {l.label}
+                    </span>
+                  ))}
                 </div>
               </div>
 

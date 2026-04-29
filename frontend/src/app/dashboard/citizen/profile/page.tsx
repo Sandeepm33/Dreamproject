@@ -82,7 +82,7 @@ export default function ProfilePage() {
     finally { setChangingPw(false); }
   };
 
-  const roleColors: Record<string,string> = { citizen:'#22c55e', admin:'#f59e0b', officer:'#0ea5e9', panchayat_secretary:'#a855f7', collector:'#e11d48' };
+  const roleColors: Record<string,string> = { citizen:'#22c55e', admin:'#f59e0b', officer:'#0ea5e9', panchayat_secretary:'#a855f7', collector:'#e11d48', secretariat_office: '#ec4899' };
   const roleColor = roleColors[user?.role||'citizen'];
 
   return (

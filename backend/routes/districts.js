@@ -6,7 +6,11 @@ const { protect, authorize } = require('../middleware/auth');
 // Public route to get districts for signup/dropdowns
 router.get('/', async (req, res) => {
   try {
-    const districts = await District.find({ active: true });
+    const { search } = req.query;
+    const query = { active: true };
+    if (search) query.name = { $regex: search, $options: 'i' };
+
+    const districts = await District.find(query);
     res.json({ success: true, districts });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -14,7 +18,7 @@ router.get('/', async (req, res) => {
 });
 
 // Admin/Collector can manage districts (if needed, but usually pre-populated)
-router.post('/', protect, authorize('admin'), async (req, res) => {
+router.post('/', protect, authorize('admin', 'secretariat_office'), async (req, res) => {
   try {
     const name = req.body.name?.trim();
     if (!name) {
@@ -38,7 +42,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
 });
 
 // Delete a district
-router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin', 'secretariat_office'), async (req, res) => {
   try {
     const district = await District.findById(req.params.id);
     if (!district) {
@@ -54,6 +58,26 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 
     await district.deleteOne();
     res.json({ success: true, message: 'District deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Update a district
+router.put('/:id', protect, authorize('admin', 'secretariat_office'), async (req, res) => {
+  try {
+    const district = await District.findById(req.params.id);
+    if (!district) {
+      return res.status(404).json({ success: false, message: 'District not found' });
+    }
+
+    const { name, state, active } = req.body;
+    if (name) district.name = name.trim();
+    if (state) district.state = state;
+    if (typeof active === 'boolean') district.active = active;
+
+    await district.save();
+    res.json({ success: true, district });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

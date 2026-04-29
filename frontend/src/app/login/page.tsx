@@ -110,7 +110,7 @@ export default function LoginPage() {
       
       // Redirect based on role
       const role = loggedInUser.role;
-      if (role === 'collector') {
+      if ((role === 'collector' || role === 'secretariat_office')) {
         router.push('/dashboard/admin/users');
       } else if (role === 'admin' || role === 'panchayat_secretary') {
         router.push('/dashboard/admin');

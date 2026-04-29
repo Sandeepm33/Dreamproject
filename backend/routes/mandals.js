@@ -5,9 +5,10 @@ const Mandal = require('../models/Mandal');
 // Get all mandals (can filter by district)
 router.get('/', async (req, res) => {
   try {
-    const { district } = req.query;
+    const { district, search } = req.query;
     const query = { active: true };
     if (district) query.district = district;
+    if (search) query.name = { $regex: search, $options: 'i' };
 
     const mandals = await Mandal.find(query).sort({ name: 1 }).populate('district', 'name');
     res.json({ success: true, mandals });
@@ -19,7 +20,7 @@ router.get('/', async (req, res) => {
 // Collector or Admin creates a mandal
 const { protect, authorize } = require('../middleware/auth');
 
-router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
+router.post('/', protect, authorize('admin', 'collector', 'secretariat_office'), async (req, res) => {
   try {
     const { district } = req.body;
     const name = req.body.name?.trim();
@@ -28,8 +29,14 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Mandal name is required' });
     }
     
-    // Auto-assign district if user is a Collector
-    const mandalDistrict = req.user.role === 'collector' ? req.user.district : district;
+    // Auto-assign district if user is a Collector. 
+    // Secretariat Office can specify a district or use their assigned one.
+    let mandalDistrict = district;
+    if (req.user.role === 'collector') {
+      mandalDistrict = req.user.district;
+    } else if (req.user.role === 'secretariat_office') {
+      mandalDistrict = district || req.user.district;
+    }
 
     if (!mandalDistrict) {
       return res.status(400).json({ success: false, message: 'District is required to create a Mandal' });
@@ -57,7 +64,35 @@ router.post('/', protect, authorize('admin', 'collector'), async (req, res) => {
 });
 
 // Delete a mandal
-router.delete('/:id', protect, authorize('admin', 'collector'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin', 'collector', 'secretariat_office'), async (req, res) => {
+  try {
+    const mandal = await Mandal.findById(req.params.id);
+    if (!mandal) {
+      return res.status(404).json({ success: false, message: 'Mandal not found' });
+    }
+
+    // Security check: if role is restricted, ensure the district matches if user has one
+    // Security check for collector
+    if (req.user.role === 'collector') {
+      const userDistrictId = req.user.district?._id ? req.user.district._id.toString() : (req.user.district ? req.user.district.toString() : null);
+      const mandalDistrictId = mandal.district?._id ? mandal.district._id.toString() : (mandal.district ? mandal.district.toString() : null);
+      if (mandalDistrictId !== userDistrictId) {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete mandal in this district' });
+      }
+    }
+
+    // Cascading delete is not implemented, so we just delete the mandal.
+    // (Integrity check removed as per user request to bypass 'Cannot delete mandal with assigned villages' error)
+
+    await mandal.deleteOne();
+    res.json({ success: true, message: 'Mandal deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Update a mandal
+router.put('/:id', protect, authorize('admin', 'collector', 'secretariat_office'), async (req, res) => {
   try {
     const mandal = await Mandal.findById(req.params.id);
     if (!mandal) {
@@ -69,19 +104,17 @@ router.delete('/:id', protect, authorize('admin', 'collector'), async (req, res)
       const userDistrictId = req.user.district?._id ? req.user.district._id.toString() : (req.user.district ? req.user.district.toString() : null);
       const mandalDistrictId = mandal.district?._id ? mandal.district._id.toString() : (mandal.district ? mandal.district.toString() : null);
       if (mandalDistrictId !== userDistrictId) {
-        return res.status(403).json({ success: false, message: 'Not authorized to delete mandal in this district' });
+        return res.status(403).json({ success: false, message: 'Not authorized to update mandal in this district' });
       }
     }
 
-    // Check if villages are assigned to this mandal
-    const Village = require('../models/Village');
-    const villageCount = await Village.countDocuments({ mandal: req.params.id });
-    if (villageCount > 0) {
-      return res.status(400).json({ success: false, message: 'Cannot delete mandal with assigned villages' });
-    }
+    const { name, district, active } = req.body;
+    if (name) mandal.name = name.trim();
+    if (district && req.user.role !== 'collector') mandal.district = district;
+    if (typeof active === 'boolean') mandal.active = active;
 
-    await mandal.deleteOne();
-    res.json({ success: true, message: 'Mandal deleted successfully' });
+    await mandal.save();
+    res.json({ success: true, mandal });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

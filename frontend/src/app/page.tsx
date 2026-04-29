@@ -149,7 +149,7 @@ export default function HomePage() {
     // If logged in, we redirect to dashboard on mobile for better UX
     // But we use a check to ensure we don't redirect if the user purposefully came back to home
     if (!loading && user) {
-      const dashboardRole = (user.role === 'panchayat_secretary' || user.role === 'collector') ? 'admin' : user.role;
+      const dashboardRole = (user.role === 'panchayat_secretary' || (user.role === 'collector' || user.role === 'secretariat_office')) ? 'admin' : user.role;
       router.push(`/dashboard/${dashboardRole}`);
       return;
     }
@@ -227,7 +227,7 @@ export default function HomePage() {
               ) : user ? (
                 <button
                   onClick={() => {
-                    const dashboardRole = (user.role === 'panchayat_secretary' || user.role === 'collector') ? 'admin' : user.role;
+                    const dashboardRole = (user.role === 'panchayat_secretary' || (user.role === 'collector' || user.role === 'secretariat_office')) ? 'admin' : user.role;
                     router.push(`/dashboard/${dashboardRole}`);
                   }}
                   className="btn-primary"

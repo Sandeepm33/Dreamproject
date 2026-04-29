@@ -113,7 +113,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
                 </div>
                 
                 <button 
-                  onClick={() => { setShowDropdown(false); router.push(`/dashboard/${user.role === 'admin' || user.role === 'panchayat_secretary' || user.role === 'collector' ? 'admin' : user.role}/profile`); }}
+                  onClick={() => { setShowDropdown(false); router.push(`/dashboard/${user.role === 'admin' || user.role === 'panchayat_secretary' || (user.role === 'collector' || user.role === 'secretariat_office') ? 'admin' : user.role}/profile`); }}
                   style={{ 
                     width: '100%', 
                     padding: '10px 12px', 

@@ -23,7 +23,7 @@ export default function IssueCalendar() {
 
   // Check role
   useEffect(() => {
-    if (!loading && (!user || (user.role !== 'panchayat_secretary' && user.role !== 'collector' && user.role !== 'admin'))) {
+    if (!loading && (!user || (user.role !== 'panchayat_secretary' && !(user.role === 'collector' || user.role === 'secretariat_office') && user.role !== 'admin'))) {
       router.replace('/dashboard');
     }
   }, [user, loading, router]);
@@ -155,7 +155,7 @@ export default function IssueCalendar() {
       <div style={{ marginBottom: 30 }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, fontFamily: 'Poppins', color: 'var(--text-primary)' }}>📅 {t('issueCalendar')}</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 4 }}>
-          {user.role === 'collector' ? t('districtDailyTracking') : t('villageDailyTracking')}
+          {(user.role === 'collector' || user.role === 'secretariat_office') ? t('districtDailyTracking') : t('villageDailyTracking')}
         </p>
       </div>
 

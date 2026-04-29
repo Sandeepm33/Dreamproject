@@ -11,7 +11,7 @@ exports.getPosts = async (req, res) => {
       query.village = req.user.village;
     } else if (req.user && req.user.role === 'panchayat_secretary') {
       query.village = req.user.village;
-    } else if (req.user && req.user.role === 'collector') {
+    } else if (req.user && ['collector', 'secretariat_office'].includes(req.user.role)) {
       query.district = req.user.district;
     }
 
@@ -38,7 +38,7 @@ exports.createPost = async (req, res) => {
     const { title, description, imageUrl } = req.body;
     
     // Check if user is allowed to create post
-    const allowedRoles = ['collector'];
+    const allowedRoles = ['admin', 'secretariat_office'];
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -84,8 +84,9 @@ exports.deletePost = async (req, res) => {
       });
     }
     
-    // Allow deletion only by the creator or admin/collector
-    if (post.createdBy.toString() !== req.user.id && !['collector'].includes(req.user.role)) {
+    // Allow deletion only by the creator or authorized roles
+    const authorizedRoles = ['admin', 'secretariat_office'];
+    if (post.createdBy.toString() !== req.user.id && !authorizedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this post'

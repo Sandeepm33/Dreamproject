@@ -121,7 +121,7 @@ exports.getComplaints = async (req, res) => {
         conditions.push({ citizen: req.user._id });
       } else if (req.user.role === 'panchayat_secretary') {
         conditions.push({ village: req.user.village });
-      } else if (req.user.role === 'collector') {
+      } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
         // Collector sees all in their district (or all villages if intended)
         // conditions.push({ district: req.user.district }); 
       } else if (req.user.role === 'officer') {
@@ -393,7 +393,7 @@ exports.exportComplaints = async (req, res) => {
     const query = {};
     if (req.user.role === 'panchayat_secretary') {
       query.village = req.user.village;
-    } else if (req.user.role === 'collector') {
+    } else if (['collector', 'secretariat_office'].includes(req.user.role)) {
       // Collector can see all villages
     } else if (req.user.role === 'officer') {
       query.assignedTo = req.user._id;

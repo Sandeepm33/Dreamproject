@@ -95,6 +95,8 @@ export const translations = {
     noComplaints: "No complaints found",
     raiseFirstIssue: "Raise Your First Issue",
     totalComplaints: "Total: {count} complaints",
+    search: "Search",
+    saving: "Saving",
 
     // Dashboard Home
     namaste: "Namaste, {name}! 🙏",
@@ -200,6 +202,7 @@ export const translations = {
     admin: "Admin",
     panchayat_secretary: "Panchayat Secretary",
     collector: "Collector Office",
+    secretariat_office: "Secretariat Office",
     passwordsDoNotMatch: "Passwords do not match",
     passwordMinLength: "Password must be at least 6 characters",
     fullNamePlaceholder: "Your full name",
@@ -374,6 +377,7 @@ export const translations = {
     assignSecretary: "Assign Secretary",
     noVillages: "No villages added yet",
     selectDistrict: "Select District",
+    manageDistricts: "Manage Districts",
 
     // Landing Page
     digitalRevolution: "Digital Revolution in Rural India",
@@ -468,7 +472,11 @@ export const translations = {
     estimatedBudget: "Estimated Budget",
     escalationReason: "Escalation Reason",
     escalatedBy: "Escalated By",
-    reject: "Reject"
+    reject: "Reject",
+    forwarded: "Forwarded",
+    secretariatNote: "Secretariat Note",
+    addSecretariatNote: "Add secretariat note...",
+    forwardToSecretariat: "Forward to Secretariat Office"
   },
   te: {
     // Auth / Login
@@ -563,6 +571,8 @@ export const translations = {
     noComplaints: "ఎలాంటి ఫిర్యాదులు లేవు",
     raiseFirstIssue: "మీ మొదటి ఫిర్యాదు చేయండి",
     totalComplaints: "మొత్తం: {count} ఫిర్యాదులు",
+    search: "వెతకండి",
+    saving: "సేవ్ చేస్తున్నాము",
 
     // Dashboard Home
     namaste: "నమస్తే, {name}! 🙏",
@@ -667,6 +677,7 @@ export const translations = {
     officer: "అధికారి",
     panchayat_secretary: "పంచాయతీ కార్యదర్శి",
     collector: "జిల్లా కలెక్టర్ కార్యాలయం",
+    secretariat_office: "సెక్రటేరియట్ కార్యాలయం",
     passwordsDoNotMatch: "పాస్‌వర్డ్‌లు సరిపోలడం లేదు",
     passwordMinLength: "పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి",
     fullNamePlaceholder: "మీ పూర్తి పేరు",
@@ -842,6 +853,7 @@ export const translations = {
     assignSecretary: "కార్యదర్శిని నియమించండి",
     noVillages: "ఇంకా ఎలాంటి గ్రామాలు జోడించబడలేదు",
     selectDistrict: "జిల్లాను ఎంచుకోండి",
+    manageDistricts: "జిల్లాల నిర్వహణ",
 
     // Landing Page
     digitalRevolution: "గ్రామీణ భారతదేశంలో డిజిటల్ విప్లవం",
@@ -936,6 +948,10 @@ export const translations = {
     estimatedBudget: "అంచనా వ్యయం",
     escalationReason: "పై స్థాయికి పంపడానికి కారణం",
     escalatedBy: "పంపిన వారు",
-    reject: "తిరస్కరించండి"
+    reject: "తిరస్కరించండి",
+    forwarded: "పంపబడింది",
+    secretariatNote: "సెక్రటేరియట్ రిమార్కు",
+    addSecretariatNote: "సెక్రటేరియట్ నోట్ జోడించండి...",
+    forwardToSecretariat: "సెక్రటేరియట్ కార్యాలయానికి పంపండి"
   }
 };

@@ -14,6 +14,7 @@ export default function AdminDevelopments() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReq, setSelectedReq] = useState<any>(null);
   const [collectorNote, setCollectorNote] = useState('');
+  const [secretariatNote, setSecretariatNote] = useState('');
   const [updating, setUpdating] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -21,7 +22,7 @@ export default function AdminDevelopments() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && (!user || !['admin', 'collector', 'panchayat_secretary'].includes(user.role))) {
+    if (!loading && (!user || !['admin', 'collector', 'secretariat_office', 'panchayat_secretary'].includes(user.role))) {
        router.replace('/login');
     }
   }, [user, loading, router]);
@@ -55,13 +56,14 @@ export default function AdminDevelopments() {
     }
   };
 
-  const handleUpdateStatus = async (status: 'approved' | 'rejected' | 'in_progress') => {
+  const handleUpdateStatus = async (status: string) => {
     if (!selectedReq) return;
     setUpdating(true);
     try {
-      await api.updateDevelopmentStatus(selectedReq._id, { status, collectorNote });
+      await api.updateDevelopmentStatus(selectedReq._id, { status, collectorNote, secretariatNote });
       setSelectedReq(null);
       setCollectorNote('');
+      setSecretariatNote('');
       fetchRequests();
     } catch {}
     finally { setUpdating(false); }
@@ -95,13 +97,15 @@ export default function AdminDevelopments() {
       ) : (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
           {requests.map(r => (
-            <div key={r._id} className="glass-card glass-card-hover" style={{ padding: 24, cursor:'pointer' }} onClick={() => { setSelectedReq(r); setCollectorNote(r.collectorNote || ''); }}>
+            <div key={r._id} className="glass-card glass-card-hover" style={{ padding: 24, cursor:'pointer' }} onClick={() => { setSelectedReq(r); setCollectorNote(r.collectorNote || ''); setSecretariatNote(r.secretariatNote || ''); }}>
                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:16 }}>
                   <div>
                     <code style={{ fontSize:11, color:'var(--accent)', background:'rgba(245,158,11,0.1)', padding:'2px 8px', borderRadius:4 }}>{r.requestId}</code>
                     <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:4 }}>📍 {r.village?.name} · {r.district?.name}</div>
                   </div>
-                  <span className={`badge badge-${r.status==='pending'?'pending':r.status==='approved'?'resolved':'inprogress'}`}>{r.status.toUpperCase()}</span>
+                  <span className={`badge badge-${r.status==='pending'?'pending':r.status==='approved'?'resolved':r.status==='forwarded'?'pending':'inprogress'}`} style={r.status === 'forwarded' ? { backgroundColor: 'var(--accent)', color: 'var(--bg-dark)' } : {}}>
+                    {r.status === 'forwarded' ? t('forwarded').toUpperCase() : r.status.toUpperCase()}
+                  </span>
                </div>
                <h3 style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)', marginBottom:8 }}>{r.title}</h3>
                <p style={{ fontSize:13, color:'var(--text-muted)', marginBottom:20, lineClamp:3, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical' as any }}>{r.description}</p>
@@ -131,23 +135,59 @@ export default function AdminDevelopments() {
                <p style={{ fontSize:14, color:'var(--text-muted)', marginTop:8 }}>{selectedReq.description}</p>
             </div>
 
-            {['admin', 'collector'].includes(user.role) ? (
+            {['admin', 'collector', 'secretariat_office'].includes(user.role) ? (
               <>
-                <div style={{ marginBottom:20 }}>
-                   <label className="label">{t('collectorNote')}</label>
-                   <textarea value={collectorNote} onChange={e => setCollectorNote(e.target.value)} className="input-field" rows={3} placeholder={t('addPrivateNote')}/>
+                <div style={{ display: 'grid', gridTemplateColumns: user.role === 'secretariat_office' ? '1fr 1fr' : '1fr', gap: 16, marginBottom: 20 }}>
+                  <div>
+                    <label className="label">{t('collectorNote')}</label>
+                    <textarea 
+                      value={collectorNote} 
+                      onChange={e => setCollectorNote(e.target.value)} 
+                      className="input-field" 
+                      rows={3} 
+                      placeholder={t('addPrivateNote')}
+                      disabled={user.role === 'secretariat_office'}
+                    />
+                  </div>
+                  {user.role === 'secretariat_office' && (
+                    <div>
+                      <label className="label">{t('secretariatNote')}</label>
+                      <textarea 
+                        value={secretariatNote} 
+                        onChange={e => setSecretariatNote(e.target.value)} 
+                        className="input-field" 
+                        rows={3} 
+                        placeholder={t('addSecretariatNote')}
+                      />
+                    </div>
+                  )}
                 </div>
 
                  <div style={{ display:'flex', gap:12, flexWrap: 'wrap' }}>
                    <button onClick={() => handleUpdateStatus('approved')} className="btn-primary" style={{ flex:'1 1 140px' }} disabled={updating}>{t('approveProject')}</button>
                    <button onClick={() => handleUpdateStatus('in_progress')} className="btn-accent" style={{ flex:'1 1 140px' }} disabled={updating}>{t('markInProgress')}</button>
                    <button onClick={() => handleUpdateStatus('rejected')} className="btn-ghost" style={{ flex:'1 1 140px', color:'#ef4444' }} disabled={updating}>{t('reject')}</button>
+                   {user.role === 'collector' && (
+                     <button onClick={() => handleUpdateStatus('forwarded')} className="btn-ghost" style={{ flex:'1 1 140px', borderColor: 'var(--accent)', color: 'var(--accent)' }} disabled={updating}>
+                       🚀 {t('forwardToSecretariat')}
+                     </button>
+                   )}
                  </div>
               </>
-            ) : selectedReq.collectorNote && (
-              <div style={{ padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid var(--border)' }}>
-                 <label className="label">{t('collectorNote')}</label>
-                 <p style={{ fontSize:14, color:'var(--text-primary)' }}>{selectedReq.collectorNote}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {selectedReq.collectorNote && (
+                  <div style={{ padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                    <label className="label">{t('collectorNote')}</label>
+                    <p style={{ fontSize:14, color:'var(--text-primary)' }}>{selectedReq.collectorNote}</p>
+                  </div>
+                )}
+                {selectedReq.secretariatNote && (
+                  <div style={{ padding: 16, background: 'rgba(245,158,11,0.05)', borderRadius: 12, border: '1px solid var(--accent)' }}>
+                    <label className="label" style={{ color: 'var(--accent)' }}>{t('secretariatNote')}</label>
+                    <p style={{ fontSize:14, color:'var(--text-primary)' }}>{selectedReq.secretariatNote}</p>
+                  </div>
+                )}
               </div>
             )}
             

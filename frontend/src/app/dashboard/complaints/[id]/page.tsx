@@ -12,7 +12,7 @@ export default function ComplaintRedirect() {
     if (!loading && user) {
       if (user.role === 'citizen') {
         router.replace(`/dashboard/citizen/complaints/${id}`);
-      } else if (['admin', 'panchayat_secretary', 'collector'].includes(user.role)) {
+      } else if (['admin', 'panchayat_secretary', 'collector', 'secretariat_office'].includes(user.role)) {
         router.replace(`/dashboard/admin/complaints/${id}`);
       } else if (user.role === 'officer') {
         // Officers use a modal on their dashboard, so we just send them to the dashboard

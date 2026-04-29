@@ -39,7 +39,7 @@ router.put('/mark-all-read', protect, async (req, res) => {
 // @route   POST /api/notifications/clear-all
 router.post('/clear-all', protect, async (req, res) => {
   try {
-    const isSecretary = req.user.role === 'panchayat_secretary' || req.user.role === 'collector';
+    const isSecretary = req.user.role === 'panchayat_secretary' || ['collector', 'secretariat_office'].includes(req.user.role);
     
     if (isSecretary) {
       // Robust village ID detection
@@ -75,7 +75,7 @@ router.post('/:id/delete', protect, async (req, res) => {
     const notif = await Notification.findById(req.params.id);
     if (!notif) return res.status(404).json({ success: false, message: 'Notification not found' });
 
-    const isSecretary = req.user.role === 'panchayat_secretary' || req.user.role === 'collector';
+    const isSecretary = req.user.role === 'panchayat_secretary' || ['collector', 'secretariat_office'].includes(req.user.role);
     
     if (isSecretary) {
       // Robust village ID detection

@@ -35,7 +35,7 @@ export default function NotificationsPage() {
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
 
-  const isSecretary = user?.role === 'panchayat_secretary' || user?.role === 'collector';
+  const isSecretary = user?.role === 'panchayat_secretary' || (user?.role === 'collector' || user?.role === 'secretariat_office');
   const isAdmin = user?.role === 'admin' || isSecretary;
   const basePath = isAdmin ? '/dashboard/admin' : '/dashboard/citizen';
 
@@ -409,7 +409,7 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
 
   // Fetch villages if user is collector
   useEffect(() => {
-    if (user?.role === 'collector') {
+    if ((user?.role === 'collector' || user?.role === 'secretariat_office')) {
       api.getVillages().then(res => setVillages(res.villages || []));
     }
   }, [user]);
@@ -557,7 +557,7 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
                 />
               </div>
 
-              {user?.role === 'collector' && (
+              {(user?.role === 'collector' || user?.role === 'secretariat_office') && (
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 6 }}>
                     🎯 Target Village: <span style={{ color: '#ff4500' }}>*</span>

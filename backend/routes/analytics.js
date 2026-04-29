@@ -4,7 +4,7 @@ const Complaint = require('../models/Complaint');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
-router.get('/overview', protect, authorize('admin', 'panchayat_secretary', 'collector'), async (req, res) => {
+router.get('/overview', protect, authorize('admin', 'panchayat_secretary', 'collector', 'secretariat_office'), async (req, res) => {
   try {
     const { from, to } = req.query;
     const dateFilter = {};
@@ -17,7 +17,18 @@ router.get('/overview', protect, authorize('admin', 'panchayat_secretary', 'coll
       Complaint.aggregate([{ $match: query }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
       Complaint.aggregate([
         { $match: { createdAt: { $gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) } } },
-        { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, count: { $sum: 1 }, resolved: { $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] } } } },
+        { 
+          $group: { 
+            _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, 
+            count: { $sum: 1 },
+            pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+            assigned: { $sum: { $cond: [{ $eq: ['$status', 'assigned'] }, 1, 0] } },
+            inProgress: { $sum: { $cond: [{ $eq: ['$status', 'in_progress'] }, 1, 0] } },
+            resolved: { $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] } },
+            rejected: { $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] } },
+            escalated: { $sum: { $cond: [{ $eq: ['$status', 'escalated'] }, 1, 0] } }
+          } 
+        },
         { $sort: { '_id.year': 1, '_id.month': 1 } }
       ]),
       Complaint.find(query).sort({ voteCount: -1 }).limit(5).populate('citizen', 'name village'),

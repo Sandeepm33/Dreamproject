@@ -148,20 +148,26 @@ class APIClient {
   async deletePost(id: string) { return this.request(`/posts/${id}`, { method: 'DELETE' }); }
 
   // Village & District management
-  async getDistricts() { return this.request('/districts'); }
+  async getDistricts(params?: Record<string, any>) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return this.request(`/districts${qs}`);
+  }
   async getMandals(params?: Record<string, any>) {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request(`/mandals${qs}`);
   }
   async createMandal(body: any) { return this.request('/mandals', { method: 'POST', body: JSON.stringify(body) }); }
+  async updateMandal(id: string, body: any) { return this.request(`/mandals/${id}`, { method: 'PUT', body: JSON.stringify(body) }); }
   async deleteMandal(id: string) { return this.request(`/mandals/${id}`, { method: 'DELETE' }); }
   async getVillages(params?: Record<string, any>) {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request(`/villages${qs}`);
   }
   async createVillage(body: any) { return this.request('/villages', { method: 'POST', body: JSON.stringify(body) }); }
+  async updateVillage(id: string, body: any) { return this.request(`/villages/${id}`, { method: 'PUT', body: JSON.stringify(body) }); }
   async deleteVillage(id: string) { return this.request(`/villages/${id}`, { method: 'DELETE' }); }
   async createDistrict(body: any) { return this.request('/districts', { method: 'POST', body: JSON.stringify(body) }); }
+  async updateDistrict(id: string, body: any) { return this.request(`/districts/${id}`, { method: 'PUT', body: JSON.stringify(body) }); }
   async deleteDistrict(id: string) { return this.request(`/districts/${id}`, { method: 'DELETE' }); }
   async assignVillage(userId: string, villageId: string) { return this.request(`/users/${userId}/assign-village`, { method: 'PATCH', body: JSON.stringify({ villageId }) }); }
 
@@ -175,7 +181,7 @@ class APIClient {
   // Development Requests
   async createDevelopmentRequest(body: any) { return this.request('/developments', { method: 'POST', body: JSON.stringify(body) }); }
   async getDevelopmentRequests() { return this.request('/developments'); }
-  async updateDevelopmentStatus(id: string, body: { status: string, collectorNote?: string }) { return this.request(`/developments/${id}/status`, { method: 'PUT', body: JSON.stringify(body) }); }
+  async updateDevelopmentStatus(id: string, body: { status: string, collectorNote?: string, secretariatNote?: string }) { return this.request(`/developments/${id}/status`, { method: 'PUT', body: JSON.stringify(body) }); }
   async getVillageOfficers() { return this.request('/users/village-officers'); }
 
   // AI Services
