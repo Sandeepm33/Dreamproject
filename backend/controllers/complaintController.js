@@ -1,10 +1,25 @@
 const Complaint = require('../models/Complaint');
+const User = require('../models/User');
 const Notification = require('../models/Notification');
 const fcm = require('../services/fcmService');
 
-const sendNotification = async (userId, title, message, type, complaintId) => {
+const sendNotification = async (userId, title, message, type, complaintId, data = {}) => {
   try {
+    // 1. Save to Database
     await Notification.create({ user: userId, title, message, type, complaint: complaintId });
+    
+    // 2. Fire Real Push Notification (FCM)
+    // We catch errors to ensure push failures don't break the main request flow
+    fcm.sendToUser(userId, {
+      title: title.startsWith('✅') || title.startsWith('📋') || title.startsWith('🛠️') ? title : `🔔 ${title}`,
+      body: message,
+      data: { 
+        ...data, 
+        type, 
+        complaintId: complaintId?.toString(),
+        url: data.url || `/dashboard/complaints/${complaintId}` 
+      }
+    }).catch(err => console.error('[FCM Push Error]', err.message));
   } catch (err) { console.error('Notification error:', err); }
 };
 
@@ -12,7 +27,6 @@ const sendNotification = async (userId, title, message, type, complaintId) => {
 exports.createComplaint = async (req, res) => {
   try {
     const { title, description, category, location, villageCode, media, citizenId } = req.body;
-    const User = require('../models/User');
 
     // Use citizenId if provided and user is admin/panchayat_secretary/officer
     let reportee = req.user;
@@ -46,9 +60,14 @@ exports.createComplaint = async (req, res) => {
       statusHistory: [{ status: 'pending', changedBy: req.user._id, note: 'Complaint submitted' }]
     });
 
-    await sendNotification(reportee._id, 'Complaint Submitted', `Your complaint ${complaint.complaintId} has been submitted successfully.`, 'complaint_created', complaint._id);
-    // Fire real push notification (non-blocking)
-    fcm.notifyComplaintCreated(reportee._id, complaint._id.toString(), complaint.complaintId).catch(() => { });
+    // Fire unified notification (DB + Push)
+    await sendNotification(
+      reportee._id, 
+      '✅ Complaint Submitted', 
+      `Your complaint ${complaint.complaintId} has been submitted successfully and is under review.`, 
+      'complaint_created', 
+      complaint._id
+    );
 
     // Notify Panchayat Secretary of this village
     try {
@@ -64,14 +83,14 @@ exports.createComplaint = async (req, res) => {
         console.log(`[Notification Debug] Found Secretary: ${secretary ? (secretary.name + ' [ID: ' + secretary._id + ']') : 'NOT FOUND'}`);
 
         if (secretary) {
-          const result = await fcm.sendToUser(secretary._id, {
-            title: '🆕 New Complaint Received',
-            body: `A new complaint (${complaint.complaintId}) has been filed in your village. Please review it.`,
-            data: { type: 'new_complaint', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
-          });
-          console.log(`[Notification Debug] FCM Send result to Secretary:`, result);
-
-          await sendNotification(secretary._id, 'New Complaint Received', `A new complaint ${complaint.complaintId} has been filed in your village.`, 'complaint_created', complaint._id);
+          await sendNotification(
+            secretary._id, 
+            '🆕 New Complaint Received', 
+            `A new complaint (${complaint.complaintId}) has been filed in your village. Please review it.`, 
+            'complaint_created', 
+            complaint._id,
+            { url: `/dashboard/complaints/${complaint._id}` }
+          );
         }
       }
     } catch (secErr) {
@@ -219,17 +238,15 @@ exports.updateStatus = async (req, res) => {
     }
     await complaint.save();
 
-    await sendNotification(complaint.citizen, 'Status Updated', `Your complaint ${complaint.complaintId} status changed to ${status}.`, 'status_update', complaint._id);
-    // Push: specific message for resolved status
-    if (status === 'resolved') {
-      fcm.notifyComplaintResolved(complaint.citizen, complaint._id.toString(), complaint.complaintId).catch(() => { });
-    } else {
-      fcm.sendToUser(complaint.citizen, {
-        title: '📋 Status Updated',
-        body: `Your complaint ${complaint.complaintId} status changed to ${status}.`,
-        data: { type: 'status_update', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` },
-      }).catch(() => { });
-    }
+    await sendNotification(
+      complaint.citizen, 
+      status === 'resolved' ? '🎉 Complaint Resolved' : '📋 Status Updated', 
+      status === 'resolved' 
+        ? `Your complaint ${complaint.complaintId} has been resolved. Please review and confirm.`
+        : `Your complaint ${complaint.complaintId} status changed to ${status.replace('_', ' ')}.`, 
+      'status_update', 
+      complaint._id
+    );
     const updated = await complaint.populate('citizen assignedTo');
     res.json({ success: true, complaint: updated });
   } catch (err) {
@@ -247,17 +264,23 @@ exports.assignComplaint = async (req, res) => {
     }, { new: true }).populate('citizen assignedTo');
     if (!complaint) return res.status(404).json({ success: false, message: 'Not found' });
 
-    await sendNotification(complaint.citizen._id, 'Complaint Assigned', `Your complaint ${complaint.complaintId} has been assigned to ${department}.`, 'status_update', complaint._id);
-    fcm.notifyComplaintAssigned(complaint.citizen._id, complaint._id.toString(), complaint.complaintId, department).catch(() => { });
+    await sendNotification(
+      complaint.citizen._id, 
+      '🛠️ Complaint Assigned', 
+      `Your complaint ${complaint.complaintId} has been assigned to the ${department} department.`, 
+      'status_update', 
+      complaint._id
+    );
 
     // Notify the assigned Officer
     if (officerId) {
-      await sendNotification(officerId, 'New Work Assigned', `You have been assigned to handle complaint ${complaint.complaintId}.`, 'complaint_assigned', complaint._id);
-      fcm.sendToUser(officerId, {
-        title: '🛠️ New Work Assigned',
-        body: `You have been assigned to resolve complaint ${complaint.complaintId} (${department}).`,
-        data: { type: 'complaint_assigned', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
-      }).catch(() => { });
+      await sendNotification(
+        officerId, 
+        '🛠️ New Work Assigned', 
+        `You have been assigned to resolve complaint ${complaint.complaintId} (${department}).`, 
+        'complaint_assigned', 
+        complaint._id
+      );
     }
 
     res.json({ success: true, complaint });
@@ -273,6 +296,32 @@ exports.addRemark = async (req, res) => {
     const complaint = await Complaint.findByIdAndUpdate(req.params.id, {
       $push: { remarks: { text, addedBy: req.user._id, role: req.user.role } }
     }, { new: true }).populate('remarks.addedBy', 'name role');
+
+    // Notify the complaint owner
+    if (String(req.user._id) !== String(complaint.citizen)) {
+      await sendNotification(
+        complaint.citizen, 
+        '💬 New Remark Added', 
+        `Officer/Secretary added a remark to your complaint ${complaint.complaintId}.`, 
+        'status_update', 
+        complaint._id,
+        { type: 'remark_added' }
+      );
+    }
+
+    // Also notify secretary if it was someone else
+    const secretary = await User.findOne({ village: complaint.village, role: 'panchayat_secretary' });
+    if (secretary && String(req.user._id) !== String(secretary._id)) {
+      await sendNotification(
+        secretary._id, 
+        '💬 New Remark Added', 
+        `A remark has been added to complaint ${complaint.complaintId} in your village.`, 
+        'status_update', 
+        complaint._id,
+        { type: 'remark_added' }
+      );
+    }
+
     res.json({ success: true, complaint });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -319,11 +368,6 @@ exports.escalateToCollector = async (req, res) => {
 
     // Notify citizens
     await sendNotification(complaint.citizen, 'Complaint Escalated', `Your complaint ${complaint.complaintId} has been escalated to the Collector for district-level resolution.`, 'status_update', complaint._id);
-    fcm.sendToUser(complaint.citizen, {
-      title: '🚨 Complaint Escalated',
-      body: `Your complaint ${complaint.complaintId} has been escalated to the District Collector.`,
-      data: { type: 'complaint_escalated', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
-    }).catch(() => { });
 
     // Notify the Collector of this district
     try {
@@ -331,11 +375,6 @@ exports.escalateToCollector = async (req, res) => {
       const collector = await User.findOne({ district: complaint.district, role: 'collector' });
       if (collector) {
         await sendNotification(collector._id, 'High Priority Escalation', `Complaint ${complaint.complaintId} has been escalated to your office.`, 'complaint_escalated', complaint._id);
-        fcm.sendToUser(collector._id, {
-          title: '⚠️ High Priority Escalation',
-          body: `Complaint ${complaint.complaintId} has been escalated from ${complaint.villageCode}. Needs your attention.`,
-          data: { type: 'complaint_escalated', complaintId: complaint._id.toString(), url: `/dashboard/complaints/${complaint._id}` }
-        }).catch(() => { });
       }
     } catch (collErr) {
       console.error('Failed to notify collector:', collErr);
