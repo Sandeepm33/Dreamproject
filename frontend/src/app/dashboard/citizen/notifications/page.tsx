@@ -483,7 +483,9 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
       animation: 'fadeIn 0.2s ease',
     }}>
       <div style={{
-        width: '100%', maxWidth: 560, margin: '0 20px',
+        width: '100%', maxWidth: 560, margin: '20px',
+        maxHeight: 'calc(100vh - 40px)',
+        display: 'flex', flexDirection: 'column',
         borderRadius: 24, overflow: 'hidden',
         background: 'linear-gradient(135deg, #0d1512 0%, #111816 100%)',
         border: `2px solid ${selectedTypeInfo ? selectedTypeInfo.color + '88' : 'rgba(255,69,0,0.4)'}`,
@@ -493,6 +495,7 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
         <div style={{
           padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'rgba(255,69,0,0.08)', borderBottom: '1px solid rgba(255,69,0,0.2)',
+          flexShrink: 0
         }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 800, color: '#ff6b35', fontFamily: 'Poppins' }}>
@@ -506,24 +509,24 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
         </div>
 
         {/* Step progress bar */}
-        <div style={{ height: 3, background: 'rgba(255,255,255,0.06)' }}>
+        <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }}>
           <div style={{ height: '100%', width: step === 1 ? '50%' : '100%', background: 'linear-gradient(90deg, #ff4500, #ff6b35)', transition: 'width 0.4s ease' }} />
         </div>
 
-        <div style={{ padding: '24px' }}>
+        <div className="custom-scrollbar" style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
           {/* ─── STEP 1: Choose Type + Message ─── */}
           {step === 1 && (
             <>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 14 }}>
                 Select Emergency Type:
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 20 }}>
                 {EMERGENCY_TYPES.map(type => (
                   <button
                     key={type.id}
                     onClick={() => setSelectedType(type.id)}
                     style={{
-                      padding: '14px 16px', borderRadius: 14, textAlign: 'left', cursor: 'pointer',
+                      padding: '12px 14px', borderRadius: 14, textAlign: 'left', cursor: 'pointer',
                       background: selectedType === type.id ? type.bg : 'rgba(255,255,255,0.03)',
                       border: `2px solid ${selectedType === type.id ? type.border : 'rgba(255,255,255,0.08)'}`,
                       transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10,
@@ -531,10 +534,10 @@ function EmergencyModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
                     onMouseEnter={e => { if (selectedType !== type.id) e.currentTarget.style.borderColor = type.border + '88'; }}
                     onMouseLeave={e => { if (selectedType !== type.id) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                   >
-                    <span style={{ fontSize: 26 }}>{type.emoji}</span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: selectedType === type.id ? type.color : 'var(--text-primary)' }}>{type.label}</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{type.sublabel}</div>
+                    <span style={{ fontSize: 22 }}>{type.emoji}</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: selectedType === type.id ? type.color : 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{type.label}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{type.sublabel}</div>
                     </div>
                   </button>
                 ))}

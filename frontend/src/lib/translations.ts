@@ -44,6 +44,16 @@ export const translations = {
     villageGallery: "Village Gallery",
     clickForMap: "Click here for Map",
     close: "Close",
+    issueCalendar: "Issue Calendar",
+    districtDailyTracking: "District-wide daily issue tracking",
+    villageDailyTracking: "Village daily issue tracking",
+    today: "Today",
+    issuesReceived: "Issues Received",
+    issuesResolved: "Issues Resolved",
+    issuesForDate: "Issues for {date}",
+    issuesFound: "{count} issues found",
+    noIssuesOnDay: "No issues reported on this day.",
+    reportedAt: "Reported At",
     
     // New Complaint
     raiseNewIssue: "Raise New Issue",
@@ -502,6 +512,16 @@ export const translations = {
     villageGallery: "గ్రామ చిత్రమాలిక",
     clickForMap: "మ్యాప్ కోసం ఇక్కడ క్లిక్ చేయండి",
     close: "మూసివేయి",
+    issueCalendar: "ఇష్యూ క్యాలెండర్",
+    districtDailyTracking: "జిల్లా వ్యాప్త రోజువారీ సమస్యల ట్రాకింగ్",
+    villageDailyTracking: "గ్రామ స్థాయి రోజువారీ సమస్యల ట్రాకింగ్",
+    today: "నేడు",
+    issuesReceived: "స్వీకరించిన సమస్యలు",
+    issuesResolved: "పరిష్కరించబడిన సమస్యలు",
+    issuesForDate: "{date} నాటి సమస్యలు",
+    issuesFound: "{count} సమస్యలు కనుగొనబడ్డాయి",
+    noIssuesOnDay: "ఈ రోజు ఎలాంటి సమస్యలు నివేదించబడలేదు.",
+    reportedAt: "నివేదించబడిన సమయం",
     
     // New Complaint
     raiseNewIssue: "కొత్త ఫిర్యాదు చేయండి",

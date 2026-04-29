@@ -93,46 +93,72 @@ exports.createComplaint = async (req, res) => {
 exports.getComplaints = async (req, res) => {
   try {
     const { status, category, page = 1, limit = 20, search, sortBy = 'createdAt', order = 'desc', isMine, lat, lng, radius } = req.query;
-    const query = {};
+
+
+    const conditions = [];
 
     if (req.user) {
       if (req.user.role === 'citizen' || isMine === 'true') {
-        query.citizen = req.user._id;
+        conditions.push({ citizen: req.user._id });
       } else if (req.user.role === 'panchayat_secretary') {
-        query.village = req.user.village;
+        conditions.push({ village: req.user.village });
       } else if (req.user.role === 'collector') {
-        // Collector sees all villages as per user request
-        // query.district = req.user.district; // Removed district filter to allow "see all reports of all villages"
+        // Collector sees all in their district (or all villages if intended)
+        // conditions.push({ district: req.user.district }); 
       } else if (req.user.role === 'officer') {
-        query.assignedTo = req.user._id;
+        conditions.push({ assignedTo: req.user._id });
       }
     }
 
-    if (status) query.status = status;
-    if (category) query.category = category;
+    if (status) conditions.push({ status });
+    if (category) conditions.push({ category });
 
-    // Auto-visibility: If status is 'escalated', it should be flagged for Collector attention
-    // (Already handled by district filter for Collector)
+    // Date Range Filtering (Received or Status Updated)
+    if (req.query.startDate || req.query.endDate) {
+      const start = req.query.startDate ? new Date(req.query.startDate) : null;
+      const end = req.query.endDate ? new Date(req.query.endDate) : null;
+      
+      const dateQuery = {};
+      if (start) dateQuery.$gte = start;
+      if (end) {
+        const endOfDay = new Date(end);
+        endOfDay.setHours(23, 59, 59, 999);
+        dateQuery.$lte = endOfDay;
+      }
+
+      conditions.push({
+        $or: [
+          { createdAt: dateQuery },
+          { 'statusHistory.changedAt': dateQuery }
+        ]
+      });
+    }
 
     // Geographic Filtering
     if (lat && lng) {
-      const r = parseFloat(radius) || 5; // km
+      const r = parseFloat(radius) || 5;
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
-
-      // Rough approximation: 1 degree approx 111km
       const latDelta = r / 111;
       const lngDelta = r / (111 * Math.cos(latitude * Math.PI / 180));
 
-      query['location.lat'] = { $gte: latitude - latDelta, $lte: latitude + latDelta };
-      query['location.lng'] = { $gte: longitude - lngDelta, $lte: longitude + lngDelta };
+      conditions.push({
+        'location.lat': { $gte: latitude - latDelta, $lte: latitude + latDelta },
+        'location.lng': { $gte: longitude - lngDelta, $lte: longitude + lngDelta }
+      });
     }
 
-    if (search) query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { complaintId: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } }
-    ];
+    if (search) {
+      conditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { complaintId: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ]
+      });
+    }
+
+    const query = conditions.length > 0 ? { $and: conditions } : {};
 
     const total = await Complaint.countDocuments(query);
     const complaints = await Complaint.find(query)
