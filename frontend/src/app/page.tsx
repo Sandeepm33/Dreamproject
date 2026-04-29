@@ -167,6 +167,8 @@ export default function HomePage() {
     fetchPosts();
   }, [user, loading, router]);
 
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   return (
     <div style={{ backgroundColor: '#0a0f0d', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', fontFamily: '"Inter", sans-serif' }}>
       <PublicNavbar />
@@ -419,31 +421,33 @@ export default function HomePage() {
       <PublicFooter />
 
       {/* Floating Map Toggle Button */}
-      <button
-        onClick={() => setShowMap(!showMap)}
-        style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 32,
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          background: showMap ? '#ef4444' : 'linear-gradient(135deg, #22c55e, #14532d)',
-          border: 'none',
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          zIndex: 9999,
-          boxShadow: showMap ? '0 10px 40px rgba(239, 68, 68, 0.4)' : '0 10px 40px rgba(34, 197, 94, 0.4)',
-          transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        }}
-        className="hover-scale"
-        title={showMap ? t('close') : t('clickForMap')}
-      >
-        {showMap ? <X size={28} /> : <Globe size={28} />}
-      </button>
+      {!isChatOpen && (
+        <button
+          onClick={() => setShowMap(!showMap)}
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 32,
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: showMap ? '#ef4444' : 'linear-gradient(135deg, #22c55e, #14532d)',
+            border: 'none',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: 9999,
+            boxShadow: showMap ? '0 10px 40px rgba(239, 68, 68, 0.4)' : '0 10px 40px rgba(34, 197, 94, 0.4)',
+            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          }}
+          className="hover-scale"
+          title={showMap ? t('close') : t('clickForMap')}
+        >
+          {showMap ? <X size={28} /> : <Globe size={28} />}
+        </button>
+      )}
 
       {/* Floating Map Section / Modal */}
       {showMap && (
@@ -529,7 +533,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
-      <PanchayatSahayak />
+      <PanchayatSahayak onToggle={setIsChatOpen} />
     </div>
   );
 }

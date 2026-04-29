@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { Send, MessageSquare, X, Bot, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
 
-export const PanchayatSahayak = () => {
+export const PanchayatSahayak = ({ onToggle }: { onToggle?: (isOpen: boolean) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
@@ -13,6 +13,11 @@ export const PanchayatSahayak = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const toggleOpen = (val: boolean) => {
+    setIsOpen(val);
+    if (onToggle) onToggle(val);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -48,7 +53,7 @@ export const PanchayatSahayak = () => {
   if (!isOpen) {
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => toggleOpen(true)}
         className="fixed bottom-32 right-8 w-16 h-16 bg-gradient-to-br from-[#22c55e] to-[#14532d] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 group"
       >
         <Bot className="w-8 h-8 group-hover:rotate-12 transition-transform" />
@@ -83,7 +88,7 @@ export const PanchayatSahayak = () => {
           <button onClick={() => setIsMinimized(!isMinimized)} className="p-1 hover:bg-white/10 rounded-md transition-colors">
             {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
           </button>
-          <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-md transition-colors">
+          <button onClick={() => toggleOpen(false)} className="p-1 hover:bg-white/10 rounded-md transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
