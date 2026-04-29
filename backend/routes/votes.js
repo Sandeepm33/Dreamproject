@@ -50,6 +50,20 @@ router.post('/:complaintId', protect, async (req, res) => {
             const notifyUsers = [complaint.citizen.toString()];
             if (secretary) notifyUsers.push(secretary._id.toString());
 
+            // 1. Save to Database
+            const title = `🗳️ Voting Milestone – ${crossed}%`;
+            const message = `Complaint ${complaint.complaintId} has reached ${crossed}% community support. It may be escalated soon.`;
+            
+            const notifications = notifyUsers.map(uId => ({
+              user: uId,
+              title,
+              message,
+              type: 'vote',
+              complaint: complaint._id
+            }));
+            await Notification.insertMany(notifications).catch(() => {});
+
+            // 2. Fire Push Notifications (FCM)
             fcm.notifyVotingThreshold(notifyUsers, complaint._id.toString(), complaint.complaintId, crossed).catch(() => {});
           }
         }

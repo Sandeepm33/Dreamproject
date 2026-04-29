@@ -1,6 +1,7 @@
 const Complaint = require('../models/Complaint');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const fcm = require('../services/fcmService');
 
 // GET /api/admin/dashboard
 exports.getDashboard = async (req, res) => {
@@ -274,8 +275,20 @@ exports.broadcastNotification = async (req, res) => {
     }
 
     const users = await User.find(query).select('_id');
-    const notifications = users.map(u => ({ user: u._id, title, message, type: 'general', imageUrl, audioUrl }));
+    const userIds = users.map(u => u._id);
+
+    // 1. Save to Database
+    const notifications = userIds.map(uId => ({ user: uId, title, message, type: 'general', imageUrl, audioUrl }));
     await Notification.insertMany(notifications);
+
+    // 2. Fire Push Notifications (FCM)
+    fcm.sendToUsers(userIds, {
+      title: `📢 ${title}`,
+      body: message,
+      imageUrl,
+      data: { type: 'broadcast', url: '/dashboard/citizen/notifications' }
+    }).catch(err => console.error('[Broadcast FCM Error]', err));
+
     res.json({ success: true, message: `Sent to ${users.length} users` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

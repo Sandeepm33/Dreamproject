@@ -1,9 +1,17 @@
 const DevelopmentRequest = require('../models/DevelopmentRequest');
 const Notification = require('../models/Notification');
+const fcm = require('../services/fcmService');
 
 const sendNotification = async (userId, title, message, type, requestId) => {
   try {
     await Notification.create({ user: userId, title, message, type, developmentRequest: requestId });
+    
+    // Fire real push notification (non-blocking)
+    fcm.sendToUser(userId, {
+      title: `🏗️ ${title}`,
+      body: message,
+      data: { type: 'development_update', requestId: requestId.toString(), url: '/dashboard/citizen/developments' }
+    }).catch(() => { });
   } catch (err) { console.error('Notification error:', err); }
 };
 

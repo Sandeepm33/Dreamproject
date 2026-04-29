@@ -3,6 +3,7 @@ const router = express.Router();
 const EmergencyAlert = require('../models/EmergencyAlert');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const fcm = require('../services/fcmService');
 const { protect, authorize } = require('../middleware/auth');
 
 // Helper: safely extract ObjectId from a populated field or raw id
@@ -53,9 +54,12 @@ router.post('/', protect, authorize('panchayat_secretary', 'collector'), async (
       ]
     }).select('_id').lean();
 
-    if (usersInVillage.length > 0) {
-      const notifications = usersInVillage.map(u => ({
-        user: u._id,
+    const userIds = usersInVillage.map(u => u._id);
+
+    if (userIds.length > 0) {
+      // 1. Save to Database
+      const notifications = userIds.map(uId => ({
+        user: uId,
         type: 'EMERGENCY',
         title: `🚨 EMERGENCY: ${type}`,
         message: message,
@@ -63,6 +67,13 @@ router.post('/', protect, authorize('panchayat_secretary', 'collector'), async (
       }));
 
       await Notification.insertMany(notifications, { ordered: false });
+
+      // 2. Fire Push Notifications (FCM)
+      fcm.sendToUsers(userIds, {
+        title: `🚨 EMERGENCY: ${type}`,
+        body: message,
+        data: { type: 'EMERGENCY', alertId: alert._id.toString(), url: '/dashboard/citizen/notifications' }
+      }).catch(err => console.error('[Emergency FCM Error]', err));
     }
 
     // Simulate SMS / external API calls to emergency services
