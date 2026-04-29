@@ -72,9 +72,13 @@ async function sendToTokens(tokens, payload) {
     webpush: {
       fcmOptions: { link: data.url || '/' },
       notification: {
+        title,
+        body,
         icon: '/icon-192x192.png',
         badge: '/icon-72x72.png',
         ...(imageUrl && { image: imageUrl }),
+        // Standard Web Push click action
+        clickAction: data.url || '/',
       },
     },
     android: {

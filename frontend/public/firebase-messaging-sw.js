@@ -29,21 +29,28 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Background message received:', payload);
 
-  const { title = 'SGPIMS Notification', body = '' } = payload.notification || {};
+  // IF the payload already has a notification object, the browser handles 
+  // displaying it automatically based on the 'notification' and 'webpush' 
+  // fields in the FCM message. Calling showNotification() here would 
+  // cause a second, duplicate notification to appear.
+  if (payload.notification) {
+    console.log('[SW] Browser handling notification automatically.');
+    return;
+  }
+
+  const { title = 'SGPIMS Notification', body = '' } = payload.data || {};
   const data = payload.data || {};
 
   const notificationOptions = {
     body,
     icon: '/icon-192x192.png',
     badge: '/icon-72x72.png',
-    image: payload.notification?.image,
+    image: data.image || data.imageUrl,
     data: {
       url: data.url || data.clickAction || '/',
       ...data,
     },
-    // Vibration pattern for mobile
     vibrate: [200, 100, 200],
-    // Keep notification until user interacts
     requireInteraction: false,
   };
 
