@@ -47,8 +47,22 @@ export function FcmProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastIdCounter = useRef(0);
+  const lastReceivedRef = useRef<{ title: string; body: string; time: number } | null>(null);
 
   const addToast = useCallback((title: string, body: string, data?: Record<string, string>) => {
+    // Deduplication check: Ignore identical notifications within 2 seconds
+    const now = Date.now();
+    if (
+      lastReceivedRef.current &&
+      lastReceivedRef.current.title === title &&
+      lastReceivedRef.current.body === body &&
+      now - lastReceivedRef.current.time < 2000
+    ) {
+      console.log('🚫 FCM Duplicate toast blocked:', { title, body });
+      return;
+    }
+    lastReceivedRef.current = { title, body, time: now };
+
     console.log('📬 FCM Notification Received:', { title, body, data });
     
     // BROADCAST an event so dashboards can auto-refresh their data

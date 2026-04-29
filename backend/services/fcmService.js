@@ -8,6 +8,10 @@
 const FcmToken = require('../models/FcmToken');
 const { getFirebaseAdmin } = require('../config/firebase-admin');
 
+// Lightweight in-memory cache to prevent identical pushes to the same user within 2 seconds
+const sentHistory = new Map();
+const COOLDOWN_MS = 2000;
+
 /* ─────────────────────────────────────────────────────────────
    Helpers
 ───────────────────────────────────────────────────────────── */
@@ -130,15 +134,39 @@ async function sendToTokens(tokens, payload) {
  */
 async function sendToUser(userId, payload) {
   try {
+    const { title, body } = payload;
+    const uId = String(userId);
+    const dedupeKey = `${uId}:${title}:${body}`;
+
+    // Cooldown check
+    const lastSent = sentHistory.get(dedupeKey);
+    if (lastSent && Date.now() - lastSent < COOLDOWN_MS) {
+      console.log(`[FCM] Blocking duplicate push to ${uId} (Cooldown active)`);
+      return { successCount: 0, failureCount: 0 };
+    }
+    sentHistory.set(dedupeKey, Date.now());
+
+    // Clean up cache periodically (roughly 1 in 100 calls)
+    if (Math.random() < 0.01) {
+      const now = Date.now();
+      for (const [key, timestamp] of sentHistory.entries()) {
+        if (now - timestamp > COOLDOWN_MS * 5) sentHistory.delete(key);
+      }
+    }
+
     const tokenDocs = await FcmToken.find({ user: userId, isActive: true });
     if (tokenDocs.length === 0) return { successCount: 0, failureCount: 0 };
+
+    // Deduplicate tokens by string value
+    const tokens = [...new Set(tokenDocs.map(d => d.token))];
+    
+    console.log(`[FCM] Sending to user ${uId}. Found ${tokenDocs.length} tokens, ${tokens.length} unique.`);
 
     await FcmToken.updateMany(
       { user: userId, isActive: true },
       { lastUsed: new Date() }
     );
 
-    const tokens = tokenDocs.map(d => d.token);
     return sendToTokens(tokens, payload);
   } catch (err) {
     console.error('[FCM] sendToUser error:', err.message);
@@ -162,7 +190,8 @@ async function sendToUsers(userIds, payload) {
 
     if (tokenDocs.length === 0) return { successCount: 0, failureCount: 0 };
 
-    const tokens = tokenDocs.map(d => d.token);
+    const tokens = [...new Set(tokenDocs.map(d => d.token))];
+    console.log(`[FCM] Broadcasting to ${userIds.length} users. Found ${tokenDocs.length} tokens, ${tokens.length} unique.`);
 
     // FCM multicast max 500 per call — chunk if needed
     const CHUNK_SIZE = 500;
@@ -192,7 +221,8 @@ async function broadcastToAll(payload) {
     const tokenDocs = await FcmToken.find({ isActive: true });
     if (tokenDocs.length === 0) return { successCount: 0, failureCount: 0 };
 
-    const tokens = tokenDocs.map(d => d.token);
+    const tokens = [...new Set(tokenDocs.map(d => d.token))];
+    console.log(`[FCM] Broadcasting to ALL users. Found ${tokenDocs.length} tokens, ${tokens.length} unique.`);
     const CHUNK_SIZE = 500;
     let totalSuccess = 0;
     let totalFailure = 0;
