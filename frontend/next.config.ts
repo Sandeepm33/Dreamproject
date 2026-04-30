@@ -14,6 +14,40 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/dashboard/secretariat_office/:path*',
+        destination: '/dashboard/admin/:path*',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/collector/:path*',
+        destination: '/dashboard/admin/:path*',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/panchayat_secretary/:path*',
+        destination: '/dashboard/admin/:path*',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/secretariat_office',
+        destination: '/dashboard/admin',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/collector',
+        destination: '/dashboard/admin',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/panchayat_secretary',
+        destination: '/dashboard/admin',
+        permanent: false,
+      }
+    ];
+  },
 };
 
 export default nextConfig;

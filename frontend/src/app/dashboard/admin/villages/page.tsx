@@ -16,6 +16,7 @@ export default function ManageVillagesPage() {
   const [mandals, setMandals] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [view, setView] = useState<'villages' | 'mandals' | 'districts'>(initialView);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
   const [selectedMandal, setSelectedMandal] = useState<string>('');
   const [dataLoading, setDataLoading] = useState(true);
   const [newVillageModal, setNewVillageModal] = useState(false);
@@ -35,13 +36,17 @@ export default function ManageVillagesPage() {
     }
   }, [user, loading, router]);
 
-  const fetchVillages = useCallback(async (mandalId?: string, search?: string) => {
+  const fetchVillages = useCallback(async (districtIdFilter?: string, mandalIdFilter?: string, search?: string) => {
     if (!user) return;
     setDataLoading(true);
     try {
-      const districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
-      const params: any = (districtId && user.role === 'collector') ? { district: districtId } : {};
-      if (mandalId) params.mandal = mandalId;
+      let districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
+      if (['admin', 'secretariat_office'].includes(user.role) && districtIdFilter) {
+        districtId = districtIdFilter;
+      }
+      const params: any = {};
+      if (districtId) params.district = districtId;
+      if (mandalIdFilter) params.mandal = mandalIdFilter;
       if (search) params.search = search;
       const res = await api.getVillages(params);
       setVillages(res.villages || []);
@@ -52,11 +57,15 @@ export default function ManageVillagesPage() {
     }
   }, [user]);
 
-  const fetchMandals = useCallback(async (search?: string) => {
+  const fetchMandals = useCallback(async (districtIdFilter?: string, search?: string) => {
     if (!user) return;
     try {
-      const districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
-      const params: any = (districtId && user.role === 'collector') ? { district: districtId } : {};
+      let districtId = typeof (user as any).district === 'object' ? (user as any).district?._id : (user as any).district;
+      if (['admin', 'secretariat_office'].includes(user.role) && districtIdFilter) {
+        districtId = districtIdFilter;
+      }
+      const params: any = {};
+      if (districtId) params.district = districtId;
       if (search) params.search = search;
       const res = await api.getMandals(params);
       setMandals(res.mandals || []);
@@ -77,13 +86,13 @@ export default function ManageVillagesPage() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (view === 'villages') fetchVillages(selectedMandal, searchQuery);
-      if (view === 'mandals' || view === 'villages') fetchMandals(searchQuery);
+      if (view === 'villages') fetchVillages(selectedDistrict, selectedMandal, searchQuery);
+      if (view === 'mandals' || view === 'villages') fetchMandals(selectedDistrict, searchQuery);
       if (view === 'districts' || view === 'mandals' || view === 'villages') fetchDistricts(searchQuery);
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [fetchVillages, fetchMandals, fetchDistricts, selectedMandal, view, searchQuery]);
+  }, [fetchVillages, fetchMandals, fetchDistricts, selectedDistrict, selectedMandal, view, searchQuery]);
 
   const handleSaveMandal = async () => {
     if (!user || !mandalForm.name || (['admin', 'secretariat_office'].includes(user.role) && !mandalForm.district)) {
@@ -124,7 +133,7 @@ export default function ManageVillagesPage() {
       setNewVillageModal(false);
       setEditingId(null);
       setVillageForm({ name: '', villageCode: '', mandal: '', district: '' });
-      fetchVillages(selectedMandal);
+      fetchVillages(selectedDistrict, selectedMandal);
     } catch (err: any) {
       setError(err.message || 'Failed to save village');
     } finally {
@@ -157,6 +166,23 @@ export default function ManageVillagesPage() {
                 style={{ paddingLeft: 35, paddingRight: 12, margin: 0 }}
               />
             </div>
+            {(user.role === 'admin' || user.role === 'secretariat_office') && (view === 'mandals' || view === 'villages') && (
+              <select 
+                value={selectedDistrict} 
+                onChange={e => {
+                  setSelectedDistrict(e.target.value);
+                  setSelectedMandal(''); // Reset mandal when district changes
+                }} 
+                className="input-field" 
+                style={{ width: '200px', padding: '8px 12px' }}
+              >
+                <option value="">{t('allDistricts') || 'All Districts'}</option>
+                {districts.map((d: any) => (
+                  <option key={d._id} value={d._id}>{d.name}</option>
+                ))}
+              </select>
+            )}
+
             {view === 'villages' && (
               <select 
                 value={selectedMandal} 
@@ -342,6 +368,7 @@ export default function ManageVillagesPage() {
                 <tr key={m._id}>
                   <td 
                     onClick={() => {
+                      if (m.district && (m.district._id || m.district)) setSelectedDistrict(m.district._id || m.district);
                       setSelectedMandal(m._id);
                       setView('villages');
                     }}
