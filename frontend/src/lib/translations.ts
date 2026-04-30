@@ -368,6 +368,7 @@ export const translations = {
     districtName: "District Name",
     mandalName: "Mandal Name",
     allMandals: "All Mandals",
+    allDistricts: "All Districts",
     addMandal: "Add Mandal",
     addDistrict: "Add District",
     createdOn: "Created On",
@@ -950,6 +951,7 @@ export const translations = {
     forwarded: "పంపబడింది",
     secretariatNote: "సెక్రటేరియట్ రిమార్కు",
     addSecretariatNote: "సెక్రటేరియట్ నోట్ జోడించండి...",
-    forwardToSecretariat: "సెక్రటేరియట్ కార్యాలయానికి పంపండి"
+    forwardToSecretariat: "సెక్రటేరియట్ కార్యాలయానికి పంపండి",
+    allDistricts: "అన్ని జిల్లాలు"
   }
 };
