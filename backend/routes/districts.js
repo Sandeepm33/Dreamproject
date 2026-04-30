@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     const query = { active: true };
     if (search) query.name = { $regex: search, $options: 'i' };
 
-    const districts = await District.find(query);
+    const districts = await District.find(query).sort({ name: 1 });
     res.json({ success: true, districts });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
